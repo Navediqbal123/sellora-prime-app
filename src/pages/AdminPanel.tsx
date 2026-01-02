@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, SellerProfile, Product } from '@/lib/supabase';
-import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { 
   Users, 
@@ -11,12 +10,16 @@ import {
   MousePointer,
   ArrowLeft,
   Loader2,
-  Calendar,
   Phone,
   MapPin,
   Mail,
-  X
+  Building,
+  Calendar
 } from 'lucide-react';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import StatsCard from '@/components/admin/StatsCard';
+import SellerCard from '@/components/admin/SellerCard';
+import AnimatedTable from '@/components/admin/AnimatedTable';
 
 interface AdminStats {
   totalUsers: number;
@@ -41,6 +44,7 @@ interface ClickLog {
 
 const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalSellers: 0,
@@ -48,7 +52,7 @@ const AdminPanel = () => {
     totalSearches: 0,
     totalViews: 0
   });
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [sellers, setSellers] = useState<SellerProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchLogs, setSearchLogs] = useState<SearchLog[]>([]);
@@ -60,10 +64,16 @@ const AdminPanel = () => {
     fetchStats();
   }, []);
 
+  useEffect(() => {
+    if (activeSection === 'sellers') fetchSellers();
+    if (activeSection === 'products') fetchProducts();
+    if (activeSection === 'searches') fetchSearchLogs();
+    if (activeSection === 'clicks') fetchClickLogs();
+  }, [activeSection]);
+
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // Fetch counts
       const [sellersRes, productsRes, searchesRes] = await Promise.all([
         supabase.from('sellers').select('id', { count: 'exact', head: true }),
         supabase.from('products').select('id, views', { count: 'exact' }),
@@ -73,7 +83,7 @@ const AdminPanel = () => {
       const totalViews = productsRes.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
 
       setStats({
-        totalUsers: sellersRes.count || 0, // Approximation
+        totalUsers: sellersRes.count || 0,
         totalSellers: sellersRes.count || 0,
         totalProducts: productsRes.count || 0,
         totalSearches: searchesRes.count || 0,
@@ -97,10 +107,7 @@ const AdminPanel = () => {
   const fetchProducts = async () => {
     const { data } = await supabase
       .from('products')
-      .select(`
-        *,
-        seller:sellers(shop_name, owner_name)
-      `)
+      .select(`*, seller:sellers(shop_name, owner_name)`)
       .order('created_at', { ascending: false });
     setProducts(data || []);
   };
@@ -117,10 +124,7 @@ const AdminPanel = () => {
   const fetchClickLogs = async () => {
     const { data } = await supabase
       .from('click_logs')
-      .select(`
-        *,
-        product:products(title, seller_id)
-      `)
+      .select(`*, product:products(title, seller_id)`)
       .order('created_at', { ascending: false })
       .limit(100);
     setClickLogs(data || []);
@@ -135,325 +139,303 @@ const AdminPanel = () => {
     setSellerProducts(data || []);
   };
 
-  const handleSectionClick = async (section: string) => {
-    setActiveSection(section);
-    setSelectedSeller(null);
-
-    switch (section) {
-      case 'sellers':
-        await fetchSellers();
-        break;
-      case 'products':
-        await fetchProducts();
-        break;
-      case 'searches':
-        await fetchSearchLogs();
-        break;
-      case 'clicks':
-        await fetchClickLogs();
-        break;
-    }
-  };
-
   const handleSellerClick = async (seller: SellerProfile) => {
     setSelectedSeller(seller);
     await fetchSellerProducts(seller.id);
   };
 
   const statCards = [
-    { id: 'users', label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'primary' },
-    { id: 'sellers', label: 'Total Sellers', value: stats.totalSellers, icon: Store, color: 'accent' },
-    { id: 'products', label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'sellora-gold' },
-    { id: 'searches', label: 'Total Searches', value: stats.totalSearches, icon: Search, color: 'sellora-warning' },
-    { id: 'clicks', label: 'Total Views', value: stats.totalViews, icon: Eye, color: 'sellora-success' }
+    { id: 'users', label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'primary' as const },
+    { id: 'sellers', label: 'Total Sellers', value: stats.totalSellers, icon: Store, color: 'accent' as const },
+    { id: 'products', label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'gold' as const },
+    { id: 'searches', label: 'Total Searches', value: stats.totalSearches, icon: Search, color: 'warning' as const },
+    { id: 'clicks', label: 'Total Views', value: stats.totalViews, icon: Eye, color: 'success' as const }
+  ];
+
+  const productColumns = [
+    { key: 'title', label: 'Product', render: (val: string) => <span className="font-medium text-foreground">{val}</span> },
+    { key: 'seller', label: 'Seller', render: (_: any, row: any) => <span className="text-muted-foreground">{row.seller?.shop_name || 'Unknown'}</span> },
+    { key: 'price', label: 'Price', render: (val: number) => <span className="font-semibold text-sellora-gold">₹{val?.toLocaleString()}</span> },
+    { key: 'views', label: 'Views', render: (val: number) => val || 0 },
+    { key: 'clicks', label: 'Clicks', render: (val: number) => val || 0 },
+  ];
+
+  const searchColumns = [
+    { key: 'query', label: 'Search Query', render: (val: string) => (
+      <div className="flex items-center gap-3">
+        <Search className="w-4 h-4 text-muted-foreground" />
+        <span className="font-medium text-foreground">{val}</span>
+      </div>
+    )},
+    { key: 'created_at', label: 'Time', render: (val: string) => (
+      <span className="text-muted-foreground text-sm">{new Date(val).toLocaleString()}</span>
+    )},
+  ];
+
+  const clickColumns = [
+    { key: 'product', label: 'Product', render: (_: any, row: any) => (
+      <div className="flex items-center gap-3">
+        <MousePointer className="w-4 h-4 text-muted-foreground" />
+        <span className="font-medium text-foreground">{row.product?.title || 'Unknown'}</span>
+      </div>
+    )},
+    { key: 'created_at', label: 'Time', render: (val: string) => (
+      <span className="text-muted-foreground text-sm">{new Date(val).toLocaleString()}</span>
+    )},
   ];
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading admin panel...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in-up">
-          {activeSection ? (
-            <button
-              onClick={() => {
-                setActiveSection(null);
-                setSelectedSeller(null);
-              }}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back to Dashboard
-            </button>
-          ) : null}
-          <h1 className="text-3xl font-bold text-foreground">
-            Admin <span className="text-gradient">Panel</span>
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage your platform</p>
-        </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <AdminSidebar 
+        activeSection={activeSection}
+        onSectionChange={(section) => {
+          setActiveSection(section);
+          setSelectedSeller(null);
+        }}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+      />
 
-        {/* Main Dashboard */}
-        {!activeSection && (
-          <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-              {statCards.map((card, index) => (
-                <div
-                  key={card.id}
-                  className="stat-card animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => handleSectionClick(card.id)}
-                >
-                  <div className={`w-12 h-12 rounded-xl bg-${card.color}/10 flex items-center justify-center mb-3`}>
-                    <card.icon className={`w-6 h-6 text-${card.color}`} />
+      {/* Main Content */}
+      <main 
+        className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}
+      >
+        <div className="p-8">
+          {/* Dashboard */}
+          {activeSection === 'dashboard' && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Admin <span className="text-gradient">Dashboard</span>
+                </h1>
+                <p className="text-muted-foreground">Overview of your platform</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {statCards.map((card, index) => (
+                  <StatsCard
+                    key={card.id}
+                    label={card.label}
+                    value={card.value}
+                    icon={card.icon}
+                    color={card.color}
+                    onClick={() => setActiveSection(card.id === 'users' ? 'sellers' : card.id === 'clicks' ? 'clicks' : card.id)}
+                    delay={index * 0.1}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sellers List */}
+          {activeSection === 'sellers' && !selectedSeller && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  All <span className="text-gradient">Sellers</span>
+                </h1>
+                <p className="text-muted-foreground">{sellers.length} registered sellers</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {sellers.map((seller, index) => (
+                  <SellerCard
+                    key={seller.id}
+                    seller={seller}
+                    onClick={() => handleSellerClick(seller)}
+                    delay={index * 0.05}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Seller Detail */}
+          {selectedSeller && (
+            <div className="animate-slide-in-right">
+              <button
+                onClick={() => setSelectedSeller(null)}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 
+                          transition-colors group"
+              >
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                Back to Sellers
+              </button>
+
+              {/* Seller Info Card */}
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-card to-card/50 
+                             border border-border/50 mb-8 animate-fade-in-up">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
+                  <div>
+                    <h2 className="text-3xl font-bold text-foreground mb-2">{selectedSeller.shop_name}</h2>
+                    <p className="text-xl text-muted-foreground">{selectedSeller.owner_name}</p>
                   </div>
-                  <p className="text-muted-foreground text-sm">{card.label}</p>
-                  <p className="text-3xl font-bold text-foreground mt-1">{card.value}</p>
+                  <div className="flex gap-4">
+                    <div className="px-6 py-4 rounded-xl bg-primary/10 text-center">
+                      <p className="text-3xl font-bold text-primary">{sellerProducts.length}</p>
+                      <p className="text-sm text-muted-foreground">Products</p>
+                    </div>
+                    <div className="px-6 py-4 rounded-xl bg-accent/10 text-center">
+                      <p className="text-3xl font-bold text-accent">
+                        {sellerProducts.reduce((sum, p) => sum + (p.views || 0), 0)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Views</p>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Quick Actions */}
-            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in-up stagger-2">
-              {[
-                { id: 'sellers', label: 'Sellers', icon: Store },
-                { id: 'products', label: 'Products', icon: Package },
-                { id: 'searches', label: 'Searches', icon: Search },
-                { id: 'clicks', label: 'Views/Clicks', icon: MousePointer }
-              ].map(action => (
-                <Button
-                  key={action.id}
-                  variant="secondary"
-                  className="h-24 flex-col gap-2"
-                  onClick={() => handleSectionClick(action.id)}
-                >
-                  <action.icon className="w-6 h-6" />
-                  <span>{action.label}</span>
-                </Button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Sellers Section */}
-        {activeSection === 'sellers' && !selectedSeller && (
-          <div className="animate-fade-in-up">
-            <h2 className="text-xl font-semibold mb-4">All Sellers ({sellers.length})</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sellers.map((seller, index) => (
-                <div
-                  key={seller.id}
-                  onClick={() => handleSellerClick(seller)}
-                  className="card-premium p-4 cursor-pointer animate-fade-in"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex items-start justify-between">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-primary" />
                     <div>
-                      <h3 className="font-semibold text-foreground">{seller.shop_name}</h3>
-                      <p className="text-sm text-muted-foreground">{seller.owner_name}</p>
+                      <p className="text-xs text-muted-foreground">Phone</p>
+                      <p className="font-medium text-foreground">{selectedSeller.phone_number}</p>
                     </div>
-                    <Store className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                    <p className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" /> {seller.phone_number}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" /> {seller.city}, {seller.state}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> {new Date(seller.created_at).toLocaleDateString()}
-                    </p>
+                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-accent" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Email</p>
+                      <p className="font-medium text-foreground truncate">{selectedSeller.email}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-sellora-gold" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Location</p>
+                      <p className="font-medium text-foreground">{selectedSeller.city}, {selectedSeller.state}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                    <Building className="w-5 h-5 text-sellora-success" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Business Type</p>
+                      <p className="font-medium text-foreground">{selectedSeller.business_type}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Selected Seller Detail */}
-        {selectedSeller && (
-          <div className="animate-fade-in-up">
-            <button
-              onClick={() => setSelectedSeller(null)}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back to Sellers
-            </button>
-
-            <div className="card-premium p-6 mb-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{selectedSeller.shop_name}</h2>
-                  <p className="text-muted-foreground">{selectedSeller.owner_name}</p>
+                <div className="mt-6 p-4 rounded-xl bg-secondary/50">
+                  <p className="text-xs text-muted-foreground mb-1">Full Address</p>
+                  <p className="font-medium text-foreground">
+                    {selectedSeller.address}, {selectedSeller.city}, {selectedSeller.state} - {selectedSeller.pincode}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Joined</p>
-                  <p className="font-medium">{new Date(selectedSeller.created_at).toLocaleDateString()}</p>
+
+                <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  <span>Joined on {new Date(selectedSeller.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="font-medium">{selectedSeller.phone_number}</p>
-                </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="font-medium truncate">{selectedSeller.email}</p>
-                </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-xs text-muted-foreground">Location</p>
-                  <p className="font-medium">{selectedSeller.city}, {selectedSeller.state}</p>
-                </div>
-                <div className="p-3 bg-secondary rounded-lg">
-                  <p className="text-xs text-muted-foreground">Business Type</p>
-                  <p className="font-medium">{selectedSeller.business_type}</p>
-                </div>
-              </div>
-
-              <div className="mt-4 p-3 bg-secondary rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Full Address</p>
-                <p className="font-medium">
-                  {selectedSeller.address}, {selectedSeller.city}, {selectedSeller.state} - {selectedSeller.pincode}
-                </p>
-              </div>
-            </div>
-
-            <h3 className="text-lg font-semibold mb-4">
-              Products by {selectedSeller.shop_name} ({sellerProducts.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sellerProducts.map(product => (
-                <div key={product.id} className="card-premium p-4">
-                  <h4 className="font-semibold truncate">{product.title}</h4>
-                  <p className="text-xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
-                  <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-                    <span><Eye className="w-4 h-4 inline" /> {product.views || 0}</span>
-                    <span><MousePointer className="w-4 h-4 inline" /> {product.clicks || 0}</span>
-                  </div>
-                </div>
-              ))}
-              {sellerProducts.length === 0 && (
-                <p className="col-span-full text-muted-foreground text-center py-8">No products yet</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Products Section */}
-        {activeSection === 'products' && (
-          <div className="animate-fade-in-up">
-            <h2 className="text-xl font-semibold mb-4">All Products ({products.length})</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium">Product</th>
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium">Seller</th>
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium">Price</th>
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium">Views</th>
-                    <th className="text-left py-3 px-4 text-muted-foreground font-medium">Clicks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product, index) => (
-                    <tr 
-                      key={product.id} 
-                      className="border-b border-border/50 hover:bg-secondary/50 transition-colors animate-fade-in"
-                      style={{ animationDelay: `${index * 0.03}s` }}
-                    >
-                      <td className="py-3 px-4 font-medium">{product.title}</td>
-                      <td className="py-3 px-4 text-muted-foreground">
-                        {(product.seller as any)?.shop_name || 'Unknown'}
-                      </td>
-                      <td className="py-3 px-4 text-sellora-gold font-semibold">
-                        ₹{product.price.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4">{product.views || 0}</td>
-                      <td className="py-3 px-4">{product.clicks || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Searches Section */}
-        {activeSection === 'searches' && (
-          <div className="animate-fade-in-up">
-            <h2 className="text-xl font-semibold mb-4">Search Logs ({searchLogs.length})</h2>
-            <div className="card-premium overflow-hidden">
-              {searchLogs.length > 0 ? (
-                <div className="divide-y divide-border">
-                  {searchLogs.map((log, index) => (
-                    <div 
-                      key={log.id} 
-                      className="flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors animate-fade-in"
-                      style={{ animationDelay: `${index * 0.03}s` }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Search className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">{log.query}</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(log.created_at).toLocaleString()}
+              {/* Seller Products */}
+              <h3 className="text-xl font-semibold mb-4 text-foreground">
+                Products ({sellerProducts.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sellerProducts.map((product, index) => (
+                  <div 
+                    key={product.id} 
+                    className="p-5 rounded-xl bg-gradient-to-br from-card to-card/50 
+                              border border-border/50 animate-fade-in-up
+                              hover:border-primary/30 transition-all duration-300"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <h4 className="font-semibold text-foreground truncate">{product.title}</h4>
+                    <p className="text-2xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
+                    <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" /> {product.views || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MousePointer className="w-4 h-4" /> {product.clicks || 0}
                       </span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-8 text-muted-foreground">No search logs yet</p>
-              )}
+                  </div>
+                ))}
+                {sellerProducts.length === 0 && (
+                  <p className="col-span-full text-center py-12 text-muted-foreground">
+                    No products uploaded yet
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Clicks Section */}
-        {activeSection === 'clicks' && (
-          <div className="animate-fade-in-up">
-            <h2 className="text-xl font-semibold mb-4">Click Logs ({clickLogs.length})</h2>
-            <div className="card-premium overflow-hidden">
-              {clickLogs.length > 0 ? (
-                <div className="divide-y divide-border">
-                  {clickLogs.map((log, index) => (
-                    <div 
-                      key={log.id} 
-                      className="flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors animate-fade-in"
-                      style={{ animationDelay: `${index * 0.03}s` }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <MousePointer className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">
-                          {(log.product as any)?.title || 'Unknown Product'}
-                        </span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(log.created_at).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-8 text-muted-foreground">No click logs yet</p>
-              )}
+          {/* Products */}
+          {activeSection === 'products' && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  All <span className="text-gradient">Products</span>
+                </h1>
+                <p className="text-muted-foreground">{products.length} products listed</p>
+              </div>
+
+              <AnimatedTable columns={productColumns} data={products} />
             </div>
-          </div>
-        )}
-      </div>
-    </Layout>
+          )}
+
+          {/* Searches */}
+          {activeSection === 'searches' && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Search <span className="text-gradient">Logs</span>
+                </h1>
+                <p className="text-muted-foreground">{searchLogs.length} recent searches</p>
+              </div>
+
+              <AnimatedTable columns={searchColumns} data={searchLogs} />
+            </div>
+          )}
+
+          {/* Clicks */}
+          {activeSection === 'clicks' && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Views & <span className="text-gradient">Clicks</span>
+                </h1>
+                <p className="text-muted-foreground">{clickLogs.length} recent interactions</p>
+              </div>
+
+              <AnimatedTable columns={clickColumns} data={clickLogs} />
+            </div>
+          )}
+
+          {/* Users (placeholder) */}
+          {activeSection === 'users' && (
+            <div className="animate-slide-in-right">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  All <span className="text-gradient">Users</span>
+                </h1>
+                <p className="text-muted-foreground">User management coming soon</p>
+              </div>
+
+              <div className="p-12 rounded-2xl bg-gradient-to-br from-card to-card/50 
+                             border border-border/50 text-center">
+                <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
+                <p className="text-muted-foreground">User management will be available soon</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 };
 
