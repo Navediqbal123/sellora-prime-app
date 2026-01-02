@@ -13,9 +13,12 @@ import {
   Trash2,
   Loader2,
   X,
-  ShoppingBag
+  ShoppingBag,
+  ShoppingCart
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import AnalyticsCard from '@/components/analytics/AnalyticsCard';
+import { ViewsLineChart, ClicksBarChart, CategoryDonutChart } from '@/components/analytics/AnalyticsCharts';
 
 const SellerDashboard = () => {
   const { user } = useAuth();
@@ -56,7 +59,6 @@ const SellerDashboard = () => {
 
     setLoading(true);
     try {
-      // Fetch seller profile
       const { data: sellerData, error: sellerError } = await supabase
         .from('sellers')
         .select('*')
@@ -66,7 +68,6 @@ const SellerDashboard = () => {
       if (sellerError) throw sellerError;
       setSeller(sellerData);
 
-      // Fetch seller's products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -87,7 +88,6 @@ const SellerDashboard = () => {
     
     if (!seller) return;
 
-    // Validation
     if (!productForm.title.trim() || !productForm.price || !productForm.category) {
       toast({
         title: "Validation Error",
@@ -210,7 +210,10 @@ const SellerDashboard = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          <div className="text-center animate-fade-in">
+            <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading dashboard...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -233,25 +236,29 @@ const SellerDashboard = () => {
               setEditingProduct(null);
               setShowAddProduct(true);
             }}
-            className="btn-glow mt-4 md:mt-0"
+            className="btn-glow mt-4 md:mt-0 group"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
             Add Product
           </Button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 animate-fade-in-up stagger-1">
-          {tabs.map(tab => (
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 animate-fade-in-up">
+          {tabs.map((tab, index) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+              className={`relative px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all duration-300
+                         ${activeTab === tab.id
+                           ? 'bg-primary text-primary-foreground shadow-button'
+                           : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+                         }`}
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
+              {activeTab === tab.id && (
+                <div className="absolute inset-0 rounded-xl bg-primary blur-md opacity-40 -z-10" />
+              )}
               {tab.label}
             </button>
           ))}
@@ -259,47 +266,36 @@ const SellerDashboard = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up stagger-2">
-            <div className="stat-card">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Package className="w-6 h-6 text-primary" />
-                </div>
-                <span className="text-muted-foreground">Total Products</span>
-              </div>
-              <p className="text-3xl font-bold text-foreground">{products.length}</p>
-            </div>
-
-            <div className="stat-card">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Eye className="w-6 h-6 text-accent" />
-                </div>
-                <span className="text-muted-foreground">Total Views</span>
-              </div>
-              <p className="text-3xl font-bold text-foreground">{totalViews}</p>
-            </div>
-
-            <div className="stat-card">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-sellora-gold/10 flex items-center justify-center">
-                  <MousePointer className="w-6 h-6 text-sellora-gold" />
-                </div>
-                <span className="text-muted-foreground">Total Clicks</span>
-              </div>
-              <p className="text-3xl font-bold text-foreground">{totalClicks}</p>
-            </div>
-
-            <div className="stat-card">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl bg-sellora-success/10 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-sellora-success" />
-                </div>
-                <span className="text-muted-foreground">Total Orders</span>
-              </div>
-              <p className="text-3xl font-bold text-foreground">0</p>
-              <span className="text-xs text-muted-foreground">Coming Soon</span>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+            <AnalyticsCard
+              title="Total Products"
+              value={products.length}
+              icon={Package}
+              color="primary"
+              delay={0}
+            />
+            <AnalyticsCard
+              title="Total Views"
+              value={totalViews}
+              icon={Eye}
+              color="accent"
+              delay={0.1}
+            />
+            <AnalyticsCard
+              title="Total Clicks"
+              value={totalClicks}
+              icon={MousePointer}
+              color="gold"
+              delay={0.2}
+            />
+            <AnalyticsCard
+              title="Orders"
+              value={0}
+              icon={ShoppingCart}
+              color="success"
+              suffix="(soon)"
+              delay={0.3}
+            />
           </div>
         )}
 
@@ -310,19 +306,33 @@ const SellerDashboard = () => {
               products.map((product, index) => (
                 <div 
                   key={product.id} 
-                  className="card-premium overflow-hidden"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="group overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 
+                            border border-border/50 hover:border-primary/30 
+                            transition-all duration-500 hover:shadow-glow animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="h-40 bg-secondary flex items-center justify-center">
+                  <div className="h-44 bg-secondary overflow-hidden relative">
                     {product.image_url ? (
-                      <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+                      <img 
+                        src={product.image_url} 
+                        alt={product.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      />
                     ) : (
-                      <Package className="w-12 h-12 text-muted-foreground" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-12 h-12 text-muted-foreground/50" />
+                      </div>
                     )}
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md
+                                   text-xs font-medium text-foreground border border-border/50">
+                      {product.category}
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-foreground truncate">{product.title}</h3>
-                    <p className="text-xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
+                  <div className="p-5">
+                    <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                      {product.title}
+                    </h3>
+                    <p className="text-2xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
                     <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Eye className="w-4 h-4" /> {product.views || 0}
@@ -336,26 +346,32 @@ const SellerDashboard = () => {
                         size="sm" 
                         variant="secondary"
                         onClick={() => handleEditProduct(product)}
-                        className="flex-1"
+                        className="flex-1 group/btn"
                       >
-                        <Edit2 className="w-4 h-4 mr-1" /> Edit
+                        <Edit2 className="w-4 h-4 mr-1 group-hover/btn:rotate-12 transition-transform" /> Edit
                       </Button>
                       <Button 
                         size="sm" 
                         variant="destructive"
                         onClick={() => handleDeleteProduct(product.id)}
+                        className="group/btn"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
                       </Button>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="col-span-full text-center py-16">
-                <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No products yet</h3>
-                <p className="text-muted-foreground mb-4">Start by adding your first product</p>
+              <div className="col-span-full text-center py-20 animate-fade-in">
+                <div className="relative inline-block mb-6">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 
+                                 flex items-center justify-center animate-float">
+                    <ShoppingBag className="w-12 h-12 text-muted-foreground/50" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-foreground">No products yet</h3>
+                <p className="text-muted-foreground mb-6">Start by adding your first product</p>
                 <Button onClick={() => setShowAddProduct(true)} className="btn-glow">
                   <Plus className="w-4 h-4 mr-2" /> Add Product
                 </Button>
@@ -366,54 +382,72 @@ const SellerDashboard = () => {
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
-          <div className="space-y-6 animate-fade-in-up">
-            <div className="card-premium p-6">
-              <h3 className="text-xl font-semibold mb-4">Performance Overview</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground text-sm">Views Today</p>
-                  <p className="text-2xl font-bold text-foreground">0</p>
-                </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground text-sm">Clicks Today</p>
-                  <p className="text-2xl font-bold text-foreground">0</p>
-                </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                  <p className="text-muted-foreground text-sm">Conversion Rate</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%
-                  </p>
-                </div>
-              </div>
+          <div className="space-y-8 animate-fade-in-up">
+            {/* Metric Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <AnalyticsCard title="Total Products" value={products.length} icon={Package} color="primary" delay={0} />
+              <AnalyticsCard title="Total Views" value={totalViews} icon={Eye} color="accent" delay={0.1} />
+              <AnalyticsCard title="Total Clicks" value={totalClicks} icon={MousePointer} color="gold" delay={0.2} />
+              <AnalyticsCard 
+                title="Conversion Rate" 
+                value={totalViews > 0 ? Math.round((totalClicks / totalViews) * 100) : 0} 
+                icon={TrendingUp} 
+                color="success" 
+                suffix="%" 
+                delay={0.3} 
+              />
             </div>
 
-            <div className="card-premium p-6">
-              <h3 className="text-xl font-semibold mb-4">Product Performance</h3>
-              {products.length > 0 ? (
-                <div className="space-y-3">
-                  {products.map(product => (
-                    <div key={product.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                      <span className="font-medium truncate flex-1">{product.title}</span>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span><Eye className="w-4 h-4 inline mr-1" />{product.views || 0}</span>
-                        <span><MousePointer className="w-4 h-4 inline mr-1" />{product.clicks || 0}</span>
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ViewsLineChart />
+              <ClicksBarChart />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <CategoryDonutChart />
+              
+              {/* Product Performance List */}
+              <div className="lg:col-span-2 p-6 rounded-2xl bg-gradient-to-br from-card to-card/50 
+                             border border-border/50 animate-fade-in-up stagger-3">
+                <h3 className="text-lg font-semibold mb-6 text-foreground">Product Performance</h3>
+                {products.length > 0 ? (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                    {products.map((product, index) => (
+                      <div 
+                        key={product.id} 
+                        className="flex items-center justify-between p-4 rounded-xl bg-secondary/50
+                                  hover:bg-secondary transition-colors animate-fade-in-up"
+                        style={{ animationDelay: `${index * 0.03}s` }}
+                      >
+                        <span className="font-medium truncate flex-1 text-foreground">{product.title}</span>
+                        <div className="flex items-center gap-6 text-sm">
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Eye className="w-4 h-4 text-accent" />{product.views || 0}
+                          </span>
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <MousePointer className="w-4 h-4 text-sellora-gold" />{product.clicks || 0}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">No products to analyze</p>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-12">No products to analyze</p>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* Add/Edit Product Modal */}
         {showAddProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-            <div className="card-premium w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 animate-scale-in">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-fade-in">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 rounded-2xl
+                           bg-gradient-to-br from-card to-card/50 border border-border/50 
+                           shadow-glow-lg animate-scale-in">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-foreground">
                   {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </h2>
                 <button 
@@ -422,13 +456,14 @@ const SellerDashboard = () => {
                     setEditingProduct(null);
                     resetForm();
                   }}
-                  className="p-2 text-muted-foreground hover:text-foreground"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground 
+                            hover:bg-secondary transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleAddProduct} className="space-y-4">
+              <form onSubmit={handleAddProduct} className="space-y-5">
                 <div className="input-floating">
                   <input
                     type="text"
@@ -475,9 +510,7 @@ const SellerDashboard = () => {
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
-                    <label htmlFor="category" className="text-xs text-primary -translate-y-3 scale-90">
-                      Category *
-                    </label>
+                    <label htmlFor="category">Category *</label>
                   </div>
                 </div>
 
@@ -519,21 +552,38 @@ const SellerDashboard = () => {
                 <div className="input-floating">
                   <input
                     type="url"
-                    id="image_url"
+                    id="image"
                     value={productForm.image_url}
                     onChange={(e) => setProductForm(p => ({ ...p, image_url: e.target.value }))}
                     placeholder="Image URL"
                   />
-                  <label htmlFor="image_url">Image URL (optional)</label>
+                  <label htmlFor="image">Image URL</label>
                 </div>
 
-                <Button type="submit" disabled={isSubmitting} className="w-full btn-glow h-12">
-                  {isSubmitting ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    editingProduct ? 'Update Product' : 'Add Product'
-                  )}
-                </Button>
+                <div className="flex gap-4 pt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowAddProduct(false);
+                      setEditingProduct(null);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1 btn-glow"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    {editingProduct ? 'Update Product' : 'Add Product'}
+                  </Button>
+                </div>
               </form>
             </div>
           </div>
