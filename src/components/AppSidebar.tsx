@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/lib/supabase';
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +19,6 @@ import {
   Home,
   Store,
   ShoppingBag,
-  Settings,
   User,
   LogOut,
   Sparkles,
@@ -42,8 +42,14 @@ const AppSidebar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Navigation items based on role
-  const navItems = [
+  // Navigation items based on role - STRICT role-based visibility
+  const navItems: Array<{
+    path: string;
+    label: string;
+    icon: typeof Home;
+    roles: UserRole[];
+    highlight?: boolean;
+  }> = [
     {
       path: '/',
       label: 'Home',
@@ -54,20 +60,20 @@ const AppSidebar = () => {
       path: '/become-seller',
       label: 'Start Selling on Sellora',
       icon: Sparkles,
-      roles: ['user'],
+      roles: ['user'], // ONLY visible to 'user' role
       highlight: true,
     },
     {
       path: '/seller',
       label: 'Seller Dashboard',
       icon: Store,
-      roles: ['shopkeeper'],
+      roles: ['shopkeeper'], // ONLY visible to 'shopkeeper' role
     },
     {
       path: '/admin',
       label: 'Admin Panel',
       icon: LayoutDashboard,
-      roles: ['admin'],
+      roles: ['admin'], // ONLY visible to 'admin' role
     },
     {
       path: '/profile',
@@ -77,24 +83,23 @@ const AppSidebar = () => {
     },
   ];
 
+  // Filter items based on current user role
   const visibleItems = navItems.filter(item => item.roles.includes(role));
 
   return (
     <Sidebar
-      className={`border-r border-border/50 bg-gradient-to-b from-sidebar-background to-background transition-all duration-300 ${
-        collapsed ? 'w-[70px]' : 'w-64'
-      }`}
+      className="fixed left-0 top-0 h-screen border-r border-border/50 bg-gradient-to-b from-sidebar-background to-background transition-all duration-300 z-50"
       collapsible="icon"
     >
       {/* Header */}
       <SidebarHeader className="p-4 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/10">
             <ShoppingBag className="w-5 h-5 text-primary" />
           </div>
           {!collapsed && (
             <div className="animate-fade-in">
-              <h1 className="text-lg font-bold text-gradient">Sellora</h1>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Sellora</h1>
               <p className="text-xs text-muted-foreground">Marketplace</p>
             </div>
           )}
@@ -102,12 +107,16 @@ const AppSidebar = () => {
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-4 flex-1 overflow-y-auto">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {visibleItems.map((item, index) => (
-                <SidebarMenuItem key={item.path} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                <SidebarMenuItem 
+                  key={item.path} 
+                  className="animate-fade-in" 
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.path)}
@@ -118,23 +127,23 @@ const AppSidebar = () => {
                       end={item.path === '/'}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
                         ${isActive(item.path) 
-                          ? 'bg-primary/10 text-primary shadow-[0_0_20px_rgba(139,92,246,0.2)]' 
+                          ? 'bg-primary/15 text-primary shadow-[0_0_20px_rgba(139,92,246,0.3)]' 
                           : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                         }
                         ${item.highlight && !isActive(item.path) 
                           ? 'bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary/20 hover:to-accent/20' 
                           : ''
                         }`}
-                      activeClassName="bg-primary/10 text-primary"
+                      activeClassName="bg-primary/15 text-primary"
                     >
                       {/* Glow effect for active item */}
                       {isActive(item.path) && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent animate-pulse-glow" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
                       )}
                       
-                      {/* Highlight glow for special button */}
+                      {/* Highlight shimmer for special button */}
                       {item.highlight && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 animate-shimmer" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 animate-shimmer" />
                       )}
 
                       <item.icon className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 relative z-10
@@ -142,14 +151,14 @@ const AppSidebar = () => {
                       />
                       
                       {!collapsed && (
-                        <span className={`font-medium relative z-10 ${item.highlight ? 'text-gradient font-semibold' : ''}`}>
+                        <span className={`font-medium relative z-10 truncate ${item.highlight ? 'bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-semibold' : ''}`}>
                           {item.label}
                         </span>
                       )}
 
-                      {/* Active indicator */}
+                      {/* Active indicator bar */}
                       {isActive(item.path) && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-lg shadow-primary/50" />
                       )}
                     </NavLink>
                   </SidebarMenuButton>
@@ -161,7 +170,7 @@ const AppSidebar = () => {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="p-3 border-t border-border/50 mt-auto">
+      <SidebarFooter className="p-3 border-t border-border/50">
         {/* User info */}
         {!collapsed && user && (
           <div className="px-3 py-2 mb-2 rounded-lg bg-secondary/30 animate-fade-in">
@@ -175,7 +184,7 @@ const AppSidebar = () => {
           variant="ghost"
           onClick={handleSignOut}
           className={`w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300
-            ${collapsed ? 'px-3' : ''}`}
+            ${collapsed ? 'px-3 justify-center' : ''}`}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
@@ -186,7 +195,7 @@ const AppSidebar = () => {
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="w-full mt-2 justify-center text-muted-foreground hover:text-foreground"
+          className="w-full mt-2 justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/30"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4" />

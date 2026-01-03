@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Layout from "@/components/Layout";
 
 // Pages
 import AuthPage from "./pages/AuthPage";
@@ -36,40 +37,59 @@ const AuthRedirect = () => {
   return <AuthPage />;
 };
 
+// Protected layout wrapper - sidebar only shows when logged in
+const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Layout>
+      {children}
+    </Layout>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Auth */}
+      {/* Auth - NO sidebar */}
       <Route path="/auth" element={<AuthRedirect />} />
       
-      {/* Protected Routes */}
+      {/* Protected Routes - WITH sidebar via Layout */}
       <Route path="/" element={
         <ProtectedRoute>
-          <HomePage />
+          <ProtectedLayout>
+            <HomePage />
+          </ProtectedLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/profile" element={
         <ProtectedRoute>
-          <ProfilePage />
+          <ProtectedLayout>
+            <ProfilePage />
+          </ProtectedLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/become-seller" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <BecomeSellerPage />
+          <ProtectedLayout>
+            <BecomeSellerPage />
+          </ProtectedLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/seller" element={
         <ProtectedRoute allowedRoles={['shopkeeper']}>
-          <SellerDashboard />
+          <ProtectedLayout>
+            <SellerDashboard />
+          </ProtectedLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/admin" element={
         <ProtectedRoute allowedRoles={['admin']}>
-          <AdminPanel />
+          <ProtectedLayout>
+            <AdminPanel />
+          </ProtectedLayout>
         </ProtectedRoute>
       } />
       
