@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2, ShoppingBag, Sparkles, User, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+type AuthMode = 'login' | 'signup';
+
+const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
+  const [isLogin, setIsLogin] = useState(mode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -17,6 +19,10 @@ const AuthPage = () => {
   const [success, setSuccess] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsLogin(mode === 'login');
+  }, [mode]);
 
   const triggerShake = () => {
     setShake(true);
@@ -77,7 +83,7 @@ const AuthPage = () => {
           setTimeout(() => navigate('/'), 500);
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email, password, fullName);
         if (error) {
           triggerShake();
           if (error.message.includes('already registered')) {
@@ -94,17 +100,6 @@ const AuthPage = () => {
             });
           }
         } else {
-          // Save profile with full name
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from('profiles').upsert({
-              id: user.id,
-              full_name: fullName,
-              email: email,
-              updated_at: new Date().toISOString()
-            });
-          }
-          
           setSuccess(true);
           toast({
             title: "Account Created! 🎉",
@@ -264,7 +259,11 @@ const AuthPage = () => {
           </div>
           
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              const nextMode = isLogin ? 'signup' : 'login';
+              navigate(nextMode === 'login' ? '/login' : '/signup');
+              setIsLogin(nextMode === 'login');
+            }}
             className="w-full mt-4 py-3 px-4 rounded-xl border border-white/10 
                        text-foreground font-medium
                        bg-secondary/30 hover:bg-secondary/50

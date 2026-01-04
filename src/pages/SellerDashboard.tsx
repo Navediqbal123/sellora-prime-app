@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product, SellerProfile } from '@/lib/supabase';
-import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { 
+
 import { 
   Package, 
   Plus, 
@@ -20,7 +21,9 @@ import { toast } from '@/hooks/use-toast';
 import AnalyticsCard from '@/components/analytics/AnalyticsCard';
 import { ViewsLineChart, ClicksBarChart, CategoryDonutChart } from '@/components/analytics/AnalyticsCharts';
 
-const SellerDashboard = () => {
+type SellerSection = 'overview' | 'products' | 'analytics' | 'add-product';
+
+const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) => {
   const { user } = useAuth();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,6 +32,18 @@ const SellerDashboard = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (section === 'add-product') {
+      setActiveTab('products');
+      setShowAddProduct(true);
+      return;
+    }
+
+    setShowAddProduct(false);
+    setEditingProduct(null);
+    setActiveTab(section);
+  }, [section]);
 
   const [productForm, setProductForm] = useState({
     title: '',
@@ -208,20 +223,17 @@ const SellerDashboard = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center animate-fade-in">
-            <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading dashboard...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center animate-fade-in">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 animate-fade-in-up">
           <div>
@@ -588,8 +600,7 @@ const SellerDashboard = () => {
             </div>
           </div>
         )}
-      </div>
-    </Layout>
+    </div>
   );
 };
 

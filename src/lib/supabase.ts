@@ -7,13 +7,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type UserRole = 'user' | 'shopkeeper' | 'admin';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  role: UserRole;
-  created_at: string;
-}
-
 export interface SellerProfile {
   id: string;
   user_id: string;
@@ -46,4 +39,3 @@ export interface Product {
   seller?: SellerProfile;
 }
 
-export const ADMIN_EMAIL = 'navedahmad9012@gmail.com';
