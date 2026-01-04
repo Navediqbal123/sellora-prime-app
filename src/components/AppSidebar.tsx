@@ -1,32 +1,45 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/lib/supabase';
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { NavLink } from '@/components/NavLink';
 import {
   Home,
+  Sparkles,
   Store,
-  ShoppingBag,
+  LayoutDashboard,
   User,
   LogOut,
-  Sparkles,
-  LayoutDashboard,
-  ChevronLeft,
-  ChevronRight,
+  ShoppingBag,
+  Package,
+  PlusCircle,
+  BarChart3,
+  Users,
+  Search,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+type NavItem = {
+  path: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: Array<'user' | 'shopkeeper' | 'admin'>;
+  highlight?: boolean;
+};
 
 const AppSidebar = () => {
   const { role, signOut, user } = useAuth();
@@ -37,64 +50,106 @@ const AppSidebar = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/login');
   };
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Navigation items based on role - STRICT role-based visibility
-  const navItems: Array<{
-    path: string;
-    label: string;
-    icon: typeof Home;
-    roles: UserRole[];
-    highlight?: boolean;
-  }> = [
-    {
-      path: '/',
-      label: 'Home',
-      icon: Home,
-      roles: ['user', 'shopkeeper', 'admin'],
-    },
+  const coreItems: NavItem[] = [
+    { path: '/', label: 'Home', icon: Home, roles: ['user', 'shopkeeper', 'admin'] },
+    { path: '/profile', label: 'Profile', icon: User, roles: ['user', 'shopkeeper', 'admin'] },
+  ];
+
+  const userItems: NavItem[] = [
     {
       path: '/become-seller',
       label: 'Start Selling on Sellora',
       icon: Sparkles,
-      roles: ['user'], // ONLY visible to 'user' role
+      roles: ['user'],
       highlight: true,
-    },
-    {
-      path: '/seller',
-      label: 'Seller Dashboard',
-      icon: Store,
-      roles: ['shopkeeper'], // ONLY visible to 'shopkeeper' role
-    },
-    {
-      path: '/admin',
-      label: 'Admin Panel',
-      icon: LayoutDashboard,
-      roles: ['admin'], // ONLY visible to 'admin' role
-    },
-    {
-      path: '/profile',
-      label: 'Profile',
-      icon: User,
-      roles: ['user', 'shopkeeper', 'admin'],
     },
   ];
 
-  // Filter items based on current user role
-  const visibleItems = navItems.filter(item => item.roles.includes(role));
+  const sellerItems: NavItem[] = [
+    { path: '/seller', label: 'Overview', icon: Store, roles: ['shopkeeper'] },
+    { path: '/seller/add-product', label: 'Add Product', icon: PlusCircle, roles: ['shopkeeper'] },
+    { path: '/seller/products', label: 'My Products', icon: Package, roles: ['shopkeeper'] },
+    { path: '/seller/analytics', label: 'Analytics', icon: BarChart3, roles: ['shopkeeper'] },
+  ];
+
+  const adminItems: NavItem[] = [
+    { path: '/admin', label: 'Admin Panel', icon: LayoutDashboard, roles: ['admin'] },
+    { path: '/admin/users', label: 'Users', icon: Users, roles: ['admin'] },
+    { path: '/admin/sellers', label: 'Sellers', icon: Store, roles: ['admin'] },
+    { path: '/admin/products', label: 'Products', icon: Package, roles: ['admin'] },
+    { path: '/admin/searches', label: 'Searches', icon: Search, roles: ['admin'] },
+    { path: '/admin/views', label: 'Views / Clicks', icon: Eye, roles: ['admin'] },
+  ];
+
+  const visible = (item: NavItem) => item.roles.includes(role);
+
+  const renderItem = (item: NavItem, index: number) => {
+    const active = isActive(item.path);
+    const ItemIcon = item.icon;
+
+    return (
+      <SidebarMenuItem
+        key={item.path}
+        className="animate-fade-in"
+        style={{ animationDelay: `${index * 0.04}s` }}
+      >
+        <SidebarMenuButton asChild isActive={active} tooltip={collapsed ? item.label : undefined}>
+          <NavLink
+            to={item.path}
+            end={item.path === '/'}
+            className={
+              `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ` +
+              (active
+                ? 'bg-primary/15 text-primary shadow-button'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50') +
+              (item.highlight && !active
+                ? ' bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary/20 hover:to-accent/20'
+                : '')
+            }
+            activeClassName="bg-primary/15 text-primary"
+          >
+            {active && <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />}
+            {item.highlight && (
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 animate-shimmer" />
+            )}
+
+            <ItemIcon className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 relative z-10`} />
+
+            {!collapsed && (
+              <span
+                className={`font-medium relative z-10 truncate ${
+                  item.highlight ? 'bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-semibold' : ''
+                }`}
+              >
+                {item.label}
+              </span>
+            )}
+
+            {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
+  const coreVisible = coreItems.filter(visible);
+  const userVisible = userItems.filter(visible);
+  const sellerVisible = sellerItems.filter(visible);
+  const adminVisible = adminItems.filter(visible);
 
   return (
     <Sidebar
-      className="fixed left-0 top-0 h-screen border-r border-border/50 bg-gradient-to-b from-sidebar-background to-background transition-all duration-300 z-50"
+      className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
       collapsible="icon"
     >
-      {/* Header */}
-      <SidebarHeader className="p-4 border-b border-border/50">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/10">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 shadow-button">
             <ShoppingBag className="w-5 h-5 text-primary" />
           </div>
           {!collapsed && (
@@ -106,72 +161,58 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
 
-      {/* Navigation */}
-      <SidebarContent className="px-3 py-4 flex-1 overflow-y-auto">
+      <SidebarContent className="px-3 py-4 flex-1">
         <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {visibleItems.map((item, index) => (
-                <SidebarMenuItem 
-                  key={item.path} 
-                  className="animate-fade-in" 
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.path)}
-                    tooltip={collapsed ? item.label : undefined}
-                  >
-                    <NavLink
-                      to={item.path}
-                      end={item.path === '/'}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
-                        ${isActive(item.path) 
-                          ? 'bg-primary/15 text-primary shadow-[0_0_20px_rgba(139,92,246,0.3)]' 
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                        }
-                        ${item.highlight && !isActive(item.path) 
-                          ? 'bg-gradient-to-r from-primary/10 to-accent/10 text-primary hover:from-primary/20 hover:to-accent/20' 
-                          : ''
-                        }`}
-                      activeClassName="bg-primary/15 text-primary"
-                    >
-                      {/* Glow effect for active item */}
-                      {isActive(item.path) && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-                      )}
-                      
-                      {/* Highlight shimmer for special button */}
-                      {item.highlight && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 animate-shimmer" />
-                      )}
-
-                      <item.icon className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 relative z-10
-                        ${item.highlight ? 'text-primary' : ''}`} 
-                      />
-                      
-                      {!collapsed && (
-                        <span className={`font-medium relative z-10 truncate ${item.highlight ? 'bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-semibold' : ''}`}>
-                          {item.label}
-                        </span>
-                      )}
-
-                      {/* Active indicator bar */}
-                      {isActive(item.path) && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-lg shadow-primary/50" />
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarMenu className="space-y-1">{coreVisible.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {userVisible.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            <SidebarGroup>
+              <SidebarGroupLabel>Start</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">{userVisible.map((i, idx) => renderItem(i, coreVisible.length + idx))}</SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+        {sellerVisible.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            <SidebarGroup>
+              <SidebarGroupLabel>Seller Dashboard</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {sellerVisible.map((i, idx) => renderItem(i, coreVisible.length + userVisible.length + idx))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+        {adminVisible.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            <SidebarGroup>
+              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {adminVisible.map((i, idx) =>
+                    renderItem(i, coreVisible.length + userVisible.length + sellerVisible.length + idx),
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
-      {/* Footer */}
-      <SidebarFooter className="p-3 border-t border-border/50">
-        {/* User info */}
+      <SidebarFooter className="p-3 border-t border-sidebar-border">
         {!collapsed && user && (
           <div className="px-3 py-2 mb-2 rounded-lg bg-secondary/30 animate-fade-in">
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -179,32 +220,27 @@ const AppSidebar = () => {
           </div>
         )}
 
-        {/* Logout button */}
         <Button
           variant="ghost"
           onClick={handleSignOut}
-          className={`w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300
-            ${collapsed ? 'px-3 justify-center' : ''}`}
+          className={`w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 ${
+            collapsed ? 'px-3 justify-center' : ''
+          }`}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
         </Button>
 
-        {/* Collapse toggle */}
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
           className="w-full mt-2 justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/30"
         >
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <>
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              <span className="text-xs">Collapse</span>
-            </>
-          )}
+          <span className="sr-only">Toggle sidebar</span>
+          <span className="flex items-center gap-2">
+            <span className="text-xs">{collapsed ? 'Expand' : 'Collapse'}</span>
+          </span>
         </Button>
       </SidebarFooter>
     </Sidebar>

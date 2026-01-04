@@ -134,6 +134,18 @@ const BecomeSellerPage = () => {
 
       if (error) throw error;
 
+      // Persist role separately (safe to ignore if roles table isn't present yet)
+      if (user?.id) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .upsert({ user_id: user.id, role: 'shopkeeper' }, { onConflict: 'user_id,role' });
+
+        if (roleError) {
+          // Do not block onboarding if roles table isn't configured yet
+          console.warn('Role upsert failed:', roleError.message);
+        }
+      }
+
       setIsSuccess(true);
       
       toast({

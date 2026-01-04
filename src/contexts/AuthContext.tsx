@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, UserRole, ADMIN_EMAIL } from '@/lib/supabase';
+import { supabase, UserRole } from '@/lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -23,70 +23,85 @@ export const useAuth = () => {
   return context;
 };
 
+type RoleRow = { role: UserRole };
+
+const pickHighestRole = (rows: RoleRow[]): UserRole => {
+  const roles = new Set(rows.map((r) => r.role));
+  if (roles.has('admin')) return 'admin';
+  if (roles.has('shopkeeper')) return 'shopkeeper';
+  return 'user';
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>('user');
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string, email: string) => {
-    // Admin check first
-    if (email === ADMIN_EMAIL) {
-      setRole('admin');
-      return;
-    }
-
+  const fetchUserRole = async (userId: string) => {
     try {
-      // Check if user is a seller
-      const { data: sellerData } = await supabase
+      // 1) Authoritative roles table
+      const { data: roleRows, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (!roleError && roleRows && roleRows.length > 0) {
+        setRole(pickHighestRole(roleRows as RoleRow[]));
+        return;
+      }
+
+      // 2) Backwards-compat for existing sellers (role derived from sellers table)
+      const { data: sellerData, error: sellerError } = await supabase
         .from('sellers')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (sellerData) {
+      if (!sellerError && sellerData) {
         setRole('shopkeeper');
-      } else {
-        setRole('user');
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching user role:', error);
+
+      setRole('user');
+    } catch {
       setRole('user');
     }
   };
 
   const refreshRole = async () => {
-    if (user?.email) {
-      await fetchUserRole(user.id, user.email);
-    }
+    if (!user?.id) return;
+    await fetchUserRole(user.id);
   };
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id, session.user.email || '');
-          }, 0);
-        } else {
-          setRole('user');
-        }
-        setLoading(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        setTimeout(() => {
+          fetchUserRole(session.user.id);
+        }, 0);
+      } else {
+        setRole('user');
       }
-    );
+
+      setLoading(false);
+    });
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        fetchUserRole(session.user.id, session.user.email || '');
+        fetchUserRole(session.user.id);
       }
+
       setLoading(false);
     });
 
@@ -95,16 +110,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          full_name: fullName
-        }
-      }
+          full_name: fullName,
+        },
+      },
     });
 
     // Create profile if signup successful
@@ -112,20 +127,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.from('profiles').upsert({
         id: data.user.id,
         full_name: fullName || '',
-        email: email,
-        updated_at: new Date().toISOString()
+        email,
+        updated_at: new Date().toISOString(),
       });
+
+      // Ensure every user has a baseline role row (safe to ignore if table not present)
+      await supabase
+        .from('user_roles')
+        .insert({ user_id: data.user.id, role: 'user' })
+        .then(() => undefined)
+        .catch(() => undefined);
     }
-    
+
     return { error: error ? new Error(error.message) : null };
   };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
-    
+
     return { error: error ? new Error(error.message) : null };
   };
 
@@ -137,16 +159,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      role, 
-      loading, 
-      signUp, 
-      signIn, 
-      signOut,
-      refreshRole 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        role,
+        loading,
+        signUp,
+        signIn,
+        signOut,
+        refreshRole,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

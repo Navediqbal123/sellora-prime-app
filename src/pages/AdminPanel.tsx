@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, SellerProfile, Product } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
 import { 
   Users, 
   Store, 
@@ -16,7 +15,6 @@ import {
   Building,
   Calendar
 } from 'lucide-react';
-import AdminSidebar from '@/components/admin/AdminSidebar';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
@@ -42,9 +40,10 @@ interface ClickLog {
   product?: Product;
 }
 
-const AdminPanel = () => {
+type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks';
+
+const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalSellers: 0,
@@ -52,13 +51,18 @@ const AdminPanel = () => {
     totalSearches: 0,
     totalViews: 0
   });
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState<AdminSection>(section);
   const [sellers, setSellers] = useState<SellerProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchLogs, setSearchLogs] = useState<SearchLog[]>([]);
   const [clickLogs, setClickLogs] = useState<ClickLog[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<SellerProfile | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setActiveSection(section);
+    setSelectedSeller(null);
+  }, [section]);
 
   useEffect(() => {
     fetchStats();
@@ -186,7 +190,7 @@ const AdminPanel = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center animate-fade-in">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading admin panel...</p>
@@ -196,247 +200,218 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <AdminSidebar 
-        activeSection={activeSection}
-        onSectionChange={(section) => {
-          setActiveSection(section);
-          setSelectedSeller(null);
-        }}
-        collapsed={sidebarCollapsed}
-        onCollapsedChange={setSidebarCollapsed}
-      />
+    <div className="p-6 md:p-8">
+      {/* Dashboard */}
+      {activeSection === 'dashboard' && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Admin <span className="text-gradient">Dashboard</span>
+            </h1>
+            <p className="text-muted-foreground">Overview of your platform</p>
+          </div>
 
-      {/* Main Content */}
-      <main 
-        className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}
-      >
-        <div className="p-8">
-          {/* Dashboard */}
-          {activeSection === 'dashboard' && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  Admin <span className="text-gradient">Dashboard</span>
-                </h1>
-                <p className="text-muted-foreground">Overview of your platform</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                {statCards.map((card, index) => (
-                  <StatsCard
-                    key={card.id}
-                    label={card.label}
-                    value={card.value}
-                    icon={card.icon}
-                    color={card.color}
-                    onClick={() => setActiveSection(card.id === 'users' ? 'sellers' : card.id === 'clicks' ? 'clicks' : card.id)}
-                    delay={index * 0.1}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Sellers List */}
-          {activeSection === 'sellers' && !selectedSeller && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  All <span className="text-gradient">Sellers</span>
-                </h1>
-                <p className="text-muted-foreground">{sellers.length} registered sellers</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {sellers.map((seller, index) => (
-                  <SellerCard
-                    key={seller.id}
-                    seller={seller}
-                    onClick={() => handleSellerClick(seller)}
-                    delay={index * 0.05}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Seller Detail */}
-          {selectedSeller && (
-            <div className="animate-slide-in-right">
-              <button
-                onClick={() => setSelectedSeller(null)}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 
-                          transition-colors group"
-              >
-                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                Back to Sellers
-              </button>
-
-              {/* Seller Info Card */}
-              <div className="p-8 rounded-2xl bg-gradient-to-br from-card to-card/50 
-                             border border-border/50 mb-8 animate-fade-in-up">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
-                  <div>
-                    <h2 className="text-3xl font-bold text-foreground mb-2">{selectedSeller.shop_name}</h2>
-                    <p className="text-xl text-muted-foreground">{selectedSeller.owner_name}</p>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="px-6 py-4 rounded-xl bg-primary/10 text-center">
-                      <p className="text-3xl font-bold text-primary">{sellerProducts.length}</p>
-                      <p className="text-sm text-muted-foreground">Products</p>
-                    </div>
-                    <div className="px-6 py-4 rounded-xl bg-accent/10 text-center">
-                      <p className="text-3xl font-bold text-accent">
-                        {sellerProducts.reduce((sum, p) => sum + (p.views || 0), 0)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">Views</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Phone</p>
-                      <p className="font-medium text-foreground">{selectedSeller.phone_number}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-accent" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="font-medium text-foreground truncate">{selectedSeller.email}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-sellora-gold" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Location</p>
-                      <p className="font-medium text-foreground">{selectedSeller.city}, {selectedSeller.state}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
-                    <Building className="w-5 h-5 text-sellora-success" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Business Type</p>
-                      <p className="font-medium text-foreground">{selectedSeller.business_type}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 rounded-xl bg-secondary/50">
-                  <p className="text-xs text-muted-foreground mb-1">Full Address</p>
-                  <p className="font-medium text-foreground">
-                    {selectedSeller.address}, {selectedSeller.city}, {selectedSeller.state} - {selectedSeller.pincode}
-                  </p>
-                </div>
-
-                <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>Joined on {new Date(selectedSeller.created_at).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              {/* Seller Products */}
-              <h3 className="text-xl font-semibold mb-4 text-foreground">
-                Products ({sellerProducts.length})
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sellerProducts.map((product, index) => (
-                  <div 
-                    key={product.id} 
-                    className="p-5 rounded-xl bg-gradient-to-br from-card to-card/50 
-                              border border-border/50 animate-fade-in-up
-                              hover:border-primary/30 transition-all duration-300"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <h4 className="font-semibold text-foreground truncate">{product.title}</h4>
-                    <p className="text-2xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
-                    <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-4 h-4" /> {product.views || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MousePointer className="w-4 h-4" /> {product.clicks || 0}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                {sellerProducts.length === 0 && (
-                  <p className="col-span-full text-center py-12 text-muted-foreground">
-                    No products uploaded yet
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Products */}
-          {activeSection === 'products' && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  All <span className="text-gradient">Products</span>
-                </h1>
-                <p className="text-muted-foreground">{products.length} products listed</p>
-              </div>
-
-              <AnimatedTable columns={productColumns} data={products} />
-            </div>
-          )}
-
-          {/* Searches */}
-          {activeSection === 'searches' && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  Search <span className="text-gradient">Logs</span>
-                </h1>
-                <p className="text-muted-foreground">{searchLogs.length} recent searches</p>
-              </div>
-
-              <AnimatedTable columns={searchColumns} data={searchLogs} />
-            </div>
-          )}
-
-          {/* Clicks */}
-          {activeSection === 'clicks' && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  Views & <span className="text-gradient">Clicks</span>
-                </h1>
-                <p className="text-muted-foreground">{clickLogs.length} recent interactions</p>
-              </div>
-
-              <AnimatedTable columns={clickColumns} data={clickLogs} />
-            </div>
-          )}
-
-          {/* Users (placeholder) */}
-          {activeSection === 'users' && (
-            <div className="animate-slide-in-right">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  All <span className="text-gradient">Users</span>
-                </h1>
-                <p className="text-muted-foreground">User management coming soon</p>
-              </div>
-
-              <div className="p-12 rounded-2xl bg-gradient-to-br from-card to-card/50 
-                             border border-border/50 text-center">
-                <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
-                <p className="text-muted-foreground">User management will be available soon</p>
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {statCards.map((card, index) => (
+              <StatsCard
+                key={card.id}
+                label={card.label}
+                value={card.value}
+                icon={card.icon}
+                color={card.color}
+                onClick={() => setActiveSection(card.id === 'users' ? 'users' : (card.id as AdminSection))}
+                delay={index * 0.1}
+              />
+            ))}
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* Sellers List */}
+      {activeSection === 'sellers' && !selectedSeller && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              All <span className="text-gradient">Sellers</span>
+            </h1>
+            <p className="text-muted-foreground">{sellers.length} registered sellers</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {sellers.map((seller, index) => (
+              <SellerCard key={seller.id} seller={seller} onClick={() => handleSellerClick(seller)} delay={index * 0.05} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Seller Detail */}
+      {selectedSeller && (
+        <div className="animate-slide-in-right">
+          <button
+            onClick={() => setSelectedSeller(null)}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Back to Sellers
+          </button>
+
+          {/* Seller Info Card */}
+          <div className="p-8 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 mb-8 animate-fade-in-up">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground mb-2">{selectedSeller.shop_name}</h2>
+                <p className="text-xl text-muted-foreground">{selectedSeller.owner_name}</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="px-6 py-4 rounded-xl bg-primary/10 text-center">
+                  <p className="text-3xl font-bold text-primary">{sellerProducts.length}</p>
+                  <p className="text-sm text-muted-foreground">Products</p>
+                </div>
+                <div className="px-6 py-4 rounded-xl bg-accent/10 text-center">
+                  <p className="text-3xl font-bold text-accent">
+                    {sellerProducts.reduce((sum, p) => sum + (p.views || 0), 0)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Views</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                <Phone className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-medium text-foreground">{selectedSeller.phone_number}</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                <Mail className="w-5 h-5 text-accent" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="font-medium text-foreground truncate">{selectedSeller.email}</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-sellora-gold" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Location</p>
+                  <p className="font-medium text-foreground">{selectedSeller.city}, {selectedSeller.state}</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+                <Building className="w-5 h-5 text-sellora-success" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Business Type</p>
+                  <p className="font-medium text-foreground">{selectedSeller.business_type}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 rounded-xl bg-secondary/50">
+              <p className="text-xs text-muted-foreground mb-1">Full Address</p>
+              <p className="font-medium text-foreground">
+                {selectedSeller.address}, {selectedSeller.city}, {selectedSeller.state} - {selectedSeller.pincode}
+              </p>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              <span>Joined on {new Date(selectedSeller.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {/* Seller Products */}
+          <h3 className="text-xl font-semibold mb-4 text-foreground">
+            Products ({sellerProducts.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sellerProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="p-5 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <h4 className="font-semibold text-foreground truncate">{product.title}</h4>
+                <p className="text-2xl font-bold text-gradient-gold mt-2">₹{product.price.toLocaleString()}</p>
+                <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-4 h-4" /> {product.views || 0}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MousePointer className="w-4 h-4" /> {product.clicks || 0}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {sellerProducts.length === 0 && (
+              <p className="col-span-full text-center py-12 text-muted-foreground">No products uploaded yet</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Products */}
+      {activeSection === 'products' && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              All <span className="text-gradient">Products</span>
+            </h1>
+            <p className="text-muted-foreground">{products.length} products listed</p>
+          </div>
+
+          <AnimatedTable columns={productColumns} data={products} />
+        </div>
+      )}
+
+      {/* Searches */}
+      {activeSection === 'searches' && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Search <span className="text-gradient">Logs</span>
+            </h1>
+            <p className="text-muted-foreground">{searchLogs.length} recent searches</p>
+          </div>
+
+          <AnimatedTable columns={searchColumns} data={searchLogs} />
+        </div>
+      )}
+
+      {/* Views / Clicks */}
+      {activeSection === 'clicks' && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Views & <span className="text-gradient">Clicks</span>
+            </h1>
+            <p className="text-muted-foreground">{clickLogs.length} recent interactions</p>
+          </div>
+
+          <AnimatedTable columns={clickColumns} data={clickLogs} />
+        </div>
+      )}
+
+      {/* Users (placeholder) */}
+      {activeSection === 'users' && (
+        <div className="animate-slide-in-right">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              All <span className="text-gradient">Users</span>
+            </h1>
+            <p className="text-muted-foreground">User management coming soon</p>
+          </div>
+
+          <div className="p-12 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 text-center">
+            <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
+            <p className="text-muted-foreground">User management will be available soon</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminPanel;
+
