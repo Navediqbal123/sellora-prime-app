@@ -2,13 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Sparkles, 
+import {
+  User,
+  Mail,
+  Shield,
   ChevronRight,
-  Store
+  Store,
 } from 'lucide-react';
 
 
@@ -72,21 +71,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Actions */}
-        {role === 'user' && (
-          <div className="card-premium p-6 mt-6 animate-fade-in-up stagger-2">
-            <h2 className="text-lg font-semibold mb-4">Become a Seller</h2>
-            <p className="text-muted-foreground mb-4">
-              Start your business journey on Sellora and reach thousands of customers.
-            </p>
-            <Link to="/become-seller">
-              <Button className="btn-glow w-full group">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Start Selling on Sellora
-                <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
-        )}
+        {/* “Start Selling on Sellora” is shown in the global sidebar for role=user. */}
 
         {role === 'shopkeeper' && (
           <div className="card-premium p-6 mt-6 animate-fade-in-up stagger-2">

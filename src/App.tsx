@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AuthLayout from "@/layouts/AuthLayout";
 import MainLayout from "@/layouts/MainLayout";
 
 // Pages
@@ -15,6 +16,7 @@ import BecomeSellerPage from "./pages/BecomeSellerPage";
 import SellerDashboard from "./pages/SellerDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import ProfilePage from "./pages/ProfilePage";
+import LoginHistoryPage from "./pages/LoginHistoryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,25 +41,27 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes (NO sidebar) */}
-      <Route
-        path="/login"
-        element={
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <PublicOnlyRoute>
-            <SignupPage />
-          </PublicOnlyRoute>
-        }
-      />
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <LoginPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute>
+              <SignupPage />
+            </PublicOnlyRoute>
+          }
+        />
 
-      {/* Backwards-compat */}
-      <Route path="/auth" element={<Navigate to="/login" replace />} />
+        {/* Backwards-compat */}
+        <Route path="/auth" element={<Navigate to="/login" replace />} />
+      </Route>
 
       {/* Protected routes (GLOBAL sidebar layout) */}
       <Route
@@ -70,15 +74,19 @@ const AppRoutes = () => {
       >
         <Route index element={<HomePage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="login-history" element={<LoginHistoryPage />} />
 
         <Route
-          path="become-seller"
+          path="seller/onboarding"
           element={
             <ProtectedRoute allowedRoles={["user"]}>
               <BecomeSellerPage />
             </ProtectedRoute>
           }
         />
+
+        {/* Backwards-compat */}
+        <Route path="become-seller" element={<Navigate to="/seller/onboarding" replace />} />
 
         {/* Seller routes */}
         <Route

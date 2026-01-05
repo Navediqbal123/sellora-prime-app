@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Sparkles, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import ProductCard from '@/components/home/ProductCard';
 import SearchBar from '@/components/home/SearchBar';
 import CategoryFilter from '@/components/home/CategoryFilter';
@@ -108,23 +105,7 @@ const HomePage = () => {
         />
       </div>
 
-      {/* Start Selling Button - Only for normal users */}
-      {role === 'user' && (
-        <div className="flex justify-center mb-14 animate-fade-in-up stagger-3">
-          <Link to="/become-seller">
-            <Button className="btn-glow px-10 py-7 text-lg font-semibold group relative overflow-hidden">
-              {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary 
-                             bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite]" />
-              <div className="relative flex items-center">
-                <Sparkles className="w-6 h-6 mr-3 animate-pulse" />
-                Start Selling on Sellora
-                <ChevronRight className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform duration-300" />
-              </div>
-            </Button>
-          </Link>
-        </div>
-      )}
+      {/* Start Selling entry point lives in the global sidebar (role-based). */}
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
