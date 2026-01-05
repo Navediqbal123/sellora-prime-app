@@ -30,6 +30,7 @@ import {
   Users,
   Search,
   Eye,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -53,16 +54,21 @@ const AppSidebar = () => {
     navigate('/login');
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    const current = location.pathname;
+    if (path === '/') return current === '/';
+    return current === path || current.startsWith(`${path}/`);
+  };
 
   const coreItems: NavItem[] = [
     { path: '/', label: 'Home', icon: Home, roles: ['user', 'shopkeeper', 'admin'] },
     { path: '/profile', label: 'Profile', icon: User, roles: ['user', 'shopkeeper', 'admin'] },
+    { path: '/login-history', label: 'Login History', icon: History, roles: ['user', 'shopkeeper', 'admin'] },
   ];
 
   const userItems: NavItem[] = [
     {
-      path: '/become-seller',
+      path: '/seller/onboarding',
       label: 'Start Selling on Sellora',
       icon: Sparkles,
       roles: ['user'],
@@ -71,7 +77,7 @@ const AppSidebar = () => {
   ];
 
   const sellerItems: NavItem[] = [
-    { path: '/seller', label: 'Overview', icon: Store, roles: ['shopkeeper'] },
+    { path: '/seller', label: 'Seller Dashboard', icon: Store, roles: ['shopkeeper'] },
     { path: '/seller/add-product', label: 'Add Product', icon: PlusCircle, roles: ['shopkeeper'] },
     { path: '/seller/products', label: 'My Products', icon: Package, roles: ['shopkeeper'] },
     { path: '/seller/analytics', label: 'Analytics', icon: BarChart3, roles: ['shopkeeper'] },
