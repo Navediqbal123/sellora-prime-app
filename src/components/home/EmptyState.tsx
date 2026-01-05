@@ -1,14 +1,12 @@
 import React from 'react';
-import { ShoppingBag, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { ShoppingBag } from 'lucide-react';
 
 interface EmptyStateProps {
   searchQuery: string;
-  showSellerButton: boolean;
+  showSellerButton?: boolean; // kept for backwards compat, but unused
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery, showSellerButton }) => {
+const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery }) => {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-20 animate-fade-in">
       {/* Animated illustration */}
@@ -31,21 +29,12 @@ const EmptyState: React.FC<EmptyStateProps> = ({ searchQuery, showSellerButton }
         No products found
       </h3>
       
-      <p className="text-muted-foreground text-center max-w-md mb-8">
+      <p className="text-muted-foreground text-center max-w-md">
         {searchQuery 
           ? `We couldn't find anything matching "${searchQuery}". Try adjusting your search or filters.` 
-          : 'Be the first to list a product and start selling!'
+          : 'Products will appear here once sellers start listing.'
         }
       </p>
-
-      {showSellerButton && (
-        <Link to="/become-seller">
-          <Button className="btn-glow px-8 py-6 text-lg font-semibold group">
-            <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-            Start Selling
-          </Button>
-        </Link>
-      )}
     </div>
   );
 };
