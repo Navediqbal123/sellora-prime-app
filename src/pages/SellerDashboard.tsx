@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product, SellerProfile } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { 
-
-import { 
+import {
   Package, 
   Plus, 
   Eye, 
