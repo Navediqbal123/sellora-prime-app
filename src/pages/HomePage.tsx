@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product } from '@/lib/supabase';
 import ProductCard from '@/components/home/ProductCard';
 import SearchBar from '@/components/home/SearchBar';
@@ -9,7 +8,6 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 
 
 const HomePage = () => {
-  const { role } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,7 +119,7 @@ const HomePage = () => {
             />
           ))
         ) : (
-          <EmptyState searchQuery={searchQuery} showSellerButton={role === 'user'} />
+          <EmptyState searchQuery={searchQuery} />
         )}
       </div>
     </div>
