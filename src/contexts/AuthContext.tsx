@@ -132,11 +132,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       // Ensure every user has a baseline role row (safe to ignore if table not present)
-      await supabase
-        .from('user_roles')
-        .insert({ user_id: data.user.id, role: 'user' })
-        .then(() => undefined)
-        .catch(() => undefined);
+      try {
+        await supabase
+          .from('user_roles')
+          .insert({ user_id: data.user.id, role: 'user' });
+      } catch {
+        // Ignore error if table doesn't exist
+      }
     }
 
     return { error: error ? new Error(error.message) : null };
