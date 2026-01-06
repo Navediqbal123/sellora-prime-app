@@ -66,12 +66,13 @@ const AppSidebar = () => {
     { path: '/login-history', label: 'Login History', icon: History, roles: ['user', 'shopkeeper', 'admin'] },
   ];
 
+  // "Start Selling on Sellora" visible for user and admin (not shopkeeper since they already are sellers)
   const userItems: NavItem[] = [
     {
       path: '/seller/onboarding',
       label: 'Start Selling on Sellora',
       icon: Sparkles,
-      roles: ['user'],
+      roles: ['user', 'admin'],
       highlight: true,
     },
   ];
@@ -83,13 +84,9 @@ const AppSidebar = () => {
     { path: '/seller/analytics', label: 'Analytics', icon: BarChart3, roles: ['shopkeeper'] },
   ];
 
+  // Admin only sees "Admin Panel" in sidebar - sub-items are inside admin panel
   const adminItems: NavItem[] = [
     { path: '/admin', label: 'Admin Panel', icon: LayoutDashboard, roles: ['admin'] },
-    { path: '/admin/users', label: 'Users', icon: Users, roles: ['admin'] },
-    { path: '/admin/sellers', label: 'Sellers', icon: Store, roles: ['admin'] },
-    { path: '/admin/products', label: 'Products', icon: Package, roles: ['admin'] },
-    { path: '/admin/searches', label: 'Searches', icon: Search, roles: ['admin'] },
-    { path: '/admin/views', label: 'Views / Clicks', icon: Eye, roles: ['admin'] },
   ];
 
   const visible = (item: NavItem) => item.roles.includes(role);
