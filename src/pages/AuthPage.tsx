@@ -163,11 +163,11 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5 relative">
+          <form onSubmit={handleSubmit} className="space-y-6 relative">
             {/* Full Name Input - Only for Signup */}
             {!isLogin && (
-              <div className="input-floating animate-fade-in-up">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10">
+              <div className="relative animate-fade-in-up group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
                   <User className="w-5 h-5" />
                 </div>
                 <input
@@ -175,17 +175,19 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                   id="fullName"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Full Name"
-                  className="w-full pl-12 bg-secondary/50 border-white/10 hover:border-white/20 focus:border-primary"
+                  placeholder="Enter your full name"
+                  className="w-full h-14 pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                             placeholder:text-muted-foreground/50
+                             transition-all duration-300 ease-out
+                             hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                   autoComplete="name"
                 />
-                <label htmlFor="fullName" className="left-12">Full Name</label>
               </div>
             )}
 
             {/* Email Input */}
-            <div className="input-floating">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10">
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
                 <Mail className="w-5 h-5" />
               </div>
               <input
@@ -193,16 +195,18 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full pl-12 bg-secondary/50 border-white/10 hover:border-white/20 focus:border-primary"
+                placeholder="Enter your email address"
+                className="w-full h-14 pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                           placeholder:text-muted-foreground/50
+                           transition-all duration-300 ease-out
+                           hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                 autoComplete="email"
               />
-              <label htmlFor="email" className="left-12">Email Address</label>
             </div>
 
             {/* Password Input */}
-            <div className="input-floating relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10">
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
                 <Lock className="w-5 h-5" />
               </div>
               <input
@@ -210,15 +214,17 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full pl-12 pr-12 bg-secondary/50 border-white/10 hover:border-white/20 focus:border-primary"
+                placeholder="Enter your password"
+                className="w-full h-14 pl-12 pr-14 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                           placeholder:text-muted-foreground/50
+                           transition-all duration-300 ease-out
+                           hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
               />
-              <label htmlFor="password" className="left-12">Password</label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all z-10"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>

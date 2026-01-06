@@ -79,7 +79,7 @@ const AppRoutes = () => {
         <Route
           path="seller/onboarding"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user", "admin"]}>
               <BecomeSellerPage />
             </ProtectedRoute>
           }
