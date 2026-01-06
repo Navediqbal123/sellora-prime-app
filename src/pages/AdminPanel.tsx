@@ -13,11 +13,16 @@ import {
   MapPin,
   Mail,
   Building,
-  Calendar
+  Calendar,
+  TrendingUp,
+  Sparkles,
+  LayoutDashboard,
+  ChevronRight
 } from 'lucide-react';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
+import { Button } from '@/components/ui/button';
 
 interface AdminStats {
   totalUsers: number;
@@ -40,7 +45,17 @@ interface ClickLog {
   product?: Product;
 }
 
-type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks';
+type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
+
+const sectionTabs = [
+  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'sellers', label: 'Sellers', icon: Store },
+  { id: 'products', label: 'Products', icon: Package },
+  { id: 'seller-requests', label: 'Seller Requests', icon: Sparkles },
+  { id: 'searches', label: 'Searches', icon: Search },
+  { id: 'clicks', label: 'Views / Clicks', icon: Eye },
+];
 
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [loading, setLoading] = useState(true);
@@ -69,7 +84,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   }, []);
 
   useEffect(() => {
-    if (activeSection === 'sellers') fetchSellers();
+    if (activeSection === 'sellers' || activeSection === 'seller-requests') fetchSellers();
     if (activeSection === 'products') fetchProducts();
     if (activeSection === 'searches') fetchSearchLogs();
     if (activeSection === 'clicks') fetchClickLogs();
@@ -188,11 +203,33 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     )},
   ];
 
+  const sellerRequestColumns = [
+    { key: 'shop_name', label: 'Shop Name', render: (val: string) => (
+      <span className="font-semibold text-foreground">{val}</span>
+    )},
+    { key: 'owner_name', label: 'Owner', render: (val: string) => (
+      <span className="text-muted-foreground">{val}</span>
+    )},
+    { key: 'email', label: 'Email', render: (val: string) => (
+      <span className="text-muted-foreground truncate">{val}</span>
+    )},
+    { key: 'city', label: 'Location', render: (val: string, row: any) => (
+      <span className="text-muted-foreground">{val}, {row.state}</span>
+    )},
+    { key: 'created_at', label: 'Joined', render: (val: string) => (
+      <span className="text-sm text-muted-foreground">{new Date(val).toLocaleDateString()}</span>
+    )},
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center animate-fade-in">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <LayoutDashboard className="absolute inset-0 m-auto w-8 h-8 text-primary" />
+          </div>
           <p className="text-muted-foreground">Loading admin panel...</p>
         </div>
       </div>
@@ -200,18 +237,55 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   }
 
   return (
-    <div className="p-6 md:p-8">
-      {/* Dashboard */}
-      {activeSection === 'dashboard' && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Admin <span className="text-gradient">Dashboard</span>
-            </h1>
-            <p className="text-muted-foreground">Overview of your platform</p>
+    <div className="p-4 md:p-8 min-h-screen">
+      {/* Premium Header */}
+      <div className="mb-8 animate-fade-in-up">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+            <LayoutDashboard className="w-6 h-6 text-primary" />
           </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              Admin <span className="text-gradient">Panel</span>
+            </h1>
+            <p className="text-muted-foreground">Manage your platform</p>
+          </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      {/* Premium Tab Navigation */}
+      <div className="mb-8 overflow-x-auto pb-2 animate-fade-in-up stagger-1">
+        <div className="flex gap-2 min-w-max">
+          {sectionTabs.map((tab, index) => {
+            const isActive = activeSection === tab.id;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveSection(tab.id as AdminSection);
+                  setSelectedSeller(null);
+                }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300
+                           ${isActive 
+                             ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-button' 
+                             : 'bg-card/50 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50'
+                           }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <TabIcon className="w-4 h-4" />
+                <span className="whitespace-nowrap">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dashboard Overview */}
+      {activeSection === 'dashboard' && (
+        <div className="space-y-8 animate-fade-in-up stagger-2">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
             {statCards.map((card, index) => (
               <StatsCard
                 key={card.id}
@@ -224,16 +298,71 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
               />
             ))}
           </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-card rounded-2xl p-6 animate-fade-in-up stagger-3">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'View Sellers', section: 'sellers', icon: Store },
+                  { label: 'View Products', section: 'products', icon: Package },
+                  { label: 'Seller Requests', section: 'seller-requests', icon: Sparkles },
+                  { label: 'Search Logs', section: 'searches', icon: Search },
+                ].map((action) => (
+                  <Button
+                    key={action.section}
+                    variant="outline"
+                    onClick={() => setActiveSection(action.section as AdminSection)}
+                    className="h-auto py-4 flex-col gap-2 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                  >
+                    <action.icon className="w-5 h-5 text-primary" />
+                    <span className="text-sm">{action.label}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-6 animate-fade-in-up stagger-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Store className="w-5 h-5 text-accent" />
+                Recent Sellers
+              </h3>
+              <div className="space-y-3">
+                {sellers.slice(0, 3).map((seller, index) => (
+                  <div
+                    key={seller.id}
+                    onClick={() => handleSellerClick(seller)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 cursor-pointer transition-all duration-300 group"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                        {seller.shop_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{seller.owner_name}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  </div>
+                ))}
+                {sellers.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">No sellers yet</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Sellers List */}
       {activeSection === 'sellers' && !selectedSeller && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               All <span className="text-gradient">Sellers</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground">{sellers.length} registered sellers</p>
           </div>
 
@@ -242,12 +371,18 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
               <SellerCard key={seller.id} seller={seller} onClick={() => handleSellerClick(seller)} delay={index * 0.05} />
             ))}
           </div>
+          {sellers.length === 0 && (
+            <div className="text-center py-16 glass-card rounded-2xl">
+              <Store className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-muted-foreground">No sellers registered yet</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Seller Detail */}
       {selectedSeller && (
-        <div className="animate-slide-in-right">
+        <div className="animate-fade-in-up">
           <button
             onClick={() => setSelectedSeller(null)}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors group"
@@ -257,10 +392,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           </button>
 
           {/* Seller Info Card */}
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 mb-8 animate-fade-in-up">
+          <div className="glass-card rounded-2xl p-6 md:p-8 mb-8">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
               <div>
-                <h2 className="text-3xl font-bold text-foreground mb-2">{selectedSeller.shop_name}</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">{selectedSeller.shop_name}</h2>
                 <p className="text-xl text-muted-foreground">{selectedSeller.owner_name}</p>
               </div>
               <div className="flex gap-4">
@@ -329,7 +464,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             {sellerProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="p-5 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                className="glass-card p-5 rounded-xl animate-fade-in-up hover:border-primary/30 transition-all duration-300"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <h4 className="font-semibold text-foreground truncate">{product.title}</h4>
@@ -345,7 +480,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
               </div>
             ))}
             {sellerProducts.length === 0 && (
-              <p className="col-span-full text-center py-12 text-muted-foreground">No products uploaded yet</p>
+              <div className="col-span-full text-center py-12 glass-card rounded-2xl">
+                <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground">No products uploaded yet</p>
+              </div>
             )}
           </div>
         </div>
@@ -353,11 +491,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       {/* Products */}
       {activeSection === 'products' && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               All <span className="text-gradient">Products</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground">{products.length} products listed</p>
           </div>
 
@@ -365,13 +503,37 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         </div>
       )}
 
+      {/* Seller Requests (Start Selling on Sellora) */}
+      {activeSection === 'seller-requests' && (
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
+              <span className="text-gradient">Seller Requests</span>
+            </h2>
+            <p className="text-muted-foreground">Users who completed the seller onboarding form</p>
+          </div>
+
+          <div className="glass-card rounded-2xl p-4 mb-6">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10">
+              <Sparkles className="w-6 h-6 text-primary" />
+              <div>
+                <p className="font-semibold text-foreground">{sellers.length} Total Seller Registrations</p>
+                <p className="text-sm text-muted-foreground">Complete seller form data with products & analytics</p>
+              </div>
+            </div>
+          </div>
+
+          <AnimatedTable columns={sellerRequestColumns} data={sellers} />
+        </div>
+      )}
+
       {/* Searches */}
       {activeSection === 'searches' && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               Search <span className="text-gradient">Logs</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground">{searchLogs.length} recent searches</p>
           </div>
 
@@ -381,11 +543,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       {/* Views / Clicks */}
       {activeSection === 'clicks' && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               Views & <span className="text-gradient">Clicks</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground">{clickLogs.length} recent interactions</p>
           </div>
 
@@ -393,19 +555,22 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         </div>
       )}
 
-      {/* Users (placeholder) */}
+      {/* Users */}
       {activeSection === 'users' && (
-        <div className="animate-slide-in-right">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               All <span className="text-gradient">Users</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground">User management coming soon</p>
           </div>
 
-          <div className="p-12 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 text-center">
+          <div className="glass-card rounded-2xl p-12 text-center">
             <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
-            <p className="text-muted-foreground">User management will be available soon</p>
+            <p className="text-lg text-muted-foreground mb-2">User management will be available soon</p>
+            <p className="text-sm text-muted-foreground/70">
+              You'll be able to view all registered users, their activity, and manage roles.
+            </p>
           </div>
         </div>
       )}
@@ -414,4 +579,3 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 };
 
 export default AdminPanel;
-
