@@ -167,7 +167,7 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
             {/* Full Name Input - Only for Signup */}
             {!isLogin && (
               <div className="relative animate-fade-in-up group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
                   <User className="w-5 h-5" />
                 </div>
                 <input
@@ -176,9 +176,9 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="w-full h-14 pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                  className="w-full h-[52px] pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
                              placeholder:text-muted-foreground/50
-                             transition-all duration-300 ease-out
+                             transition-all duration-160 ease-out
                              hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                   autoComplete="name"
                 />
@@ -187,7 +187,7 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
 
             {/* Email Input */}
             <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
                 <Mail className="w-5 h-5" />
               </div>
               <input
@@ -196,9 +196,9 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
-                className="w-full h-14 pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                className="w-full h-[52px] pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
                            placeholder:text-muted-foreground/50
-                           transition-all duration-300 ease-out
+                           transition-all duration-160 ease-out
                            hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                 autoComplete="email"
               />
@@ -206,7 +206,7 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
 
             {/* Password Input */}
             <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors group-focus-within:text-primary">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
                 <Lock className="w-5 h-5" />
               </div>
               <input
@@ -215,16 +215,16 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full h-14 pl-12 pr-14 bg-secondary/50 border border-border/50 rounded-xl text-foreground text-base
+                className="w-full h-[52px] pl-12 pr-14 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
                            placeholder:text-muted-foreground/50
-                           transition-all duration-300 ease-out
+                           transition-all duration-160 ease-out
                            hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-120 z-10"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -234,10 +234,10 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className={`w-full h-14 text-lg font-semibold relative overflow-hidden group
+              className={`w-full h-[52px] text-lg font-semibold relative overflow-hidden group rounded-[14px] btn-ripple
                          bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary
-                         shadow-[0_4px_20px_rgba(139,92,246,0.4)] hover:shadow-[0_6px_30px_rgba(139,92,246,0.5)]
-                         transition-all duration-300 ${success ? 'bg-accent' : ''}`}
+                         animate-glow-idle hover:shadow-[0_6px_30px_rgba(139,92,246,0.5)]
+                         transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${success ? 'bg-accent' : ''}`}
             >
               {/* Button glow animation */}
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
@@ -248,7 +248,7 @@ const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
               ) : (
                 <span className="relative flex items-center justify-center gap-2">
                   {isLogin ? 'Sign In' : 'Create Account'}
-                  <Sparkles className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Sparkles className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-280" />
                 </span>
               )}
             </Button>
