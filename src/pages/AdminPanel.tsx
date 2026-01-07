@@ -8,7 +8,6 @@ import {
   Eye, 
   MousePointer,
   ArrowLeft,
-  Loader2,
   Phone,
   MapPin,
   Mail,
@@ -17,11 +16,13 @@ import {
   TrendingUp,
   Sparkles,
   LayoutDashboard,
-  ChevronRight
+  ChevronRight,
+  Menu
 } from 'lucide-react';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 
 interface AdminStats {
@@ -47,16 +48,6 @@ interface ClickLog {
 
 type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
 
-const sectionTabs = [
-  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-  { id: 'users', label: 'Users', icon: Users },
-  { id: 'sellers', label: 'Sellers', icon: Store },
-  { id: 'products', label: 'Products', icon: Package },
-  { id: 'seller-requests', label: 'Seller Requests', icon: Sparkles },
-  { id: 'searches', label: 'Searches', icon: Search },
-  { id: 'clicks', label: 'Views / Clicks', icon: Eye },
-];
-
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats>({
@@ -73,6 +64,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [clickLogs, setClickLogs] = useState<ClickLog[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<SellerProfile | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  
+  // Sidebar state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setActiveSection(section);
@@ -223,63 +218,106 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center animate-fade-in">
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
-            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-            <LayoutDashboard className="absolute inset-0 m-auto w-8 h-8 text-primary" />
+      <div className="flex min-h-screen">
+        {/* Admin Sidebar */}
+        <AdminSidebar
+          activeSection={activeSection}
+          onSectionChange={(section) => {
+            setActiveSection(section as AdminSection);
+            setSelectedSeller(null);
+          }}
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
+          isMobileOpen={mobileMenuOpen}
+          onMobileClose={() => setMobileMenuOpen(false)}
+        />
+        
+        {/* Content Area */}
+        <div className={`flex-1 transition-all duration-260 ease-[cubic-bezier(0.4,0,0.2,1)]
+                        ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center animate-fade-in">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                <LayoutDashboard className="absolute inset-0 m-auto w-8 h-8 text-primary" />
+              </div>
+              <p className="text-muted-foreground">Loading admin panel...</p>
+            </div>
           </div>
-          <p className="text-muted-foreground">Loading admin panel...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="p-4 md:p-8 min-h-screen">
-      {/* Premium Header */}
-      <div className="mb-8 animate-fade-in-up">
-        <div className="flex items-center gap-4 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-            <LayoutDashboard className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-              Admin <span className="text-gradient">Panel</span>
-            </h1>
-            <p className="text-muted-foreground">Manage your platform</p>
-          </div>
-        </div>
-      </div>
+  // Get section title for header
+  const getSectionTitle = () => {
+    switch (activeSection) {
+      case 'dashboard': return { title: 'Overview', subtitle: 'Dashboard analytics & insights' };
+      case 'users': return { title: 'Users', subtitle: 'Manage all platform users' };
+      case 'sellers': return { title: 'Sellers', subtitle: 'View all registered sellers' };
+      case 'products': return { title: 'Products', subtitle: 'All products on the platform' };
+      case 'seller-requests': return { title: 'Seller Requests', subtitle: 'New seller registrations' };
+      case 'searches': return { title: 'Search Logs', subtitle: 'User search analytics' };
+      case 'clicks': return { title: 'Views & Clicks', subtitle: 'Product interaction data' };
+      default: return { title: 'Admin', subtitle: 'Panel' };
+    }
+  };
 
-      {/* Premium Tab Navigation */}
-      <div className="mb-8 overflow-x-auto pb-2 animate-fade-in-up stagger-1">
-        <div className="flex gap-2 min-w-max">
-          {sectionTabs.map((tab, index) => {
-            const isActive = activeSection === tab.id;
-            const TabIcon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveSection(tab.id as AdminSection);
-                  setSelectedSeller(null);
-                }}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300
-                           ${isActive 
-                             ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-button' 
-                             : 'bg-card/50 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50'
-                           }`}
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <TabIcon className="w-4 h-4" />
-                <span className="whitespace-nowrap">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+  const { title, subtitle } = getSectionTitle();
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      {/* Admin Sidebar */}
+      <AdminSidebar
+        activeSection={activeSection}
+        onSectionChange={(section) => {
+          setActiveSection(section as AdminSection);
+          setSelectedSeller(null);
+        }}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        isMobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+      
+      {/* Main Content Area */}
+      <div className={`flex-1 transition-all duration-260 ease-[cubic-bezier(0.4,0,0.2,1)]
+                      ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+        
+        {/* Mobile Header with Hamburger */}
+        <header className="md:hidden sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          <div className="flex items-center gap-4 px-4 h-16">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 rounded-xl bg-card hover:bg-primary/10 transition-all duration-180 group"
+            >
+              <Menu className="w-6 h-6 text-foreground group-hover:text-primary transition-colors" />
+            </button>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">{title}</h1>
+              <p className="text-xs text-muted-foreground">{subtitle}</p>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Container */}
+        <div className="p-4 md:p-8">
+          {/* Desktop Header */}
+          <div className="hidden md:block mb-8 animate-fade-in-up">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 
+                              flex items-center justify-center shadow-glow">
+                <LayoutDashboard className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                  {title} <span className="text-gradient">Panel</span>
+                </h1>
+                <p className="text-muted-foreground">{subtitle}</p>
+              </div>
+            </div>
+          </div>
 
       {/* Dashboard Overview */}
       {activeSection === 'dashboard' && (
@@ -574,6 +612,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
