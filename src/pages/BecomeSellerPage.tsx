@@ -143,6 +143,26 @@ const BecomeSellerPage = () => {
     setIsSubmitting(true);
 
     try {
+      // Check if user already has a pending/approved application
+      const { data: existingSeller } = await supabase
+        .from('sellers')
+        .select('id, status')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (existingSeller) {
+        toast({
+          title: "Application Exists",
+          description: existingSeller.status === 'pending' 
+            ? "You already have a pending application" 
+            : "You already have a seller account",
+          variant: "destructive"
+        });
+        navigate('/seller/review');
+        return;
+      }
+
+      // Insert with status = 'pending'
       const { error } = await supabase
         .from('sellers')
         .insert({
@@ -155,35 +175,28 @@ const BecomeSellerPage = () => {
           city: formData.city,
           state: formData.state,
           pincode: formData.pincode,
-          business_type: formData.business_type
+          business_type: formData.business_type,
+          status: 'pending'
         });
 
       if (error) throw error;
 
-      if (user?.id) {
-        await supabase
-          .from('user_roles')
-          .upsert({ user_id: user.id, role: 'shopkeeper' }, { onConflict: 'user_id' });
-      }
-
       setIsSuccess(true);
       
       toast({
-        title: "Congratulations! 🎉",
-        description: "You are now a seller on Sellora!"
+        title: "Application Submitted! 🎉",
+        description: "Your seller application is now pending admin approval."
       });
 
-      await refreshRole();
-
       setTimeout(() => {
-        navigate('/seller');
+        navigate('/seller/review');
       }, 2500);
 
     } catch (error: any) {
       console.error('Error becoming seller:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to register as seller",
+        description: error.message || "Failed to submit application",
         variant: "destructive"
       });
     } finally {
@@ -197,25 +210,25 @@ const BecomeSellerPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/20 rounded-full blur-[150px] animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[150px] animate-pulse" />
         </div>
         
         <div className="text-center animate-scale-in relative z-10">
-          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 mb-8 relative">
-            <CheckCircle className="w-14 h-14 text-accent" />
-            <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-yellow-500/30 to-yellow-500/10 mb-8 relative">
+            <CheckCircle className="w-14 h-14 text-yellow-500" />
+            <div className="absolute inset-0 rounded-full bg-yellow-500/20 animate-ping" />
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-3">
-            Welcome to <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Sellora</span>!
+            Application Submitted!
           </h1>
-          <p className="text-xl text-muted-foreground mb-2">You're now a verified seller</p>
-          <p className="text-muted-foreground/60">Redirecting to your dashboard...</p>
+          <p className="text-xl text-muted-foreground mb-2">Your seller application is pending review</p>
+          <p className="text-muted-foreground/60">Redirecting to your application status...</p>
           
           <div className="flex justify-center gap-2 mt-6">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}

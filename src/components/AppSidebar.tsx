@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import {
   Sidebar,
   SidebarContent,
@@ -27,9 +28,7 @@ import {
   Package,
   PlusCircle,
   BarChart3,
-  Users,
-  Search,
-  Eye,
+  Clock,
   History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,6 +47,32 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
+  
+  // Track if user has a seller application (any status)
+  const [hasSellerApplication, setHasSellerApplication] = useState(false);
+  const [sellerStatus, setSellerStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkSellerApplication = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('sellers')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (data) {
+        setHasSellerApplication(true);
+        setSellerStatus(data.status);
+      } else {
+        setHasSellerApplication(false);
+        setSellerStatus(null);
+      }
+    };
+    
+    checkSellerApplication();
+  }, [user, role]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -66,16 +91,28 @@ const AppSidebar = () => {
     { path: '/login-history', label: 'Login History', icon: History, roles: ['user', 'shopkeeper', 'admin'] },
   ];
 
-  // "Start Selling on Sellora" visible for user and admin (not shopkeeper since they already are sellers)
-  const userItems: NavItem[] = [
-    {
-      path: '/seller/onboarding',
-      label: 'Start Selling on Sellora',
-      icon: Sparkles,
-      roles: ['user', 'admin'],
-      highlight: true,
-    },
-  ];
+  // Show "Start Selling" only for users without any seller application
+  // Show "Application Status" for users with pending/rejected applications
+  const userItems: NavItem[] = [];
+  
+  if (role === 'user' || role === 'admin') {
+    if (!hasSellerApplication) {
+      userItems.push({
+        path: '/seller/onboarding',
+        label: 'Start Selling on Sellora',
+        icon: Sparkles,
+        roles: ['user', 'admin'],
+        highlight: true,
+      });
+    } else if (sellerStatus === 'pending' || sellerStatus === 'rejected') {
+      userItems.push({
+        path: '/seller/review',
+        label: 'Application Status',
+        icon: Clock,
+        roles: ['user', 'admin'],
+      });
+    }
+  }
 
   const sellerItems: NavItem[] = [
     { path: '/seller', label: 'Seller Dashboard', icon: Store, roles: ['shopkeeper'] },

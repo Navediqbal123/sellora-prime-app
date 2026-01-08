@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product, SellerProfile } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ type SellerSection = 'overview' | 'products' | 'analytics' | 'add-product';
 
 const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,9 +78,21 @@ const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) 
         .from('sellers')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (sellerError) throw sellerError;
+      
+      // Check if seller exists and is approved
+      if (!sellerData) {
+        navigate('/seller/onboarding');
+        return;
+      }
+      
+      if (sellerData.status !== 'approved') {
+        navigate('/seller/review');
+        return;
+      }
+      
       setSeller(sellerData);
 
       const { data: productsData, error: productsError } = await supabase

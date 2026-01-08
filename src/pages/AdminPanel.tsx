@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, SellerProfile, Product } from '@/lib/supabase';
+import { supabase, SellerProfile, Product, SellerStatus } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 import { 
   Users, 
   Store, 
@@ -17,7 +18,13 @@ import {
   Sparkles,
   LayoutDashboard,
   ChevronRight,
-  Menu
+  Menu,
+  CheckCircle,
+  XCircle,
+  Ban,
+  Unlock,
+  Trash2,
+  Clock
 } from 'lucide-react';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
@@ -31,6 +38,7 @@ interface AdminStats {
   totalProducts: number;
   totalSearches: number;
   totalViews: number;
+  pendingRequests: number;
 }
 
 interface SearchLog {
@@ -55,10 +63,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     totalSellers: 0,
     totalProducts: 0,
     totalSearches: 0,
-    totalViews: 0
+    totalViews: 0,
+    pendingRequests: 0
   });
   const [activeSection, setActiveSection] = useState<AdminSection>(section);
   const [sellers, setSellers] = useState<SellerProfile[]>([]);
+  const [pendingSellers, setPendingSellers] = useState<SellerProfile[]>([]);
+  const [approvedSellers, setApprovedSellers] = useState<SellerProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchLogs, setSearchLogs] = useState<SearchLog[]>([]);
   const [clickLogs, setClickLogs] = useState<ClickLog[]>([]);
@@ -88,20 +99,23 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [sellersRes, productsRes, searchesRes] = await Promise.all([
-        supabase.from('sellers').select('id', { count: 'exact', head: true }),
+      const [sellersRes, productsRes, searchesRes, pendingRes] = await Promise.all([
+        supabase.from('sellers').select('id, status', { count: 'exact' }),
         supabase.from('products').select('id, views', { count: 'exact' }),
-        supabase.from('search_logs').select('id', { count: 'exact', head: true })
+        supabase.from('search_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('sellers').select('id', { count: 'exact', head: true }).eq('status', 'pending')
       ]);
 
       const totalViews = productsRes.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
+      const approvedCount = sellersRes.data?.filter(s => s.status === 'approved').length || 0;
 
       setStats({
         totalUsers: sellersRes.count || 0,
-        totalSellers: sellersRes.count || 0,
+        totalSellers: approvedCount,
         totalProducts: productsRes.count || 0,
         totalSearches: searchesRes.count || 0,
-        totalViews
+        totalViews,
+        pendingRequests: pendingRes.count || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -115,7 +129,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       .from('sellers')
       .select('*')
       .order('created_at', { ascending: false });
-    setSellers(data || []);
+    
+    const allSellers = data || [];
+    setSellers(allSellers);
+    setPendingSellers(allSellers.filter(s => s.status === 'pending'));
+    setApprovedSellers(allSellers.filter(s => s.status === 'approved' || s.status === 'blocked'));
   };
 
   const fetchProducts = async () => {
@@ -158,11 +176,119 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     await fetchSellerProducts(seller.id);
   };
 
+  // Admin Actions for Sellers
+  const handleApproveSeller = async (sellerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sellers')
+        .update({ status: 'approved' })
+        .eq('id', sellerId);
+
+      if (error) throw error;
+
+      // Also add shopkeeper role to user_roles table
+      const seller = sellers.find(s => s.id === sellerId);
+      if (seller) {
+        await supabase
+          .from('user_roles')
+          .upsert({ user_id: seller.user_id, role: 'shopkeeper' }, { onConflict: 'user_id' });
+      }
+
+      toast({ title: "Seller Approved!", description: "The seller can now access their dashboard" });
+      fetchSellers();
+      fetchStats();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleRejectSeller = async (sellerId: string, reason?: string) => {
+    try {
+      const { error } = await supabase
+        .from('sellers')
+        .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
+        .eq('id', sellerId);
+
+      if (error) throw error;
+      toast({ title: "Seller Rejected", description: "The seller has been notified" });
+      fetchSellers();
+      fetchStats();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleBlockSeller = async (sellerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sellers')
+        .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
+        .eq('id', sellerId);
+
+      if (error) throw error;
+      toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+      fetchSellers();
+      fetchStats();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleUnblockSeller = async (sellerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sellers')
+        .update({ status: 'approved', rejection_reason: null })
+        .eq('id', sellerId);
+
+      if (error) throw error;
+      toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+      fetchSellers();
+      fetchStats();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteSeller = async (sellerId: string) => {
+    if (!confirm('Are you sure you want to delete this seller? This action cannot be undone.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('sellers')
+        .delete()
+        .eq('id', sellerId);
+
+      if (error) throw error;
+      toast({ title: "Seller Deleted", description: "The seller has been removed" });
+      setSelectedSeller(null);
+      fetchSellers();
+      fetchStats();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const getStatusBadge = (status: SellerStatus) => {
+    switch (status) {
+      case 'pending':
+        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-500">Pending</span>;
+      case 'approved':
+        return <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500">Approved</span>;
+      case 'rejected':
+        return <span className="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-500">Rejected</span>;
+      case 'blocked':
+        return <span className="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-500">Blocked</span>;
+      default:
+        return null;
+    }
+  };
+
   const statCards = [
-    { id: 'users', label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'primary' as const },
-    { id: 'sellers', label: 'Total Sellers', value: stats.totalSellers, icon: Store, color: 'accent' as const },
+    { id: 'seller-requests', label: 'Pending Requests', value: stats.pendingRequests, icon: Clock, color: 'warning' as const },
+    { id: 'sellers', label: 'Approved Sellers', value: stats.totalSellers, icon: Store, color: 'accent' as const },
     { id: 'products', label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'gold' as const },
-    { id: 'searches', label: 'Total Searches', value: stats.totalSearches, icon: Search, color: 'warning' as const },
+    { id: 'searches', label: 'Total Searches', value: stats.totalSearches, icon: Search, color: 'primary' as const },
     { id: 'clicks', label: 'Total Views', value: stats.totalViews, icon: Eye, color: 'success' as const }
   ];
 
@@ -541,27 +667,92 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         </div>
       )}
 
-      {/* Seller Requests (Start Selling on Sellora) */}
+      {/* Seller Requests (Pending) */}
       {activeSection === 'seller-requests' && (
         <div className="animate-fade-in-up">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-foreground mb-1">
-              <span className="text-gradient">Seller Requests</span>
+              <span className="text-gradient">Pending Seller Requests</span>
             </h2>
-            <p className="text-muted-foreground">Users who completed the seller onboarding form</p>
+            <p className="text-muted-foreground">Review and approve new seller applications</p>
           </div>
 
           <div className="glass-card rounded-2xl p-4 mb-6">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/10">
-              <Sparkles className="w-6 h-6 text-primary" />
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+              <Clock className="w-6 h-6 text-yellow-500" />
               <div>
-                <p className="font-semibold text-foreground">{sellers.length} Total Seller Registrations</p>
-                <p className="text-sm text-muted-foreground">Complete seller form data with products & analytics</p>
+                <p className="font-semibold text-foreground">{pendingSellers.length} Pending Applications</p>
+                <p className="text-sm text-muted-foreground">Sellers waiting for your approval</p>
               </div>
             </div>
           </div>
 
-          <AnimatedTable columns={sellerRequestColumns} data={sellers} />
+          {pendingSellers.length > 0 ? (
+            <div className="space-y-4">
+              {pendingSellers.map((seller, index) => (
+                <div
+                  key={seller.id}
+                  className="glass-card rounded-2xl p-6 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-foreground">{seller.shop_name}</h3>
+                        {getStatusBadge(seller.status)}
+                      </div>
+                      <p className="text-muted-foreground mb-3">{seller.owner_name} • {seller.business_type}</p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="w-4 h-4" />
+                          <span className="truncate">{seller.email}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="w-4 h-4" />
+                          <span>{seller.phone_number}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-4 h-4" />
+                          <span>{seller.city}, {seller.state}</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Applied on {new Date(seller.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <div className="flex gap-2 lg:flex-col">
+                      <Button
+                        onClick={() => handleApproveSeller(seller.id)}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Approve
+                      </Button>
+                      <Button
+                        onClick={() => handleRejectSeller(seller.id)}
+                        variant="outline"
+                        className="flex-1 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="glass-card rounded-2xl p-12 text-center">
+              <CheckCircle className="w-16 h-16 text-green-500/30 mx-auto mb-4 animate-float" />
+              <p className="text-lg text-muted-foreground mb-2">No pending requests</p>
+              <p className="text-sm text-muted-foreground/70">
+                All seller applications have been reviewed.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

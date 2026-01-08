@@ -7,6 +7,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type UserRole = 'user' | 'shopkeeper' | 'admin';
 
+export type SellerStatus = 'pending' | 'approved' | 'rejected' | 'blocked';
+
 export interface SellerProfile {
   id: string;
   user_id: string;
@@ -19,6 +21,8 @@ export interface SellerProfile {
   state: string;
   pincode: string;
   business_type: string;
+  status: SellerStatus;
+  rejection_reason?: string;
   created_at: string;
 }
 
