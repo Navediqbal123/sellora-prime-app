@@ -13,6 +13,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage";
 import BecomeSellerPage from "./pages/BecomeSellerPage";
+import SellerReviewPage from "./pages/SellerReviewPage";
 import SellerDashboard from "./pages/SellerDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import ProfilePage from "./pages/ProfilePage";
@@ -87,6 +88,16 @@ const AppRoutes = () => {
 
         {/* Backwards-compat */}
         <Route path="become-seller" element={<Navigate to="/seller/onboarding" replace />} />
+
+        {/* Seller Review Page (pending/rejected sellers) */}
+        <Route
+          path="seller/review"
+          element={
+            <ProtectedRoute>
+              <SellerReviewPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Seller routes */}
         <Route

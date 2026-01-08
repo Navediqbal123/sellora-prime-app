@@ -64,14 +64,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // 2) Backwards-compat for existing sellers (role derived from sellers table)
+      // 2) Check sellers table - only approved sellers get shopkeeper role
       const { data: sellerData, error: sellerError } = await supabase
         .from('sellers')
-        .select('id')
+        .select('id, status')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (!sellerError && sellerData) {
+      if (!sellerError && sellerData && sellerData.status === 'approved') {
         setRole('shopkeeper');
         return;
       }
