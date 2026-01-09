@@ -1,16 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, UserRole } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole;
   loading: boolean;
+  isActive: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshRole: () => Promise<void>;
+  checkBanStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,9 +47,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>('user');
   const [loading, setLoading] = useState(true);
+  const [isActive, setIsActive] = useState(true);
+
+  // Check if user is banned
+  const checkBanStatus = async (): Promise<boolean> => {
+    if (!user?.id) return true;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_active')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking ban status:', error);
+        return true;
+      }
+
+      const active = data?.is_active !== false; // Default to active if field doesn't exist
+      setIsActive(active);
+
+      if (!active) {
+        toast({
+          title: "Account Blocked",
+          description: "Your account has been blocked by admin",
+          variant: "destructive"
+        });
+        await signOut();
+      }
+
+      return active;
+    } catch {
+      return true;
+    }
+  };
 
   const fetchUserRole = async (userId: string, email?: string) => {
     try {
+      // Check ban status first
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_active')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileData?.is_active === false) {
+        setIsActive(false);
+        toast({
+          title: "Account Blocked",
+          description: "Your account has been blocked by admin",
+          variant: "destructive"
+        });
+        await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+        setRole('user');
+        return;
+      }
+
+      setIsActive(true);
+
       // Force admin for specific email
       if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
         setRole('admin');
@@ -101,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }, 0);
       } else {
         setRole('user');
+        setIsActive(true);
       }
 
       setLoading(false);
@@ -171,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setSession(null);
     setRole('user');
+    setIsActive(true);
   };
 
   return (
@@ -180,10 +243,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         role,
         loading,
+        isActive,
         signUp,
         signIn,
         signOut,
         refreshRole,
+        checkBanStatus,
       }}
     >
       {children}
