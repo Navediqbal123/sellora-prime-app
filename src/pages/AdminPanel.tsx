@@ -26,7 +26,9 @@ import {
   Trash2,
   Clock,
   Shield,
-  ShieldOff
+  ShieldOff,
+  Loader2,
+  Check
 } from 'lucide-react';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
@@ -89,6 +91,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [togglingUser, setTogglingUser] = useState<string | null>(null);
+  
+  // Action states for buttons
+  const [actionLoading, setActionLoading] = useState<{ [key: string]: 'approve' | 'reject' | 'block' | 'unblock' | null }>({});
+  const [actionSuccess, setActionSuccess] = useState<{ [key: string]: 'approve' | 'reject' | 'block' | 'unblock' | null }>({});
+  const [actionError, setActionError] = useState<{ [key: string]: boolean }>({});
   
   // Sidebar state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -253,9 +260,40 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     await fetchSellerProducts(seller.id);
   };
 
-  // Admin Actions for Sellers
-  const handleApproveSeller = async (sellerId: string) => {
+  // Helper to handle action with animation states
+  const withActionAnimation = async (
+    sellerId: string, 
+    actionType: 'approve' | 'reject' | 'block' | 'unblock',
+    action: () => Promise<void>
+  ) => {
+    setActionLoading(prev => ({ ...prev, [sellerId]: actionType }));
+    setActionError(prev => ({ ...prev, [sellerId]: false }));
+    setActionSuccess(prev => ({ ...prev, [sellerId]: null }));
+
     try {
+      await action();
+      setActionSuccess(prev => ({ ...prev, [sellerId]: actionType }));
+      
+      // Clear success state and update lists after animation
+      setTimeout(() => {
+        setActionSuccess(prev => ({ ...prev, [sellerId]: null }));
+        fetchSellers();
+        fetchStats();
+      }, 800);
+    } catch (error) {
+      setActionError(prev => ({ ...prev, [sellerId]: true }));
+      setTimeout(() => {
+        setActionError(prev => ({ ...prev, [sellerId]: false }));
+      }, 600);
+      throw error;
+    } finally {
+      setActionLoading(prev => ({ ...prev, [sellerId]: null }));
+    }
+  };
+
+  // Admin Actions for Sellers with animations
+  const handleApproveSeller = async (sellerId: string) => {
+    await withActionAnimation(sellerId, 'approve', async () => {
       const { error } = await supabase
         .from('sellers')
         .update({ status: 'approved' })
@@ -271,16 +309,15 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           .upsert({ user_id: seller.user_id, role: 'shopkeeper' }, { onConflict: 'user_id' });
       }
 
-      toast({ title: "Seller Approved!", description: "The seller can now access their dashboard" });
-      fetchSellers();
-      fetchStats();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+      toast({ 
+        title: "✓ Seller Approved!", 
+        description: "The seller can now access their dashboard" 
+      });
+    });
   };
 
   const handleRejectSeller = async (sellerId: string, reason?: string) => {
-    try {
+    await withActionAnimation(sellerId, 'reject', async () => {
       const { error } = await supabase
         .from('sellers')
         .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
@@ -288,15 +325,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       if (error) throw error;
       toast({ title: "Seller Rejected", description: "The seller has been notified" });
-      fetchSellers();
-      fetchStats();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    });
   };
 
   const handleBlockSeller = async (sellerId: string) => {
-    try {
+    await withActionAnimation(sellerId, 'block', async () => {
       const { error } = await supabase
         .from('sellers')
         .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
@@ -304,15 +337,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       if (error) throw error;
       toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
-      fetchSellers();
-      fetchStats();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    });
   };
 
   const handleUnblockSeller = async (sellerId: string) => {
-    try {
+    await withActionAnimation(sellerId, 'unblock', async () => {
       const { error } = await supabase
         .from('sellers')
         .update({ status: 'approved', rejection_reason: null })
@@ -320,11 +349,16 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       if (error) throw error;
       toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
-      fetchSellers();
-      fetchStats();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    });
+  };
+
+  // Get button state classes
+  const getButtonState = (sellerId: string, actionType: 'approve' | 'reject' | 'block' | 'unblock') => {
+    const isLoading = actionLoading[sellerId] === actionType;
+    const isSuccess = actionSuccess[sellerId] === actionType;
+    const isError = actionError[sellerId];
+    
+    return { isLoading, isSuccess, isError };
   };
 
   const handleDeleteSeller = async (sellerId: string) => {
@@ -700,30 +734,78 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
               
               {/* Admin Actions */}
               <div className="flex items-center gap-3">
-                {selectedSeller.status === 'approved' && (
-                  <Button
-                    onClick={() => handleBlockSeller(selectedSeller.id)}
-                    variant="outline"
-                    className="border-red-500/50 text-red-500 hover:bg-red-500/10"
-                  >
-                    <Ban className="w-4 h-4 mr-2" />
-                    Block Seller
-                  </Button>
-                )}
-                {selectedSeller.status === 'blocked' && (
-                  <Button
-                    onClick={() => handleUnblockSeller(selectedSeller.id)}
-                    variant="outline"
-                    className="border-green-500/50 text-green-500 hover:bg-green-500/10"
-                  >
-                    <Unlock className="w-4 h-4 mr-2" />
-                    Unblock Seller
-                  </Button>
-                )}
+                {selectedSeller.status === 'approved' && (() => {
+                  const blockState = getButtonState(selectedSeller.id, 'block');
+                  return (
+                    <Button
+                      onClick={() => handleBlockSeller(selectedSeller.id)}
+                      disabled={blockState.isLoading || blockState.isSuccess}
+                      variant="outline"
+                      className={`transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                        ${blockState.isSuccess 
+                          ? 'border-red-500 bg-red-500/20 text-red-500' 
+                          : blockState.isError 
+                            ? 'animate-[shake_0.3s_ease-in-out]' 
+                            : 'border-red-500/50 text-red-500 hover:bg-red-500/10'
+                        }`}
+                    >
+                      {blockState.isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Blocking...
+                        </>
+                      ) : blockState.isSuccess ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Blocked
+                        </>
+                      ) : (
+                        <>
+                          <Ban className="w-4 h-4 mr-2" />
+                          Block Seller
+                        </>
+                      )}
+                    </Button>
+                  );
+                })()}
+                {selectedSeller.status === 'blocked' && (() => {
+                  const unblockState = getButtonState(selectedSeller.id, 'unblock');
+                  return (
+                    <Button
+                      onClick={() => handleUnblockSeller(selectedSeller.id)}
+                      disabled={unblockState.isLoading || unblockState.isSuccess}
+                      variant="outline"
+                      className={`transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                        ${unblockState.isSuccess 
+                          ? 'border-green-500 bg-green-500/20 text-green-500' 
+                          : unblockState.isError 
+                            ? 'animate-[shake_0.3s_ease-in-out]' 
+                            : 'border-green-500/50 text-green-500 hover:bg-green-500/10'
+                        }`}
+                    >
+                      {unblockState.isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Unblocking...
+                        </>
+                      ) : unblockState.isSuccess ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Unblocked
+                        </>
+                      ) : (
+                        <>
+                          <Unlock className="w-4 h-4 mr-2" />
+                          Unblock Seller
+                        </>
+                      )}
+                    </Button>
+                  );
+                })()}
                 <Button
                   onClick={() => handleDeleteSeller(selectedSeller.id)}
                   variant="destructive"
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
@@ -836,21 +918,72 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                     </div>
                     
                     <div className="flex gap-2 lg:flex-col">
-                      <Button
-                        onClick={() => handleApproveSeller(seller.id)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        onClick={() => handleRejectSeller(seller.id)}
-                        variant="outline"
-                        className="flex-1 border-red-500/50 text-red-500 hover:bg-red-500/10"
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
-                      </Button>
+                      {(() => {
+                        const approveState = getButtonState(seller.id, 'approve');
+                        const rejectState = getButtonState(seller.id, 'reject');
+                        
+                        return (
+                          <>
+                            <Button
+                              onClick={() => handleApproveSeller(seller.id)}
+                              disabled={approveState.isLoading || approveState.isSuccess}
+                              className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                                ${approveState.isSuccess 
+                                  ? 'bg-green-500 hover:bg-green-500' 
+                                  : approveState.isError 
+                                    ? 'bg-red-500 animate-[shake_0.3s_ease-in-out]' 
+                                    : 'bg-green-600 hover:bg-green-700'
+                                } text-white`}
+                            >
+                              {approveState.isLoading ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Approving...
+                                </>
+                              ) : approveState.isSuccess ? (
+                                <>
+                                  <Check className="w-4 h-4 mr-2 animate-[scale-in_0.2s_ease-out]" />
+                                  Approved!
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Approve
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              onClick={() => handleRejectSeller(seller.id)}
+                              disabled={rejectState.isLoading || rejectState.isSuccess}
+                              variant="outline"
+                              className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                                ${rejectState.isSuccess 
+                                  ? 'border-red-500 bg-red-500/20 text-red-500' 
+                                  : rejectState.isError 
+                                    ? 'animate-[shake_0.3s_ease-in-out]' 
+                                    : 'border-red-500/50 text-red-500 hover:bg-red-500/10'
+                                }`}
+                            >
+                              {rejectState.isLoading ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Rejecting...
+                                </>
+                              ) : rejectState.isSuccess ? (
+                                <>
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Rejected
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Reject
+                                </>
+                              )}
+                            </Button>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

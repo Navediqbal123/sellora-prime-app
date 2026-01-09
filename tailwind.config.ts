@@ -157,6 +157,11 @@ export default {
           "0%": { transform: "scale(0)", opacity: "1" },
           "100%": { transform: "scale(4)", opacity: "0" },
         },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "10%, 30%, 50%, 70%, 90%": { transform: "translateX(-4px)" },
+          "20%, 40%, 60%, 80%": { transform: "translateX(4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -177,6 +182,7 @@ export default {
         "glow-idle": "glow-idle 2.8s ease-in-out infinite",
         "count-up": "count-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         ripple: "ripple 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        shake: "shake 0.3s ease-in-out",
       },
       boxShadow: {
         glow: "0 0 40px -10px hsl(262, 83%, 58%, 0.5)",

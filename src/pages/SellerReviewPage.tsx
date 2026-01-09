@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, SellerProfile, SellerStatus } from '@/lib/supabase';
@@ -13,7 +13,8 @@ import {
   Mail,
   MapPin,
   Briefcase,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -22,13 +23,12 @@ const SellerReviewPage = () => {
   const navigate = useNavigate();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(false);
 
-  useEffect(() => {
-    fetchSellerData();
-  }, [user]);
-
-  const fetchSellerData = async () => {
+  const fetchSellerData = useCallback(async (showSpinner = true) => {
     if (!user) return;
+
+    if (showSpinner) setChecking(true);
 
     try {
       const { data, error } = await supabase
@@ -56,8 +56,25 @@ const SellerReviewPage = () => {
       console.error('Error fetching seller data:', error);
     } finally {
       setLoading(false);
+      setChecking(false);
     }
-  };
+  }, [user, refreshRole, navigate]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchSellerData();
+  }, [fetchSellerData]);
+
+  // Auto-poll for status changes every 10 seconds
+  useEffect(() => {
+    if (!seller || seller.status !== 'pending') return;
+
+    const interval = setInterval(() => {
+      fetchSellerData(false);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [seller, fetchSellerData]);
 
   if (loading) {
     return (
@@ -217,9 +234,32 @@ const SellerReviewPage = () => {
       {/* Actions based on status */}
       {seller.status === 'pending' && (
         <div className="mt-8 text-center animate-fade-in-up stagger-3">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 mb-4">
             <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
             <span className="text-sm text-yellow-500 font-medium">Waiting for admin approval</span>
+          </div>
+          
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchSellerData(true)}
+              disabled={checking}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {checking ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Check Status
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">Auto-checking every 10 seconds</p>
           </div>
         </div>
       )}
