@@ -1,12 +1,31 @@
 import React from 'react';
-import { Store, Phone, MapPin, Calendar } from 'lucide-react';
-import { SellerProfile } from '@/lib/supabase';
+import { Store, Phone, MapPin, Calendar, Shield, ShieldOff } from 'lucide-react';
+import { SellerProfile, SellerStatus } from '@/lib/supabase';
 
 interface SellerCardProps {
   seller: SellerProfile;
   onClick: () => void;
   delay?: number;
 }
+
+const getStatusBadge = (status: SellerStatus) => {
+  switch (status) {
+    case 'pending':
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-500">Pending</span>;
+    case 'approved':
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-500/20 text-green-500 flex items-center gap-1">
+        <Shield className="w-3 h-3" /> Active
+      </span>;
+    case 'rejected':
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500/20 text-red-500">Rejected</span>;
+    case 'blocked':
+      return <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500/20 text-red-500 flex items-center gap-1">
+        <ShieldOff className="w-3 h-3" /> Blocked
+      </span>;
+    default:
+      return null;
+  }
+};
 
 const SellerCard: React.FC<SellerCardProps> = ({ seller, onClick, delay = 0 }) => {
   return (
@@ -27,9 +46,12 @@ const SellerCard: React.FC<SellerCardProps> = ({ seller, onClick, delay = 0 }) =
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
-              {seller.shop_name}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
+                {seller.shop_name}
+              </h3>
+              {getStatusBadge(seller.status)}
+            </div>
             <p className="text-muted-foreground text-sm">{seller.owner_name}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center

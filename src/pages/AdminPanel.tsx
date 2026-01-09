@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, SellerProfile, Product, SellerStatus } from '@/lib/supabase';
+import { supabase, SellerProfile, Product, SellerStatus, Profile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { 
   Users, 
@@ -24,13 +24,16 @@ import {
   Ban,
   Unlock,
   Trash2,
-  Clock
+  Clock,
+  Shield,
+  ShieldOff
 } from 'lucide-react';
 import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 
 interface AdminStats {
   totalUsers: number;
@@ -54,6 +57,15 @@ interface ClickLog {
   product?: Product;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  is_active: boolean;
+  created_at: string;
+  seller?: SellerProfile;
+}
+
 type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
 
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
@@ -75,6 +87,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [clickLogs, setClickLogs] = useState<ClickLog[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<SellerProfile | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [togglingUser, setTogglingUser] = useState<string | null>(null);
   
   // Sidebar state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -94,7 +108,70 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     if (activeSection === 'products') fetchProducts();
     if (activeSection === 'searches') fetchSearchLogs();
     if (activeSection === 'clicks') fetchClickLogs();
+    if (activeSection === 'users') fetchUsers();
   }, [activeSection]);
+
+  const fetchUsers = async () => {
+    try {
+      // Fetch all profiles with their seller info
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Get sellers for each user
+      const { data: sellersData } = await supabase
+        .from('sellers')
+        .select('*');
+
+      const usersWithSellers = (profilesData || []).map(profile => ({
+        ...profile,
+        is_active: profile.is_active !== false, // Default to true if not set
+        seller: sellersData?.find(s => s.user_id === profile.id)
+      }));
+
+      setUsers(usersWithSellers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const handleToggleUserBan = async (userId: string, currentStatus: boolean) => {
+    setTogglingUser(userId);
+    
+    try {
+      const newStatus = !currentStatus;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: newStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(prev => prev.map(u => 
+        u.id === userId ? { ...u, is_active: newStatus } : u
+      ));
+
+      toast({
+        title: newStatus ? "User Unbanned" : "User Banned",
+        description: newStatus 
+          ? "User can now access the platform" 
+          : "User has been blocked from accessing the platform"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user status",
+        variant: "destructive"
+      });
+    } finally {
+      setTogglingUser(null);
+    }
+  };
 
   const fetchStats = async () => {
     setLoading(true);
@@ -614,9 +691,44 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
               </p>
             </div>
 
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>Joined on {new Date(selectedSeller.created_at).toLocaleDateString()}</span>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>Joined on {new Date(selectedSeller.created_at).toLocaleDateString()}</span>
+                {getStatusBadge(selectedSeller.status)}
+              </div>
+              
+              {/* Admin Actions */}
+              <div className="flex items-center gap-3">
+                {selectedSeller.status === 'approved' && (
+                  <Button
+                    onClick={() => handleBlockSeller(selectedSeller.id)}
+                    variant="outline"
+                    className="border-red-500/50 text-red-500 hover:bg-red-500/10"
+                  >
+                    <Ban className="w-4 h-4 mr-2" />
+                    Block Seller
+                  </Button>
+                )}
+                {selectedSeller.status === 'blocked' && (
+                  <Button
+                    onClick={() => handleUnblockSeller(selectedSeller.id)}
+                    variant="outline"
+                    className="border-green-500/50 text-green-500 hover:bg-green-500/10"
+                  >
+                    <Unlock className="w-4 h-4 mr-2" />
+                    Unblock Seller
+                  </Button>
+                )}
+                <Button
+                  onClick={() => handleDeleteSeller(selectedSeller.id)}
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -791,16 +903,84 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             <h2 className="text-2xl font-bold text-foreground mb-1">
               All <span className="text-gradient">Users</span>
             </h2>
-            <p className="text-muted-foreground">User management coming soon</p>
+            <p className="text-muted-foreground">{users.length} registered users</p>
           </div>
 
-          <div className="glass-card rounded-2xl p-12 text-center">
-            <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
-            <p className="text-lg text-muted-foreground mb-2">User management will be available soon</p>
-            <p className="text-sm text-muted-foreground/70">
-              You'll be able to view all registered users, their activity, and manage roles.
-            </p>
-          </div>
+          {users.length > 0 ? (
+            <div className="space-y-4">
+              {users.map((user, index) => (
+                <div
+                  key={user.id}
+                  className="glass-card rounded-2xl p-5 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                  style={{ animationDelay: `${index * 0.03}s` }}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 
+                                       flex items-center justify-center">
+                          <Users className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">
+                            {user.full_name || 'Unnamed User'}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                        {/* Status Badge */}
+                        {user.is_active ? (
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-500 flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            ACTIVE
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-500 flex items-center gap-1">
+                            <ShieldOff className="w-3 h-3" />
+                            BANNED
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          Joined {new Date(user.created_at).toLocaleDateString()}
+                        </span>
+                        {user.seller && (
+                          <span className="px-2 py-0.5 rounded-full bg-accent/20 text-accent text-xs">
+                            Seller: {user.seller.shop_name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Ban/Unban Toggle */}
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-xs text-muted-foreground">
+                          {user.is_active ? 'Active' : 'Banned'}
+                        </span>
+                        <Switch
+                          checked={user.is_active}
+                          onCheckedChange={() => handleToggleUserBan(user.id, user.is_active)}
+                          disabled={togglingUser === user.id}
+                          className={`${user.is_active ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500/50'}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="glass-card rounded-2xl p-12 text-center">
+              <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
+              <p className="text-lg text-muted-foreground mb-2">No users found</p>
+              <p className="text-sm text-muted-foreground/70">
+                Users will appear here once they register.
+              </p>
+            </div>
+          )}
         </div>
       )}
         </div>
