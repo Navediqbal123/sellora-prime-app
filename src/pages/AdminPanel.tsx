@@ -69,6 +69,19 @@ interface UserProfile {
   seller?: SellerProfile;
 }
 
+// Seller Requests list is sourced from `seller` table (single source of truth)
+interface SellerRequestRow {
+  user_id: string;
+  shop_name: string;
+  owner_name: string;
+  phone?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
+
 type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
 
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
@@ -85,6 +98,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [sellers, setSellers] = useState<SellerProfile[]>([]);
   const [pendingSellers, setPendingSellers] = useState<SellerProfile[]>([]);
   const [approvedSellers, setApprovedSellers] = useState<SellerProfile[]>([]);
+
+  // Seller Requests page (pending only) — sourced from `seller` table
+  const [pendingSellerRequests, setPendingSellerRequests] = useState<SellerRequestRow[]>([]);
+  const [removingSellerRequests, setRemovingSellerRequests] = useState<Record<string, boolean>>({});
+
   const [products, setProducts] = useState<Product[]>([]);
   const [searchLogs, setSearchLogs] = useState<SearchLog[]>([]);
   const [clickLogs, setClickLogs] = useState<ClickLog[]>([]);
@@ -112,7 +130,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   }, []);
 
   useEffect(() => {
-    if (activeSection === 'sellers' || activeSection === 'seller-requests') fetchSellers();
+    if (activeSection === 'sellers') fetchSellers();
+    if (activeSection === 'seller-requests') fetchPendingSellerRequests();
     if (activeSection === 'products') fetchProducts();
     if (activeSection === 'searches') fetchSearchLogs();
     if (activeSection === 'clicks') fetchClickLogs();
@@ -221,6 +240,22 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     setApprovedSellers(allSellers.filter(s => s.status === 'approved' || s.status === 'blocked'));
   };
 
+  const fetchPendingSellerRequests = async () => {
+    const { data, error } = await supabase
+      .from('seller')
+      .select('user_id, shop_name, owner_name, phone, city, state, pincode, status, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending seller requests:', error);
+      setPendingSellerRequests([]);
+      return;
+    }
+
+    setPendingSellerRequests((data || []) as SellerRequestRow[]);
+  };
+
   const fetchProducts = async () => {
     const { data } = await supabase
       .from('products')
@@ -278,7 +313,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       // Clear success state and update lists after animation
       setTimeout(() => {
         setActionSuccess(prev => ({ ...prev, [sellerId]: null }));
-        fetchSellers();
+        if (activeSection === 'seller-requests') {
+          fetchPendingSellerRequests();
+        } else {
+          fetchSellers();
+        }
         fetchStats();
       }, 800);
     } catch (error) {
@@ -365,6 +404,44 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         
         toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
       }
+    });
+  };
+
+  // Seller Requests actions (uses `seller.user_id` as the stable identifier)
+  const handleApproveSellerRequest = async (userId: string) => {
+    await withActionAnimation(userId, 'approve', async () => {
+      await adminApi.approveSeller(userId);
+
+      // Smooth exit then remove from local state (no page reload)
+      setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
+      setTimeout(() => {
+        setPendingSellerRequests(prev => prev.filter(s => s.user_id !== userId));
+        setRemovingSellerRequests(prev => {
+          const next = { ...prev };
+          delete next[userId];
+          return next;
+        });
+      }, 250);
+
+      toast({ title: "Seller approved" });
+    });
+  };
+
+  const handleRejectSellerRequest = async (userId: string) => {
+    await withActionAnimation(userId, 'reject', async () => {
+      await adminApi.rejectSeller(userId);
+
+      setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
+      setTimeout(() => {
+        setPendingSellerRequests(prev => prev.filter(s => s.user_id !== userId));
+        setRemovingSellerRequests(prev => {
+          const next = { ...prev };
+          delete next[userId];
+          return next;
+        });
+      }, 250);
+
+      toast({ title: "Seller request rejected" });
     });
   };
 
@@ -939,119 +1016,116 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
               <Clock className="w-6 h-6 text-yellow-500" />
               <div>
-                <p className="font-semibold text-foreground">{pendingSellers.length} Pending Applications</p>
+                <p className="font-semibold text-foreground">{pendingSellerRequests.length} Pending Applications</p>
                 <p className="text-sm text-muted-foreground">Sellers waiting for your approval</p>
               </div>
             </div>
           </div>
 
-          {pendingSellers.length > 0 ? (
+          {pendingSellerRequests.length > 0 ? (
             <div className="space-y-4">
-              {pendingSellers.map((seller, index) => (
-                <div
-                  key={seller.id}
-                  className="glass-card rounded-2xl p-6 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">{seller.shop_name}</h3>
-                        {getStatusBadge(seller.status)}
+              {pendingSellerRequests.map((seller, index) => {
+                const approveState = getButtonState(seller.user_id, 'approve');
+                const rejectState = getButtonState(seller.user_id, 'reject');
+                const isRemoving = !!removingSellerRequests[seller.user_id];
+
+                return (
+                  <div
+                    key={seller.user_id}
+                    className={
+                      "glass-card rounded-2xl p-6 animate-fade-in-up hover:border-primary/30 transition-all duration-300 " +
+                      (isRemoving ? "opacity-0 translate-y-1 pointer-events-none" : "")
+                    }
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-foreground">{seller.shop_name}</h3>
+                          {getStatusBadge(seller.status as SellerStatus)}
+                        </div>
+                        <p className="text-muted-foreground mb-3">{seller.owner_name}</p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Phone className="w-4 h-4" />
+                            <span>{seller.phone || '-'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <MapPin className="w-4 h-4" />
+                            <span>{seller.city}, {seller.state} • {seller.pincode}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground mt-3">
+                          Applied on {new Date(seller.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-muted-foreground mb-3">{seller.owner_name} • {seller.business_type}</p>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="w-4 h-4" />
-                          <span className="truncate">{seller.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-4 h-4" />
-                          <span>{seller.phone_number}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="w-4 h-4" />
-                          <span>{seller.city}, {seller.state}</span>
-                        </div>
+
+                      <div className="flex gap-2 lg:flex-col">
+                        <Button
+                          onClick={() => handleApproveSellerRequest(seller.user_id)}
+                          disabled={approveState.isLoading || approveState.isSuccess}
+                          className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                            ${approveState.isSuccess 
+                              ? 'bg-green-500 hover:bg-green-500' 
+                              : approveState.isError 
+                                ? 'bg-red-500 animate-[shake_0.3s_ease-in-out]' 
+                                : 'bg-green-600 hover:bg-green-700'
+                            } text-white`}
+                        >
+                          {approveState.isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Approving...
+                            </>
+                          ) : approveState.isSuccess ? (
+                            <>
+                              <Check className="w-4 h-4 mr-2 animate-[scale-in_0.2s_ease-out]" />
+                              Approved!
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Approve
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={() => handleRejectSellerRequest(seller.user_id)}
+                          disabled={rejectState.isLoading || rejectState.isSuccess}
+                          variant="outline"
+                          className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                            ${rejectState.isSuccess 
+                              ? 'border-red-500 bg-red-500/20 text-red-500' 
+                              : rejectState.isError 
+                                ? 'animate-[shake_0.3s_ease-in-out]' 
+                                : 'border-red-500/50 text-red-500 hover:bg-red-500/10'
+                            }`}
+                        >
+                          {rejectState.isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Rejecting...
+                            </>
+                          ) : rejectState.isSuccess ? (
+                            <>
+                              <Check className="w-4 h-4 mr-2" />
+                              Rejected
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Reject
+                            </>
+                          )}
+                        </Button>
                       </div>
-                      
-                      <p className="text-xs text-muted-foreground mt-3">
-                        Applied on {new Date(seller.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    
-                    <div className="flex gap-2 lg:flex-col">
-                      {(() => {
-                        const approveState = getButtonState(seller.id, 'approve');
-                        const rejectState = getButtonState(seller.id, 'reject');
-                        
-                        return (
-                          <>
-                            <Button
-                              onClick={() => handleApproveSeller(seller.id)}
-                              disabled={approveState.isLoading || approveState.isSuccess}
-                              className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
-                                ${approveState.isSuccess 
-                                  ? 'bg-green-500 hover:bg-green-500' 
-                                  : approveState.isError 
-                                    ? 'bg-red-500 animate-[shake_0.3s_ease-in-out]' 
-                                    : 'bg-green-600 hover:bg-green-700'
-                                } text-white`}
-                            >
-                              {approveState.isLoading ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Approving...
-                                </>
-                              ) : approveState.isSuccess ? (
-                                <>
-                                  <Check className="w-4 h-4 mr-2 animate-[scale-in_0.2s_ease-out]" />
-                                  Approved!
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Approve
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              onClick={() => handleRejectSeller(seller.id)}
-                              disabled={rejectState.isLoading || rejectState.isSuccess}
-                              variant="outline"
-                              className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
-                                ${rejectState.isSuccess 
-                                  ? 'border-red-500 bg-red-500/20 text-red-500' 
-                                  : rejectState.isError 
-                                    ? 'animate-[shake_0.3s_ease-in-out]' 
-                                    : 'border-red-500/50 text-red-500 hover:bg-red-500/10'
-                                }`}
-                            >
-                              {rejectState.isLoading ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Rejecting...
-                                </>
-                              ) : rejectState.isSuccess ? (
-                                <>
-                                  <Check className="w-4 h-4 mr-2" />
-                                  Rejected
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                  Reject
-                                </>
-                              )}
-                            </Button>
-                          </>
-                        );
-                      })()}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="glass-card rounded-2xl p-12 text-center">
