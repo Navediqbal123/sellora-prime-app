@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, SellerProfile, Product, SellerStatus, Profile } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 import { 
   Users, 
@@ -291,64 +292,127 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     }
   };
 
-  // Admin Actions for Sellers with animations
+  // Admin Actions for Sellers with animations - using backend API
   const handleApproveSeller = async (sellerId: string) => {
+    const seller = sellers.find(s => s.id === sellerId);
+    if (!seller?.user_id) {
+      toast({ title: "Error", description: "Seller user_id not found", variant: "destructive" });
+      return;
+    }
+
     await withActionAnimation(sellerId, 'approve', async () => {
-      const { error } = await supabase
-        .from('sellers')
-        .update({ status: 'approved' })
-        .eq('id', sellerId);
+      try {
+        // Call backend API with user_id
+        await adminApi.approveSeller(seller.user_id);
+        
+        // Immediately remove from pending list (smooth slide-out)
+        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
+        
+        toast({ 
+          title: "✓ Seller Approved!", 
+          description: "The seller can now access their dashboard" 
+        });
+      } catch (error: any) {
+        // Fallback to direct Supabase update if API fails
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'approved' })
+          .eq('id', sellerId);
 
-      if (error) throw error;
+        if (dbError) throw dbError;
 
-      // Also add shopkeeper role to user_roles table
-      const seller = sellers.find(s => s.id === sellerId);
-      if (seller) {
+        // Add shopkeeper role
         await supabase
           .from('user_roles')
           .upsert({ user_id: seller.user_id, role: 'shopkeeper' }, { onConflict: 'user_id' });
-      }
 
-      toast({ 
-        title: "✓ Seller Approved!", 
-        description: "The seller can now access their dashboard" 
-      });
+        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
+        
+        toast({ 
+          title: "✓ Seller Approved!", 
+          description: "The seller can now access their dashboard" 
+        });
+      }
     });
   };
 
   const handleRejectSeller = async (sellerId: string, reason?: string) => {
-    await withActionAnimation(sellerId, 'reject', async () => {
-      const { error } = await supabase
-        .from('sellers')
-        .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
-        .eq('id', sellerId);
+    const seller = sellers.find(s => s.id === sellerId);
+    if (!seller?.user_id) {
+      toast({ title: "Error", description: "Seller user_id not found", variant: "destructive" });
+      return;
+    }
 
-      if (error) throw error;
-      toast({ title: "Seller Rejected", description: "The seller has been notified" });
+    await withActionAnimation(sellerId, 'reject', async () => {
+      try {
+        // Call backend API with user_id
+        await adminApi.rejectSeller(seller.user_id);
+        
+        // Immediately remove from pending list
+        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
+        
+        toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
+      } catch (error: any) {
+        // Fallback to direct Supabase update
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
+          .eq('id', sellerId);
+
+        if (dbError) throw dbError;
+        
+        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
+        
+        toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
+      }
     });
   };
 
   const handleBlockSeller = async (sellerId: string) => {
-    await withActionAnimation(sellerId, 'block', async () => {
-      const { error } = await supabase
-        .from('sellers')
-        .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
-        .eq('id', sellerId);
+    const seller = sellers.find(s => s.id === sellerId);
+    if (!seller?.user_id) {
+      toast({ title: "Error", description: "Seller user_id not found", variant: "destructive" });
+      return;
+    }
 
-      if (error) throw error;
-      toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+    await withActionAnimation(sellerId, 'block', async () => {
+      try {
+        await adminApi.blockSeller(seller.user_id);
+        toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+      } catch (error: any) {
+        // Fallback
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
+          .eq('id', sellerId);
+
+        if (dbError) throw dbError;
+        toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+      }
     });
   };
 
   const handleUnblockSeller = async (sellerId: string) => {
-    await withActionAnimation(sellerId, 'unblock', async () => {
-      const { error } = await supabase
-        .from('sellers')
-        .update({ status: 'approved', rejection_reason: null })
-        .eq('id', sellerId);
+    const seller = sellers.find(s => s.id === sellerId);
+    if (!seller?.user_id) {
+      toast({ title: "Error", description: "Seller user_id not found", variant: "destructive" });
+      return;
+    }
 
-      if (error) throw error;
-      toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+    await withActionAnimation(sellerId, 'unblock', async () => {
+      try {
+        await adminApi.unblockSeller(seller.user_id);
+        toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+      } catch (error: any) {
+        // Fallback
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'approved', rejection_reason: null })
+          .eq('id', sellerId);
+
+        if (dbError) throw dbError;
+        toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+      }
     });
   };
 
