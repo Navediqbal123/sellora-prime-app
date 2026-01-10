@@ -65,16 +65,41 @@ const SellerReviewPage = () => {
     fetchSellerData();
   }, [fetchSellerData]);
 
-  // Auto-poll for status changes every 10 seconds
+  // Auto-poll for role changes every 3-5 seconds when pending
   useEffect(() => {
-    if (!seller || seller.status !== 'pending') return;
+    if (!user) return;
+    
+    // Check role directly - if shopkeeper, redirect immediately
+    const checkRoleAndRedirect = async () => {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    const interval = setInterval(() => {
-      fetchSellerData(false);
-    }, 10000);
+      if (roleData?.role === 'shopkeeper') {
+        await refreshRole();
+        navigate('/seller/dashboard');
+        return true;
+      }
+      
+      // Also re-fetch seller data for status update
+      await fetchSellerData(false);
+      return false;
+    };
+
+    // Initial check
+    checkRoleAndRedirect();
+
+    // Poll every 4 seconds when pending
+    const interval = setInterval(async () => {
+      if (seller?.status === 'pending') {
+        await checkRoleAndRedirect();
+      }
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [seller, fetchSellerData]);
+  }, [user, seller?.status, refreshRole, navigate, fetchSellerData]);
 
   if (loading) {
     return (

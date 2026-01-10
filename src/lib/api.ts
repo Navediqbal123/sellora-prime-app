@@ -87,4 +87,25 @@ export const adminApi = {
   getSearchLogs: () => apiRequest('/admin/search-logs'),
   getClickLogs: () => apiRequest('/admin/click-logs'),
   getSellerRequests: () => apiRequest('/seller_requests'),
+  
+  // Seller approval/rejection
+  approveSeller: (userId: string) => apiRequest('/admin/approve-seller', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
+  
+  rejectSeller: (userId: string) => apiRequest('/admin/reject-seller', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
+  
+  blockSeller: (userId: string) => apiRequest('/admin/block-seller', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
+  
+  unblockSeller: (userId: string) => apiRequest('/admin/unblock-seller', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
 };
