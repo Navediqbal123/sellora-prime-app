@@ -108,6 +108,15 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        {/* Alias (required): /seller/dashboard */}
+        <Route
+          path="seller/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["shopkeeper"]}>
+              <SellerDashboard section="overview" />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="seller/add-product"
           element={

@@ -207,7 +207,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         supabase.from('sellers').select('id, status', { count: 'exact' }),
         supabase.from('products').select('id, views', { count: 'exact' }),
         supabase.from('search_logs').select('id', { count: 'exact', head: true }),
-        supabase.from('sellers').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+        // Pending requests must come from `seller` table
+        supabase.from('seller').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       const totalViews = productsRes.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
@@ -412,6 +413,9 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     await withActionAnimation(userId, 'approve', async () => {
       await adminApi.approveSeller(userId);
 
+      // Ensure single source of truth is updated
+      await supabase.from('seller').update({ status: 'approved' }).eq('user_id', userId);
+
       // Smooth exit then remove from local state (no page reload)
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
       setTimeout(() => {
@@ -430,6 +434,9 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const handleRejectSellerRequest = async (userId: string) => {
     await withActionAnimation(userId, 'reject', async () => {
       await adminApi.rejectSeller(userId);
+
+      // Ensure single source of truth is updated
+      await supabase.from('seller').update({ status: 'rejected' }).eq('user_id', userId);
 
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
       setTimeout(() => {

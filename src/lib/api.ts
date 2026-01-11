@@ -86,8 +86,7 @@ export const adminApi = {
   getStats: () => apiRequest('/admin/stats'),
   getSearchLogs: () => apiRequest('/admin/search-logs'),
   getClickLogs: () => apiRequest('/admin/click-logs'),
-  getSellerRequests: () => apiRequest('/seller_requests'),
-  
+
   // Seller approval/rejection
   approveSeller: (userId: string) => apiRequest('/admin/approve-seller', {
     method: 'POST',

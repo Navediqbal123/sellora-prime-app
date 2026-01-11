@@ -196,7 +196,7 @@ const SellerReviewPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Business Type</p>
-                <p className="text-foreground font-medium">{seller.business_type}</p>
+                <p className="text-foreground font-medium">{(seller as any).business_type || '—'}</p>
               </div>
             </div>
           </div>
@@ -211,7 +211,7 @@ const SellerReviewPage = () => {
             <div className="space-y-3 pl-6">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Phone</p>
-                <p className="text-foreground font-medium">{seller.phone_number}</p>
+                <p className="text-foreground font-medium">{(seller as any).phone_number || (seller as any).phone}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Email</p>
@@ -272,7 +272,7 @@ const SellerReviewPage = () => {
 
       {seller.status === 'approved' && (
         <div className="mt-8 text-center animate-fade-in-up stagger-3">
-          <Button onClick={() => navigate('/seller')} className="btn-glow">
+          <Button onClick={() => navigate('/seller/dashboard')} className="btn-glow">
             Go to Seller Dashboard
           </Button>
         </div>
