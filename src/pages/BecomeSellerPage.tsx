@@ -143,9 +143,9 @@ const BecomeSellerPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Check if user already has a pending/approved application
+      // Check if user already has a pending/approved application (single source of truth: `seller` table)
       const { data: existingSeller } = await supabase
-        .from('sellers')
+        .from('seller')
         .select('id, status')
         .eq('user_id', user?.id)
         .maybeSingle();
@@ -153,31 +153,28 @@ const BecomeSellerPage = () => {
       if (existingSeller) {
         toast({
           title: "Application Exists",
-          description: existingSeller.status === 'pending' 
-            ? "You already have a pending application" 
-            : "You already have a seller account",
-          variant: "destructive"
+          description:
+            existingSeller.status === 'pending'
+              ? "You already have a pending application"
+              : "You already have a seller account",
+          variant: "destructive",
         });
         navigate('/seller/review');
         return;
       }
 
-      // Insert with status = 'pending'
-      const { error } = await supabase
-        .from('sellers')
-        .insert({
-          user_id: user?.id,
-          shop_name: formData.shop_name,
-          owner_name: formData.owner_name,
-          phone_number: formData.phone_number,
-          email: formData.email,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          business_type: formData.business_type,
-          status: 'pending'
-        });
+      // Insert with status = 'pending' into `seller` table
+      const { error } = await supabase.from('seller').insert({
+        user_id: user?.id,
+        shop_name: formData.shop_name,
+        owner_name: formData.owner_name,
+        phone: formData.phone_number,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        status: 'pending',
+      });
 
       if (error) throw error;
 

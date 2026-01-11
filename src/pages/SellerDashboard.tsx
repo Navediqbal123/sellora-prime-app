@@ -75,25 +75,25 @@ const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) 
     setLoading(true);
     try {
       const { data: sellerData, error: sellerError } = await supabase
-        .from('sellers')
+        .from('seller')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (sellerError) throw sellerError;
-      
+
       // Check if seller exists and is approved
       if (!sellerData) {
         navigate('/seller/onboarding');
         return;
       }
-      
+
       if (sellerData.status !== 'approved') {
         navigate('/seller/review');
         return;
       }
-      
-      setSeller(sellerData);
+
+      setSeller(sellerData as any);
 
       const { data: productsData, error: productsError } = await supabase
         .from('products')
@@ -127,6 +127,8 @@ const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) 
     setIsSubmitting(true);
 
     try {
+      const sellerPhone = (seller as any)?.phone_number ?? (seller as any)?.phone;
+
       const productData = {
         seller_id: seller.id,
         title: productForm.title,
@@ -135,7 +137,7 @@ const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) 
         category: productForm.category,
         city: productForm.city || seller.city,
         state: productForm.state || seller.state,
-        phone_number: productForm.phone_number || seller.phone_number,
+        phone_number: productForm.phone_number || sellerPhone,
         image_url: productForm.image_url || null,
         views: 0,
         clicks: 0
