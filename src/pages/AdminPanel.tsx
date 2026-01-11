@@ -140,28 +140,51 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
   const fetchUsers = async () => {
     try {
-      // Fetch all profiles with their seller info
+      // Try fetching from profiles first
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
-
       // Get sellers for each user
-      const { data: sellersData } = await supabase
-        .from('sellers')
-        .select('*');
+      const { data: sellersData } = await supabase.from('sellers').select('*');
 
-      const usersWithSellers = (profilesData || []).map(profile => ({
-        ...profile,
-        is_active: profile.is_active !== false, // Default to true if not set
-        seller: sellersData?.find(s => s.user_id === profile.id)
-      }));
+      // Get user_roles for role info
+      const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
 
-      setUsers(usersWithSellers);
+      if (!profilesError && profilesData && profilesData.length > 0) {
+        const usersWithSellers = profilesData.map((profile) => ({
+          ...profile,
+          is_active: profile.is_active !== false,
+          seller: sellersData?.find((s) => s.user_id === profile.id),
+          userRole: rolesData?.find((r) => r.user_id === profile.id)?.role || 'user',
+        }));
+        setUsers(usersWithSellers);
+      } else {
+        // Fallback: build user list from user_roles table
+        if (rolesData && rolesData.length > 0) {
+          const uniqueUserIds = [...new Set(rolesData.map((r) => r.user_id))];
+          const usersFromRoles = uniqueUserIds.map((uid) => {
+            const roleRow = rolesData.find((r) => r.user_id === uid);
+            const sellerRow = sellersData?.find((s) => s.user_id === uid);
+            return {
+              id: uid,
+              email: sellerRow?.email || 'N/A',
+              full_name: sellerRow?.owner_name || '—',
+              is_active: true,
+              created_at: sellerRow?.created_at || new Date().toISOString(),
+              seller: sellerRow,
+              userRole: roleRow?.role || 'user',
+            };
+          });
+          setUsers(usersFromRoles as any);
+        } else {
+          setUsers([]);
+        }
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
+      setUsers([]);
     }
   };
 
@@ -1215,6 +1238,18 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                           <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-500 flex items-center gap-1">
                             <ShieldOff className="w-3 h-3" />
                             BANNED
+                          </span>
+                        )}
+                        {/* Role Badge */}
+                        {(user as any).userRole && (
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                            (user as any).userRole === 'admin' 
+                              ? 'bg-purple-500/20 text-purple-400' 
+                              : (user as any).userRole === 'shopkeeper'
+                                ? 'bg-accent/20 text-accent'
+                                : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {(user as any).userRole}
                           </span>
                         )}
                       </div>
