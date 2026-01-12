@@ -140,11 +140,17 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
   const fetchUsers = async () => {
     try {
-      // Try fetching from profiles first
+      // Fetch directly from profiles table (primary source)
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
+
+      console.log('Profiles fetch result:', { profilesData, profilesError });
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
 
       // Get sellers for each user
       const { data: sellersData } = await supabase.from('sellers').select('*');
@@ -152,35 +158,46 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       // Get user_roles for role info
       const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
 
-      if (!profilesError && profilesData && profilesData.length > 0) {
-        const usersWithSellers = profilesData.map((profile) => ({
-          ...profile,
-          is_active: profile.is_active !== false,
-          seller: sellersData?.find((s) => s.user_id === profile.id),
-          userRole: rolesData?.find((r) => r.user_id === profile.id)?.role || 'user',
-        }));
+      if (profilesData && profilesData.length > 0) {
+        // profiles table uses user_id as the primary identifier
+        const usersWithSellers = profilesData.map((profile) => {
+          // Handle both 'id' and 'user_id' column names
+          const oderId = profile.user_id || profile.id;
+          return {
+            id: oderId,
+            user_id: oderId,
+            email: profile.email || 'N/A',
+            full_name: profile.name || profile.full_name || '—',
+            is_active: profile.is_active !== false,
+            created_at: profile.created_at,
+            seller: sellersData?.find((s) => s.user_id === oderId),
+            userRole: rolesData?.find((r) => r.user_id === oderId)?.role || 'user',
+          };
+        });
+        console.log('Users with sellers:', usersWithSellers);
         setUsers(usersWithSellers);
-      } else {
+      } else if (rolesData && rolesData.length > 0) {
         // Fallback: build user list from user_roles table
-        if (rolesData && rolesData.length > 0) {
-          const uniqueUserIds = [...new Set(rolesData.map((r) => r.user_id))];
-          const usersFromRoles = uniqueUserIds.map((uid) => {
-            const roleRow = rolesData.find((r) => r.user_id === uid);
-            const sellerRow = sellersData?.find((s) => s.user_id === uid);
-            return {
-              id: uid,
-              email: sellerRow?.email || 'N/A',
-              full_name: sellerRow?.owner_name || '—',
-              is_active: true,
-              created_at: sellerRow?.created_at || new Date().toISOString(),
-              seller: sellerRow,
-              userRole: roleRow?.role || 'user',
-            };
-          });
-          setUsers(usersFromRoles as any);
-        } else {
-          setUsers([]);
-        }
+        const uniqueUserIds = [...new Set(rolesData.map((r) => r.user_id))];
+        const usersFromRoles = uniqueUserIds.map((uid) => {
+          const roleRow = rolesData.find((r) => r.user_id === uid);
+          const sellerRow = sellersData?.find((s) => s.user_id === uid);
+          return {
+            id: uid,
+            user_id: uid,
+            email: sellerRow?.email || 'N/A',
+            full_name: sellerRow?.owner_name || '—',
+            is_active: true,
+            created_at: sellerRow?.created_at || new Date().toISOString(),
+            seller: sellerRow,
+            userRole: roleRow?.role || 'user',
+          };
+        });
+        console.log('Users from roles fallback:', usersFromRoles);
+        setUsers(usersFromRoles as any);
+      } else {
+        console.log('No users found in profiles or user_roles');
+        setUsers([]);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
