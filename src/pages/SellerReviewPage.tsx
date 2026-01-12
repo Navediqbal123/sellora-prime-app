@@ -31,8 +31,9 @@ const SellerReviewPage = () => {
     if (showSpinner) setChecking(true);
 
     try {
+      // Fetch from sellers table (single source of truth)
       const { data, error } = await supabase
-        .from('seller')
+        .from('sellers')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
