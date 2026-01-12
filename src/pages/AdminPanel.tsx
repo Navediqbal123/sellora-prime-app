@@ -140,7 +140,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
   const fetchUsers = async () => {
     try {
-      // Fetch directly from profiles table (primary source)
+      // Fetch directly from profiles table - role comes from profiles.role column
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -155,48 +155,27 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       // Get sellers for each user
       const { data: sellersData } = await supabase.from('sellers').select('*');
 
-      // Get user_roles for role info
-      const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
-
       if (profilesData && profilesData.length > 0) {
-        // profiles table uses user_id as the primary identifier
+        // profiles table - role is read DIRECTLY from profiles.role column
         const usersWithSellers = profilesData.map((profile) => {
           // Handle both 'id' and 'user_id' column names
-          const oderId = profile.user_id || profile.id;
+          const userId = profile.user_id || profile.id;
           return {
-            id: oderId,
-            user_id: oderId,
+            id: userId,
+            user_id: userId,
             email: profile.email || 'N/A',
             full_name: profile.name || profile.full_name || '—',
             is_active: profile.is_active !== false,
             created_at: profile.created_at,
-            seller: sellersData?.find((s) => s.user_id === oderId),
-            userRole: rolesData?.find((r) => r.user_id === oderId)?.role || 'user',
+            seller: sellersData?.find((s) => s.user_id === userId),
+            // Role is read DIRECTLY from profiles.role column - no fallback to user_roles
+            userRole: profile.role || 'user',
           };
         });
-        console.log('Users with sellers:', usersWithSellers);
+        console.log('Users with sellers (role from profiles.role):', usersWithSellers);
         setUsers(usersWithSellers);
-      } else if (rolesData && rolesData.length > 0) {
-        // Fallback: build user list from user_roles table
-        const uniqueUserIds = [...new Set(rolesData.map((r) => r.user_id))];
-        const usersFromRoles = uniqueUserIds.map((uid) => {
-          const roleRow = rolesData.find((r) => r.user_id === uid);
-          const sellerRow = sellersData?.find((s) => s.user_id === uid);
-          return {
-            id: uid,
-            user_id: uid,
-            email: sellerRow?.email || 'N/A',
-            full_name: sellerRow?.owner_name || '—',
-            is_active: true,
-            created_at: sellerRow?.created_at || new Date().toISOString(),
-            seller: sellerRow,
-            userRole: roleRow?.role || 'user',
-          };
-        });
-        console.log('Users from roles fallback:', usersFromRoles);
-        setUsers(usersFromRoles as any);
       } else {
-        console.log('No users found in profiles or user_roles');
+        console.log('No users found in profiles table');
         setUsers([]);
       }
     } catch (error) {
