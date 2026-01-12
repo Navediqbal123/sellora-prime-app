@@ -226,8 +226,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         supabase.from('sellers').select('id, status', { count: 'exact' }),
         supabase.from('products').select('id, views', { count: 'exact' }),
         supabase.from('search_logs').select('id', { count: 'exact', head: true }),
-        // Pending requests must come from `seller` table
-        supabase.from('seller').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        // Pending requests from sellers table (single source of truth)
+        supabase.from('sellers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       const totalViews = productsRes.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
@@ -261,9 +261,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   };
 
   const fetchPendingSellerRequests = async () => {
+    // Fetch pending sellers from sellers table (single source of truth)
     const { data, error } = await supabase
-      .from('seller')
-      .select('user_id, shop_name, owner_name, phone, city, state, pincode, status, created_at')
+      .from('sellers')
+      .select('id, user_id, shop_name, owner_name, phone, phone_number, city, state, pincode, status, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
@@ -273,7 +274,20 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       return;
     }
 
-    setPendingSellerRequests((data || []) as SellerRequestRow[]);
+    // Map to SellerRequestRow format, handling both phone and phone_number columns
+    const mappedData = (data || []).map(seller => ({
+      user_id: seller.user_id,
+      shop_name: seller.shop_name,
+      owner_name: seller.owner_name,
+      phone: seller.phone || seller.phone_number,
+      city: seller.city,
+      state: seller.state,
+      pincode: seller.pincode,
+      status: seller.status as 'pending' | 'approved' | 'rejected',
+      created_at: seller.created_at,
+    }));
+
+    setPendingSellerRequests(mappedData);
   };
 
   const fetchProducts = async () => {
@@ -427,13 +441,26 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     });
   };
 
-  // Seller Requests actions (uses `seller.user_id` as the stable identifier)
+  // Seller Requests actions (uses sellers table - single source of truth)
   const handleApproveSellerRequest = async (userId: string) => {
     await withActionAnimation(userId, 'approve', async () => {
-      await adminApi.approveSeller(userId);
+      try {
+        // Call backend API with user_id
+        await adminApi.approveSeller(userId);
+      } catch (apiError) {
+        // Fallback: Update sellers table directly if API fails
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'approved' })
+          .eq('user_id', userId);
 
-      // Ensure single source of truth is updated
-      await supabase.from('seller').update({ status: 'approved' }).eq('user_id', userId);
+        if (dbError) throw dbError;
+
+        // Add shopkeeper role
+        await supabase
+          .from('user_roles')
+          .upsert({ user_id: userId, role: 'shopkeeper' }, { onConflict: 'user_id' });
+      }
 
       // Smooth exit then remove from local state (no page reload)
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
@@ -446,16 +473,24 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         });
       }, 250);
 
-      toast({ title: "Seller approved" });
+      toast({ title: "Seller approved", description: "Seller can now access their dashboard" });
     });
   };
 
   const handleRejectSellerRequest = async (userId: string) => {
     await withActionAnimation(userId, 'reject', async () => {
-      await adminApi.rejectSeller(userId);
+      try {
+        // Call backend API with user_id
+        await adminApi.rejectSeller(userId);
+      } catch (apiError) {
+        // Fallback: Update sellers table directly if API fails
+        const { error: dbError } = await supabase
+          .from('sellers')
+          .update({ status: 'rejected', rejection_reason: 'Application rejected by admin' })
+          .eq('user_id', userId);
 
-      // Ensure single source of truth is updated
-      await supabase.from('seller').update({ status: 'rejected' }).eq('user_id', userId);
+        if (dbError) throw dbError;
+      }
 
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
       setTimeout(() => {
@@ -467,7 +502,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         });
       }, 250);
 
-      toast({ title: "Seller request rejected" });
+      toast({ title: "Seller rejected", description: "Seller request has been rejected" });
     });
   };
 
