@@ -331,6 +331,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   };
 
   // Helper to handle action with animation states
+  // NO page reload - only local state updates for instant UI feedback
   const withActionAnimation = async (
     sellerId: string, 
     actionType: 'approve' | 'reject' | 'block' | 'unblock',
@@ -344,14 +345,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       await action();
       setActionSuccess(prev => ({ ...prev, [sellerId]: actionType }));
       
-      // Clear success state and update lists after animation
+      // Clear success state after animation - NO re-fetch, local state already updated
       setTimeout(() => {
         setActionSuccess(prev => ({ ...prev, [sellerId]: null }));
-        if (activeSection === 'seller-requests') {
-          fetchPendingSellerRequests();
-        } else {
-          fetchSellers();
-        }
+        // Only refresh stats count, NOT the lists (local state is already updated)
         fetchStats();
       }, 800);
     } catch (error) {
