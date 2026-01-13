@@ -143,9 +143,9 @@ const BecomeSellerPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Check if user already has a pending/approved application (single source of truth: `seller` table)
+      // Check if user already has a pending/approved application (single source of truth: sellers table)
       const { data: existingSeller } = await supabase
-        .from('seller')
+        .from('sellers')
         .select('id, status')
         .eq('user_id', user?.id)
         .maybeSingle();
@@ -163,8 +163,8 @@ const BecomeSellerPage = () => {
         return;
       }
 
-      // Insert with status = 'pending' into `seller` table
-      const { error } = await supabase.from('seller').insert({
+      // Insert with status = 'pending' into sellers table
+      const { error } = await supabase.from('sellers').insert({
         user_id: user?.id,
         shop_name: formData.shop_name,
         owner_name: formData.owner_name,
