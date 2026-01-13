@@ -75,7 +75,7 @@ const SellerDashboard = ({ section = 'overview' }: { section?: SellerSection }) 
     setLoading(true);
     try {
       const { data: sellerData, error: sellerError } = await supabase
-        .from('seller')
+        .from('sellers')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
