@@ -266,7 +266,7 @@ const SellerReviewPage = () => {
                 </>
               )}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">Auto-checking every 10 seconds</p>
+            <p className="text-xs text-muted-foreground mt-2">Auto-checking every 4 seconds</p>
           </div>
         </div>
       )}
