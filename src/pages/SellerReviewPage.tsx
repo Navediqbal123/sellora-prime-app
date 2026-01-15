@@ -43,8 +43,10 @@ const SellerReviewPage = () => {
       if (data) {
         setSeller(data);
         
-        // If approved, redirect to seller dashboard
+        // If approved, refresh session and redirect to seller dashboard
         if (data.status === 'approved') {
+          // 🔥 VERY IMPORTANT: refresh session before redirect
+          await supabase.auth.refreshSession();
           await refreshRole();
           navigate('/seller/dashboard');
           return;
