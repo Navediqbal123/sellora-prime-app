@@ -25,9 +25,6 @@ import {
   User,
   LogOut,
   ShoppingBag,
-  Package,
-  PlusCircle,
-  BarChart3,
   Clock,
   History,
 } from 'lucide-react';
@@ -114,12 +111,9 @@ const AppSidebar = () => {
     }
   }
 
-  // Show seller items when status is approved (regardless of role state)
+  // Show seller dashboard link when status is approved
   const sellerItems: NavItem[] = [
     { path: '/seller', label: 'Seller Dashboard', icon: Store, roles: ['shopkeeper', 'admin'] },
-    { path: '/seller/add-product', label: 'Add Product', icon: PlusCircle, roles: ['shopkeeper', 'admin'] },
-    { path: '/seller/products', label: 'My Products', icon: Package, roles: ['shopkeeper', 'admin'] },
-    { path: '/seller/analytics', label: 'Analytics', icon: BarChart3, roles: ['shopkeeper', 'admin'] },
   ];
 
   // Admin only sees "Admin Panel" in sidebar - sub-items are inside admin panel
@@ -129,7 +123,7 @@ const AppSidebar = () => {
 
   const visible = (item: NavItem) => item.roles.includes(role);
   
-  // Show seller dashboard items if sellerStatus is 'approved' (direct from sellers table)
+  // Show seller dashboard link if sellerStatus is 'approved' (direct from sellers table)
   const showSellerDashboard = sellerStatus === 'approved' || role === 'shopkeeper';
 
   const renderItem = (item: NavItem, index: number) => {
