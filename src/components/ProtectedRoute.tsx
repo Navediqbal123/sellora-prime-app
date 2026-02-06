@@ -56,23 +56,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     // Direct role check
     const hasRoleAccess = allowedRoles.includes(role);
     
-    // For shopkeeper routes: also allow if seller status is 'approved'
+    // For shopkeeper routes: also allow if seller status is 'approved' (even for admins)
     const hasSellerAccess = allowedRoles.includes('shopkeeper') && sellerStatus === 'approved';
     
-    if (!hasRoleAccess && !hasSellerAccess) {
-      // Redirect based on role
-      if (role === 'admin') {
-        return <Navigate to="/admin" replace />;
-      }
-      // If seller is approved but role not updated yet, allow access
-      if (sellerStatus === 'approved') {
-        return <>{children}</>;
-      }
-      if (role === 'shopkeeper') {
-        return <Navigate to="/seller" replace />;
-      }
-      return <Navigate to="/" replace />;
+    // For admin routes: only allow admins
+    const hasAdminAccess = allowedRoles.includes('admin') && role === 'admin';
+    
+    // Allow access if user has role access OR seller access OR admin access
+    if (hasRoleAccess || hasSellerAccess || hasAdminAccess) {
+      return <>{children}</>;
     }
+    
+    // Redirect based on role (only if no access granted)
+    if (role === 'shopkeeper' || sellerStatus === 'approved') {
+      return <Navigate to="/seller" replace />;
+    }
+    if (role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
