@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AuthLayout from "@/layouts/AuthLayout";
 import MainLayout from "@/layouts/MainLayout";
+import SellerLayout from "@/layouts/SellerLayout";
 
 // Pages
 import LoginPage from "./pages/LoginPage";
@@ -14,11 +15,16 @@ import SignupPage from "./pages/SignupPage";
 import HomePage from "./pages/HomePage";
 import BecomeSellerPage from "./pages/BecomeSellerPage";
 import SellerReviewPage from "./pages/SellerReviewPage";
-import SellerDashboard from "./pages/SellerDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import ProfilePage from "./pages/ProfilePage";
 import LoginHistoryPage from "./pages/LoginHistoryPage";
 import NotFound from "./pages/NotFound";
+
+// Seller Pages
+import SellerOverview from "./pages/seller/SellerOverview";
+import SellerProducts from "./pages/seller/SellerProducts";
+import SellerAddProduct from "./pages/seller/SellerAddProduct";
+import SellerAnalytics from "./pages/seller/SellerAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -99,119 +105,41 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Seller routes */}
-        <Route
-          path="seller"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="overview" />
-            </ProtectedRoute>
-          }
-        />
-        {/* Alias (required): /seller/dashboard */}
-        <Route
-          path="seller/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="overview" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="seller/add-product"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="add-product" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="seller/products"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="products" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="seller/analytics"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="analytics" />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Convenience aliases requested */}
-        <Route
-          path="products"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="products" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="analytics"
-          element={
-            <ProtectedRoute allowedRoles={["shopkeeper"]}>
-              <SellerDashboard section="analytics" />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Admin routes */}
-        <Route
-          path="admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="dashboard" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/users"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="users" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/sellers"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="sellers" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/products"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="products" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/searches"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="searches" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/views"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminPanel section="clicks" />
-            </ProtectedRoute>
-          }
-        />
-
         {/* Protected catch-all keeps sidebar visible after login */}
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* Seller Routes - Separate Layout */}
+      <Route
+        path="/seller"
+        element={
+          <ProtectedRoute allowedRoles={["shopkeeper"]}>
+            <SellerLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<SellerOverview />} />
+        <Route path="dashboard" element={<SellerOverview />} />
+        <Route path="products" element={<SellerProducts />} />
+        <Route path="add-product" element={<SellerAddProduct />} />
+        <Route path="analytics" element={<SellerAnalytics />} />
+      </Route>
+
+      {/* Admin routes - Wrapped in MainLayout */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminPanel section="dashboard" />} />
+        <Route path="users" element={<AdminPanel section="users" />} />
+        <Route path="sellers" element={<AdminPanel section="sellers" />} />
+        <Route path="products" element={<AdminPanel section="products" />} />
+        <Route path="searches" element={<AdminPanel section="searches" />} />
+        <Route path="views" element={<AdminPanel section="clicks" />} />
       </Route>
     </Routes>
   );
