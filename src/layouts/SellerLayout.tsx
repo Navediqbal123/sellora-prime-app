@@ -1,9 +1,12 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import SellerSidebar from "@/components/seller/SellerSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const SellerLayout = () => {
+  const location = useLocation();
+  const isDashboard = location.pathname === '/seller' || location.pathname === '/seller/dashboard';
+
   return (
     <SidebarProvider defaultOpen>
       <div className="min-h-svh w-full bg-background">
@@ -21,8 +24,8 @@ const SellerLayout = () => {
             <SellerSidebar />
           </div>
 
-          <SidebarInset className="flex-1">
-            <main className="min-h-full animate-fade-in">
+          <SidebarInset className="flex-1 flex flex-col">
+            <main className={`flex-1 ${isDashboard ? '' : 'animate-fade-in'}`}>
               <Outlet />
             </main>
           </SidebarInset>

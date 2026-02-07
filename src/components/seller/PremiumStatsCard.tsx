@@ -7,7 +7,8 @@ interface PremiumStatsCardProps {
   icon: LucideIcon;
   suffix?: string;
   prefix?: string;
-  trend?: number;
+  trend?: 'up' | 'down';
+  trendValue?: string;
   color: 'primary' | 'accent' | 'gold' | 'success';
   delay?: number;
 }
@@ -50,6 +51,7 @@ const PremiumStatsCard: React.FC<PremiumStatsCardProps> = ({
   suffix = '',
   prefix = '',
   trend,
+  trendValue,
   color,
   delay = 0,
 }) => {
@@ -116,13 +118,13 @@ const PremiumStatsCard: React.FC<PremiumStatsCardProps> = ({
             <Icon className="w-6 h-6 text-white" />
           </div>
           
-          {trend !== undefined && (
+          {trend && trendValue && (
             <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-              trend >= 0 
+              trend === 'up'
                 ? 'bg-sellora-success/20 text-sellora-success' 
                 : 'bg-destructive/20 text-destructive'
             }`}>
-              {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
+              {trend === 'up' ? '↑' : '↓'} {trendValue}
             </div>
           )}
         </div>
