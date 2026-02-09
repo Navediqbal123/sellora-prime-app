@@ -19,12 +19,15 @@ import AdminPanel from "./pages/AdminPanel";
 import ProfilePage from "./pages/ProfilePage";
 import LoginHistoryPage from "./pages/LoginHistoryPage";
 import NotFound from "./pages/NotFound";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 // Seller Pages
 import SellerOverview from "./pages/seller/SellerOverview";
 import SellerProducts from "./pages/seller/SellerProducts";
 import SellerAddProduct from "./pages/seller/SellerAddProduct";
 import SellerAnalytics from "./pages/seller/SellerAnalytics";
+import SellerOrders from "./pages/seller/SellerOrders";
+import SellerMessages from "./pages/seller/SellerMessages";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +83,7 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<HomePage />} />
+        <Route path="product/:id" element={<ProductDetailPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="login-history" element={<LoginHistoryPage />} />
 
@@ -122,6 +126,8 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<SellerOverview />} />
         <Route path="products" element={<SellerProducts />} />
         <Route path="add-product" element={<SellerAddProduct />} />
+        <Route path="orders" element={<SellerOrders />} />
+        <Route path="messages" element={<SellerMessages />} />
         <Route path="analytics" element={<SellerAnalytics />} />
       </Route>
 

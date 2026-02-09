@@ -24,6 +24,8 @@ import {
   LogOut,
   Home,
   ChevronLeft,
+  ClipboardList,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -77,6 +79,8 @@ const SellerSidebar = () => {
     { path: '/seller/dashboard', label: 'Dashboard', icon: Store },
     { path: '/seller/add-product', label: 'Add Product', icon: PlusCircle },
     { path: '/seller/products', label: 'My Products', icon: Package },
+    { path: '/seller/orders', label: 'Pickup Orders', icon: ClipboardList },
+    { path: '/seller/messages', label: 'Messages', icon: MessageCircle },
     { path: '/seller/analytics', label: 'Analytics', icon: BarChart3 },
   ];
 

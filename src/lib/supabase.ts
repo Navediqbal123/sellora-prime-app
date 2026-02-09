@@ -46,9 +46,38 @@ export interface Product {
   state: string;
   phone_number: string;
   image_url?: string;
+  images?: string[];
   views: number;
   clicks: number;
   created_at: string;
-  seller?: SellerProfile;
+  seller?: Partial<SellerProfile>;
+}
+
+export interface Order {
+  id: string;
+  product_id: string;
+  buyer_id: string;
+  seller_id: string;
+  pickup_code: string;
+  status: 'pending' | 'ready' | 'completed' | 'cancelled';
+  shop_address?: string;
+  shop_name?: string;
+  created_at: string;
+  updated_at?: string;
+  product?: Product;
+  buyer?: Profile;
+}
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  product_id?: string;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+  product?: Product;
+  sender_profile?: Profile;
+  receiver_profile?: Profile;
 }
 

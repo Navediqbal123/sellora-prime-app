@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product } from '@/lib/supabase';
 import ProductCard from '@/components/home/ProductCard';
 import SearchBar from '@/components/home/SearchBar';
@@ -6,12 +8,14 @@ import CategoryFilter from '@/components/home/CategoryFilter';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
 
-
 const HomePage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [userCity, setUserCity] = useState<string | null>(null);
 
   const categories = [
     { id: 'all', label: 'All' },
@@ -21,6 +25,41 @@ const HomePage = () => {
     { id: 'Vehicles', label: 'Vehicles' },
     { id: 'Services', label: 'Services' },
   ];
+
+  // Fetch user's city
+  useEffect(() => {
+    const fetchUserCity = async () => {
+      if (!user) {
+        setUserCity(null);
+        return;
+      }
+
+      // Try profiles first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('city')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.city) {
+        setUserCity(profile.city);
+        return;
+      }
+
+      // Try sellers table
+      const { data: seller } = await supabase
+        .from('sellers')
+        .select('city')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (seller?.city) {
+        setUserCity(seller.city);
+      }
+    };
+
+    fetchUserCity();
+  }, [user]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -63,6 +102,17 @@ const HomePage = () => {
     }
   };
 
+  // Sort products: user's city first, then others
+  const sortedProducts = useMemo(() => {
+    if (!userCity || products.length === 0) return products;
+
+    const cityLower = userCity.toLowerCase();
+    const nearby = products.filter(p => p.city?.toLowerCase() === cityLower);
+    const others = products.filter(p => p.city?.toLowerCase() !== cityLower);
+
+    return [...nearby, ...others];
+  }, [products, userCity]);
+
   const handleProductClick = async (productId: string) => {
     // Log click
     await supabase.from('click_logs').insert({
@@ -71,6 +121,9 @@ const HomePage = () => {
 
     // Increment views
     await supabase.rpc('increment_product_views', { product_id: productId });
+
+    // Navigate to product detail
+    navigate(`/product/${productId}`);
   };
 
   return (
@@ -103,19 +156,18 @@ const HomePage = () => {
         />
       </div>
 
-      {/* Start Selling entry point lives in the global sidebar (role-based). */}
-
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {loading ? (
           <SkeletonGrid count={8} />
-        ) : products.length > 0 ? (
-          products.map((product, index) => (
+        ) : sortedProducts.length > 0 ? (
+          sortedProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
               onClick={() => handleProductClick(product.id)}
               delay={index * 0.05}
+              isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
             />
           ))
         ) : (
