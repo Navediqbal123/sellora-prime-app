@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { MapPin, Eye, Package } from 'lucide-react';
+import { MapPin, Eye, Package, Navigation } from 'lucide-react';
 import { Product } from '@/lib/supabase';
+import { Badge } from '@/components/ui/badge';
 
 interface ProductCardProps {
   product: Product;
   onClick: () => void;
   delay?: number;
+  isNearby?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0 }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -60,11 +62,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0 }
           <span className="text-xs font-medium text-foreground">{product.views || 0}</span>
         </div>
 
-        {/* Category Badge */}
-        <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full
+        {/* Near You Badge */}
+        {isNearby && (
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 
+                         bg-sellora-success/90 backdrop-blur-md px-3 py-1.5 rounded-full
+                         text-white text-xs font-semibold shadow-lg animate-scale-in">
+            <Navigation className="w-3 h-3" />
+            Near You
+          </div>
+        )}
+
+        {/* Category Badge (on hover, shifted if Near You badge is present) */}
+        <div className={`absolute ${isNearby ? 'bottom-3' : 'top-3'} left-3 px-3 py-1.5 rounded-full
                        bg-primary/90 text-primary-foreground text-xs font-medium
                        transform transition-all duration-300
-                       opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
+                       ${isNearby ? 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0' : 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'}`}>
           {product.category}
         </div>
       </div>
