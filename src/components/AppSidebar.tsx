@@ -88,17 +88,23 @@ const AppSidebar = () => {
     { path: '/login-history', label: 'Login History', icon: History, roles: ['user', 'shopkeeper', 'admin'] },
   ];
 
-  // Show "Start Selling" only for users without any seller application
-  // Show "Application Status" for users with pending/rejected applications
+  // Determine if user is an approved seller (any role can be a seller)
+  const isApprovedSeller = sellerStatus === 'approved' || role === 'shopkeeper';
+  
+  // Determine if user is an admin
+  const isAdmin = role === 'admin';
+
+  // Show "Start Selling" only for users who are NOT approved sellers
+  // This applies to regular users AND admins who haven't become sellers yet
   const userItems: NavItem[] = [];
   
-  if (role === 'user' || role === 'admin') {
+  if (!isApprovedSeller) {
     if (!hasSellerApplication) {
       userItems.push({
         path: '/seller/onboarding',
         label: 'Start Selling on Sellora',
         icon: Sparkles,
-        roles: ['user', 'admin'],
+        roles: ['user', 'admin'], // Both users and admins can start selling
         highlight: true,
       });
     } else if (sellerStatus === 'pending' || sellerStatus === 'rejected') {
@@ -111,20 +117,17 @@ const AppSidebar = () => {
     }
   }
 
-  // Show seller dashboard link when status is approved
+  // Seller Dashboard - shown to ANYONE who is an approved seller (including admins)
   const sellerItems: NavItem[] = [
-    { path: '/seller', label: 'Seller Dashboard', icon: Store, roles: ['shopkeeper', 'admin'] },
+    { path: '/seller', label: 'Seller Dashboard', icon: Store, roles: ['shopkeeper', 'admin', 'user'] },
   ];
 
-  // Admin only sees "Admin Panel" in sidebar - sub-items are inside admin panel
+  // Admin Panel - shown ONLY to admins, completely separate from seller
   const adminItems: NavItem[] = [
     { path: '/admin', label: 'Admin Panel', icon: LayoutDashboard, roles: ['admin'] },
   ];
 
   const visible = (item: NavItem) => item.roles.includes(role);
-  
-  // Show seller dashboard link if sellerStatus is 'approved' (direct from sellers table)
-  const showSellerDashboard = sellerStatus === 'approved' || role === 'shopkeeper';
 
   const renderItem = (item: NavItem, index: number) => {
     const active = isActive(item.path);
@@ -177,9 +180,10 @@ const AppSidebar = () => {
 
   const coreVisible = coreItems.filter(visible);
   const userVisible = userItems.filter(visible);
-  // Use showSellerDashboard flag instead of role-based filtering
-  const sellerVisible = showSellerDashboard ? sellerItems : [];
-  const adminVisible = adminItems.filter(visible);
+  // Show seller dashboard if user is an approved seller (any role can be a seller)
+  const sellerVisible = isApprovedSeller ? sellerItems : [];
+  // Show admin panel only for admins
+  const adminVisible = isAdmin ? adminItems : [];
 
   return (
     <Sidebar
