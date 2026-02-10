@@ -74,13 +74,27 @@ const SellerOrders = () => {
         return;
       }
 
+      // Fetch orders without FK join to avoid schema cache issues
       const { data, error } = await supabase
         .from('orders')
-        .select('*, product:products(title, image_url, price)')
+        .select('*')
         .eq('seller_id', seller.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Fetch product details separately
+      const productIds = [...new Set((data || []).map((o: any) => o.product_id).filter(Boolean))];
+      let productMap: Record<string, { title: string; image_url?: string; price: number }> = {};
+      if (productIds.length > 0) {
+        const { data: prods } = await supabase
+          .from('products')
+          .select('id, title, image_url, price')
+          .in('id', productIds);
+        (prods || []).forEach((p: any) => {
+          productMap[p.id] = { title: p.title, image_url: p.image_url, price: p.price };
+        });
+      }
 
       // Fetch buyer profiles
       const buyerIds = [...new Set((data || []).map((o: any) => o.buyer_id))];
@@ -101,6 +115,7 @@ const SellerOrders = () => {
 
       const ordersWithProfiles = (data || []).map((order: any) => ({
         ...order,
+        product: productMap[order.product_id] || null,
         buyer_profile: profiles[order.buyer_id] || { email: 'Unknown' },
       }));
 
