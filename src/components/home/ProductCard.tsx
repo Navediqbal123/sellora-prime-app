@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Eye, Package, Navigation } from 'lucide-react';
+import { MapPin, Eye, Package, Navigation, MessageCircle } from 'lucide-react';
 import { Product } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 
@@ -8,9 +8,10 @@ interface ProductCardProps {
   onClick: () => void;
   delay?: number;
   isNearby?: boolean;
+  onChat?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false, onChat }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -98,9 +99,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, 
             ₹{product.price.toLocaleString()}
           </p>
           
-          {/* View button that appears on hover */}
-          <div className="transform transition-all duration-300 opacity-0 translate-x-4 
-                         group-hover:opacity-100 group-hover:translate-x-0">
+          {/* Action buttons that appear on hover */}
+          <div className="flex items-center gap-2 transform transition-all duration-300 opacity-0 translate-x-4 
+                          group-hover:opacity-100 group-hover:translate-x-0">
+            {onChat && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onChat(); }}
+                className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                title="Chat with Seller"
+              >
+                <MessageCircle className="w-4 h-4 text-primary" />
+              </button>
+            )}
             <span className="text-sm font-medium text-primary">View →</span>
           </div>
         </div>

@@ -14,7 +14,7 @@ const SellerLayout = () => {
           <div className="flex h-full items-center gap-3 px-4">
             <SidebarTrigger className="hover-scale" />
             <div className="h-6 w-px bg-border/50" />
-            <span className="text-sm font-medium text-gradient">Seller Dashboard</span>
+            <span className="text-sm font-medium text-gradient">Sellora Seller Hub</span>
             <div className="flex-1" />
           </div>
         </header>

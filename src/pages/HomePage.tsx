@@ -7,6 +7,8 @@ import SearchBar from '@/components/home/SearchBar';
 import CategoryFilter from '@/components/home/CategoryFilter';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
+import ChatDrawer from '@/components/chat/ChatDrawer';
+import { toast } from '@/hooks/use-toast';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -16,6 +18,8 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [userCity, setUserCity] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatProduct, setChatProduct] = useState<{ id: string; title: string; sellerId: string; sellerName: string } | null>(null);
 
   const categories = [
     { id: 'all', label: 'All' },
@@ -135,6 +139,22 @@ const HomePage = () => {
     navigate(`/product/${productId}`);
   };
 
+  const handleChat = (product: any) => {
+    if (!user) {
+      toast({ title: 'Login Required', description: 'Please log in to chat with sellers', variant: 'destructive' });
+      navigate('/login');
+      return;
+    }
+    if (!product.seller_id) return;
+    setChatProduct({
+      id: product.id,
+      title: product.title,
+      sellerId: product.seller?.user_id || product.seller_id,
+      sellerName: product.seller?.shop_name || 'Seller',
+    });
+    setChatOpen(true);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
@@ -170,19 +190,32 @@ const HomePage = () => {
         {loading ? (
           <SkeletonGrid count={8} />
         ) : sortedProducts.length > 0 ? (
-          sortedProducts.map((product, index) => (
+          sortedProducts.map((product: any, index: number) => (
             <ProductCard
               key={product.id}
               product={product}
               onClick={() => handleProductClick(product.id)}
               delay={index * 0.05}
               isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
+              onChat={() => handleChat(product)}
             />
           ))
         ) : (
           <EmptyState searchQuery={searchQuery} />
         )}
       </div>
+
+      {/* Chat Drawer */}
+      {chatProduct && (
+        <ChatDrawer
+          isOpen={chatOpen}
+          onClose={() => { setChatOpen(false); setChatProduct(null); }}
+          productId={chatProduct.id}
+          productTitle={chatProduct.title}
+          sellerId={chatProduct.sellerId}
+          sellerName={chatProduct.sellerName}
+        />
+      )}
     </div>
   );
 };
