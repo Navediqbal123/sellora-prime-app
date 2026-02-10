@@ -60,14 +60,25 @@ const SellerMessages = () => {
 
       const { data: allMessages, error } = await supabase
         .from('messages')
-        .select('*, product:products(title)')
+        .select('*')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) {
-        toast({ title: 'Error', description: 'Failed to load messages', variant: 'destructive' });
+        console.error('Messages fetch error:', error);
         setLoading(false);
         return;
+      }
+
+      // Fetch product titles separately
+      const productIds = [...new Set((allMessages || []).map((m: any) => m.product_id).filter(Boolean))];
+      let productMap: Record<string, string> = {};
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, title')
+          .in('id', productIds);
+        (products || []).forEach((p: any) => { productMap[p.id] = p.title; });
       }
 
       // Group by peer + product
@@ -85,7 +96,7 @@ const SellerMessages = () => {
             peerName: '',
             peerEmail: '',
             productId: msg.product_id,
-            productTitle: msg.product?.title || 'Unknown Product',
+            productTitle: productMap[msg.product_id] || 'Unknown Product',
             lastMessage: msg.content,
             lastTime: msg.created_at,
             unread: msg.receiver_id === user.id && !msg.is_read ? 1 : 0,

@@ -55,12 +55,28 @@ export const useSellerAnalytics = (): UseSellerAnalyticsResult => {
 
       const sellerId = sellerData.id;
 
-      // Fetch products
-      const { data: products, error: productsError } = await supabase
+      // Fetch products - try seller_id first, fallback to user_id
+      let products: any[] | null = null;
+      let productsError: any = null;
+
+      const result1 = await supabase
         .from('products')
         .select('*')
         .eq('seller_id', sellerId)
         .order('created_at', { ascending: false });
+
+      if (result1.error?.code === '42703') {
+        // seller_id column doesn't exist, try fetching all products for this user
+        const result2 = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+        products = result2.data;
+        productsError = result2.error;
+      } else {
+        products = result1.data;
+        productsError = result1.error;
+      }
 
       if (productsError) throw productsError;
 
