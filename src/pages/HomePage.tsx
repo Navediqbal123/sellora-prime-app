@@ -26,7 +26,7 @@ const HomePage = () => {
     { id: 'Services', label: 'Services' },
   ];
 
-  // Fetch user's city
+  // Fetch user's city from sellers table
   useEffect(() => {
     const fetchUserCity = async () => {
       if (!user) {
@@ -34,19 +34,6 @@ const HomePage = () => {
         return;
       }
 
-      // Try profiles first
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('city')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile?.city) {
-        setUserCity(profile.city);
-        return;
-      }
-
-      // Try sellers table
       const { data: seller } = await supabase
         .from('sellers')
         .select('city')
@@ -74,7 +61,7 @@ const HomePage = () => {
     try {
       let query = supabase
         .from('products')
-        .select(`*, seller:sellers(shop_name, city, state)`)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (selectedCategory !== 'all') {
@@ -93,7 +80,29 @@ const HomePage = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setProducts(data || []);
+
+      // Fetch seller info separately
+      const sellerIds = [...new Set((data || []).map((p: any) => p.seller_id).filter(Boolean))];
+      let sellerMap: Record<string, { shop_name: string; city: string; state: string }> = {};
+      
+      if (sellerIds.length > 0) {
+        const { data: sellers } = await supabase
+          .from('sellers')
+          .select('id, shop_name, city, state')
+          .in('id', sellerIds);
+        
+        (sellers || []).forEach((s: any) => {
+          sellerMap[s.id] = { shop_name: s.shop_name, city: s.city, state: s.state };
+        });
+      }
+
+      const productsWithSeller = (data || []).map((p: any) => ({
+        ...p,
+        seller: sellerMap[p.seller_id] || null,
+        city: sellerMap[p.seller_id]?.city || p.city,
+      }));
+
+      setProducts(productsWithSeller);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);

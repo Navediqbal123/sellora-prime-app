@@ -161,16 +161,16 @@ const SellerSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border/50 space-y-2">
-        {/* Back to Home */}
+        {/* Back to Home — prominent */}
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => navigate('/')}
-          className={`w-full justify-start gap-3 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all duration-300 ${
+          className={`w-full justify-start gap-3 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 ${
             collapsed ? 'px-3 justify-center' : ''
           }`}
         >
           <Home className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span>Back to Home</span>}
+          {!collapsed && <span className="font-semibold">Back to Home</span>}
         </Button>
 
         {/* Logout */}
