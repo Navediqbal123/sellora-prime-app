@@ -138,10 +138,10 @@ const SellerSidebar = () => {
           </div>
           {!collapsed && (
             <div className="animate-fade-in overflow-hidden">
-              <h1 className="text-base font-bold text-foreground truncate">
-                {shopName || 'My Shop'}
+              <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
+                {shopName || 'Sellora Hub'}
               </h1>
-              <p className="text-xs text-muted-foreground">Seller Portal</p>
+              <p className="text-xs text-muted-foreground">Seller Hub</p>
             </div>
           )}
         </div>
@@ -150,7 +150,7 @@ const SellerSidebar = () => {
       <SidebarContent className="px-3 py-6 flex-1">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-2">
-            Manage
+            Seller Hub
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1.5">
