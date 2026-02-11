@@ -99,12 +99,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, 
             ₹{product.price.toLocaleString()}
           </p>
           
-          {/* Action buttons that appear on hover */}
-          <div className="flex items-center gap-2 transform transition-all duration-300 opacity-0 translate-x-4 
-                          group-hover:opacity-100 group-hover:translate-x-0">
+          {/* Action buttons (always visible on mobile; hover-reveal on larger screens) */}
+          <div className="flex items-center gap-2 transition-all duration-300
+                          opacity-100 translate-x-0
+                          sm:opacity-0 sm:translate-x-4 sm:group-hover:opacity-100 sm:group-hover:translate-x-0">
             {onChat && (
               <button
-                onClick={(e) => { e.stopPropagation(); onChat(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChat();
+                }}
                 className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
                 title="Chat with Seller"
               >
