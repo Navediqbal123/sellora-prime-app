@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageBackButton from '@/components/PageBackButton';
 import { Package, Plus, Eye, MousePointer, Edit2, Trash2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,6 +83,7 @@ const SellerProducts = () => {
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-8">
+      <PageBackButton fallbackPath="/seller/dashboard" />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
         <div>

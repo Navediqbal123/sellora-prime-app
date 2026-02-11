@@ -1,5 +1,6 @@
 import React from 'react';
 import { Package, Eye, MousePointer, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import PageBackButton from '@/components/PageBackButton';
 import PremiumStatsCard from '@/components/seller/PremiumStatsCard';
 import { ViewsLineChart, ClicksBarChart, CategoryDonutChart } from '@/components/seller/SellerAnalyticsCharts';
 import EmptyAnalyticsState from '@/components/seller/EmptyAnalyticsState';
@@ -42,6 +43,7 @@ const SellerAnalytics = () => {
   if (data.totalProducts === 0) {
     return (
       <div className="container mx-auto px-6 py-8">
+        <PageBackButton fallbackPath="/seller/dashboard" />
         <div className="animate-fade-in-up mb-8">
           <h1 className="text-3xl font-bold text-foreground">
             Performance <span className="text-gradient">Analytics</span>
@@ -59,6 +61,7 @@ const SellerAnalytics = () => {
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-8">
+      <PageBackButton fallbackPath="/seller/dashboard" />
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-3xl font-bold text-foreground">

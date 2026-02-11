@@ -99,10 +99,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, 
             ₹{product.price.toLocaleString()}
           </p>
           
-          {/* Action buttons (always visible on mobile; hover-reveal on larger screens) */}
-          <div className="flex items-center gap-2 transition-all duration-300
-                          opacity-100 translate-x-0
-                          sm:opacity-0 sm:translate-x-4 sm:group-hover:opacity-100 sm:group-hover:translate-x-0">
+          {/* Action buttons — always visible */}
+          <div className="flex items-center gap-2">
             {onChat && (
               <button
                 onClick={(e) => {
@@ -115,7 +113,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, 
                 <MessageCircle className="w-4 h-4 text-primary" />
               </button>
             )}
-            <span className="text-sm font-medium text-primary">View →</span>
+            <span className="text-sm font-medium text-primary transition-all duration-300
+                             opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+              View →
+            </span>
           </div>
         </div>
       </div>
