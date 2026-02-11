@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import PageBackButton from '@/components/PageBackButton';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,7 +186,11 @@ const SellerMessages = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] animate-fade-in">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] animate-fade-in">
+      <div className="px-4 pt-3">
+        <PageBackButton fallbackPath="/seller/dashboard" />
+      </div>
+      <div className="flex flex-1 min-h-0">
       {/* Conversation List - Left Panel */}
       <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 lg:w-96 border-r border-border/50 bg-card/30`}>
         {/* Header */}
@@ -361,6 +366,7 @@ const SellerMessages = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

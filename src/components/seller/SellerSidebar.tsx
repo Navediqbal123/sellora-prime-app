@@ -26,8 +26,15 @@ import {
   ChevronLeft,
   ClipboardList,
   MessageCircle,
+  MoreVertical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type NavItem = {
   path: string;
@@ -41,24 +48,19 @@ const SellerSidebar = () => {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
-  
+
   const [shopName, setShopName] = useState<string>('');
 
   useEffect(() => {
     const fetchShopInfo = async () => {
       if (!user) return;
-      
       const { data } = await supabase
         .from('sellers')
         .select('shop_name')
         .eq('user_id', user.id)
         .single();
-      
-      if (data) {
-        setShopName(data.shop_name);
-      }
+      if (data) setShopName(data.shop_name);
     };
-    
     fetchShopInfo();
   }, [user]);
 
@@ -94,34 +96,50 @@ const SellerSidebar = () => {
         className="animate-fade-in"
         style={{ animationDelay: `${index * 0.05}s` }}
       >
-        <SidebarMenuButton asChild isActive={active} tooltip={collapsed ? item.label : undefined}>
-          <NavLink
-            to={item.path}
-            className={
-              `flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden ` +
-              (active
-                ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary border border-primary/20'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/5')
-            }
-            activeClassName="bg-gradient-to-r from-primary/20 to-primary/5 text-primary"
-          >
-            {active && (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
-              </>
-            )}
+        <div className="flex items-center w-full group/item">
+          <SidebarMenuButton asChild isActive={active} tooltip={collapsed ? item.label : undefined} className="flex-1">
+            <NavLink
+              to={item.path}
+              className={
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 relative overflow-hidden ` +
+                (active
+                  ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary border border-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5')
+              }
+              activeClassName="bg-gradient-to-r from-primary/20 to-primary/5 text-primary"
+            >
+              {active && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-full" />
+              )}
+              <ItemIcon className={`w-4 h-4 flex-shrink-0 transition-all duration-300 relative z-10 
+                                   ${active ? 'text-primary' : 'group-hover/item:text-primary'}`} />
+              {!collapsed && (
+                <span className={`text-sm font-medium relative z-10 ${active ? 'text-primary' : ''}`}>
+                  {item.label}
+                </span>
+              )}
+            </NavLink>
+          </SidebarMenuButton>
 
-            <ItemIcon className={`w-5 h-5 flex-shrink-0 transition-all duration-300 relative z-10 
-                                 ${active ? 'text-primary' : 'group-hover:scale-110 group-hover:text-primary'}`} />
-
-            {!collapsed && (
-              <span className={`font-medium relative z-10 ${active ? 'text-primary' : ''}`}>
-                {item.label}
-              </span>
-            )}
-          </NavLink>
-        </SidebarMenuButton>
+          {/* 3-dot menu */}
+          {!collapsed && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 rounded-md opacity-0 group-hover/item:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-white/10 flex-shrink-0 mr-1">
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => navigate(item.path)}>
+                  Open
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open(item.path, '_blank')}>
+                  Open in new tab
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </SidebarMenuItem>
     );
   };
@@ -131,69 +149,68 @@ const SellerSidebar = () => {
       className="border-r border-border/50 bg-gradient-to-b from-sidebar to-background/95"
       collapsible="icon"
     >
-      <SidebarHeader className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-            <Store className="w-5 h-5 text-primary-foreground" />
+      <SidebarHeader className="p-3 border-b border-border/50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+            <Store className="w-4 h-4 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="animate-fade-in overflow-hidden">
-              <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
+              <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
                 {shopName || 'Sellora Hub'}
               </h1>
-              <p className="text-xs text-muted-foreground">Seller Hub</p>
+              <p className="text-[10px] text-muted-foreground">Seller Hub</p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-6 flex-1">
+      <SidebarContent className="px-2 py-4 flex-1">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-2">
-            Seller Hub
+          <SidebarGroupLabel className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1 px-3">
+            Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5">
+            <SidebarMenu className="space-y-0.5">
               {sellerItems.map(renderItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border/50 space-y-2">
-        {/* Back to Home — prominent */}
+      <SidebarFooter className="p-2 border-t border-border/50 space-y-1">
         <Button
           variant="outline"
+          size="sm"
           onClick={() => navigate('/')}
-          className={`w-full justify-start gap-3 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 ${
-            collapsed ? 'px-3 justify-center' : ''
+          className={`w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 text-xs h-8 ${
+            collapsed ? 'px-2 justify-center' : ''
           }`}
         >
-          <Home className="w-5 h-5 flex-shrink-0" />
+          <Home className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span className="font-semibold">Back to Home</span>}
         </Button>
 
-        {/* Logout */}
-        <Button
-          variant="ghost"
-          onClick={handleSignOut}
-          className={`w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 ${
-            collapsed ? 'px-3 justify-center' : ''
-          }`}
-        >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span>Logout</span>}
-        </Button>
-
-        {/* Collapse Toggle */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={toggleSidebar}
-          className="w-full justify-center text-muted-foreground hover:text-foreground hover:bg-white/5"
+          onClick={handleSignOut}
+          className={`w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 text-xs h-8 ${
+            collapsed ? 'px-2 justify-center' : ''
+          }`}
         >
-          <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
-          {!collapsed && <span className="text-xs ml-2">Collapse</span>}
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          {!collapsed && <span>Logout</span>}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="w-full h-7 justify-center text-muted-foreground hover:text-foreground hover:bg-white/5"
+        >
+          <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
+          {!collapsed && <span className="text-[10px] ml-1.5">Collapse</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>

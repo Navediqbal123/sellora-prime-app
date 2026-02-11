@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import PageBackButton from '@/components/PageBackButton';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -172,6 +173,7 @@ const SellerOrders = () => {
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-8">
+      <PageBackButton fallbackPath="/seller/dashboard" />
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-3xl font-bold text-foreground">
