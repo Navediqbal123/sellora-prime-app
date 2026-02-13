@@ -23,7 +23,6 @@ import {
   BarChart3,
   LogOut,
   Home,
-  ChevronLeft,
   ClipboardList,
   MessageCircle,
   MoreVertical,
@@ -46,7 +45,7 @@ const SellerSidebar = () => {
   const { signOut, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const collapsed = state === 'collapsed';
 
   const [shopName, setShopName] = useState<string>('');
@@ -101,7 +100,7 @@ const SellerSidebar = () => {
             <NavLink
               to={item.path}
               className={
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 relative overflow-hidden ` +
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative overflow-hidden ` +
                 (active
                   ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary border border-primary/20'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5')
@@ -111,7 +110,7 @@ const SellerSidebar = () => {
               {active && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-full" />
               )}
-              <ItemIcon className={`w-4 h-4 flex-shrink-0 transition-all duration-300 relative z-10 
+              <ItemIcon className={`w-4 h-4 flex-shrink-0 transition-all duration-200 relative z-10 
                                    ${active ? 'text-primary' : 'group-hover/item:text-primary'}`} />
               {!collapsed && (
                 <span className={`text-sm font-medium relative z-10 ${active ? 'text-primary' : ''}`}>
@@ -149,15 +148,16 @@ const SellerSidebar = () => {
       className="border-r border-border/50 bg-gradient-to-b from-sidebar to-background/95"
       collapsible="icon"
     >
+      {/* Branding Header with Sellora name */}
       <SidebarHeader className="p-3 border-b border-border/50">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20 animate-pulse-glow">
             <Store className="w-4 h-4 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="animate-fade-in overflow-hidden">
-              <h1 className="text-sm font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
-                {shopName || 'Sellora Hub'}
+              <h1 className="text-sm font-bold text-gradient">
+                {shopName || 'Sellora'}
               </h1>
               <p className="text-[10px] text-muted-foreground">Seller Hub</p>
             </div>
@@ -178,12 +178,13 @@ const SellerSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2 border-t border-border/50 space-y-1">
+      {/* Footer: Back to Home + Logout anchored at bottom — no Collapse button */}
+      <SidebarFooter className="p-2 border-t border-border/50 space-y-1 mt-auto">
         <Button
           variant="outline"
           size="sm"
           onClick={() => navigate('/')}
-          className={`w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 text-xs h-8 ${
+          className={`w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-200 text-xs h-8 ${
             collapsed ? 'px-2 justify-center' : ''
           }`}
         >
@@ -195,22 +196,12 @@ const SellerSidebar = () => {
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className={`w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 text-xs h-8 ${
+          className={`w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 text-xs h-8 ${
             collapsed ? 'px-2 justify-center' : ''
           }`}
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="w-full h-7 justify-center text-muted-foreground hover:text-foreground hover:bg-white/5"
-        >
-          <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
-          {!collapsed && <span className="text-[10px] ml-1.5">Collapse</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>

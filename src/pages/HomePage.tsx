@@ -9,6 +9,37 @@ import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+
+const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onChat, searchQuery }: any) => {
+  const { ref, isVisible } = useScrollAnimation(0.05);
+
+  return (
+    <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {loading ? (
+        <SkeletonGrid count={8} />
+      ) : products.length > 0 ? (
+        products.map((product: any, index: number) => (
+          <div
+            key={product.id}
+            className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            style={{ transitionDelay: `${index * 0.06}s` }}
+          >
+            <ProductCard
+              product={product}
+              onClick={() => onProductClick(product.id)}
+              delay={0}
+              isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
+              onChat={() => onChat(product)}
+            />
+          </div>
+        ))
+      ) : (
+        <EmptyState searchQuery={searchQuery} />
+      )}
+    </div>
+  );
+};
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -160,14 +191,15 @@ const HomePage = () => {
       {/* Hero Section */}
       <div className="text-center mb-12 animate-fade-in-up">
         <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-          Discover Amazing{' '}
-          <span className="text-gradient relative">
-            Products
+          Explore Premium{' '}
+          <span className="text-gradient relative animate-float">
+            Deals
             <div className="absolute -inset-1 bg-primary/20 blur-2xl -z-10 rounded-full" />
-          </span>
+          </span>{' '}
+          Near You
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-          Find the best deals from trusted sellers in your area
+          Discover the best products from trusted sellers in your city
         </p>
       </div>
 
@@ -185,25 +217,15 @@ const HomePage = () => {
         />
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {loading ? (
-          <SkeletonGrid count={8} />
-        ) : sortedProducts.length > 0 ? (
-          sortedProducts.map((product: any, index: number) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onClick={() => handleProductClick(product.id)}
-              delay={index * 0.05}
-              isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
-              onChat={() => handleChat(product)}
-            />
-          ))
-        ) : (
-          <EmptyState searchQuery={searchQuery} />
-        )}
-      </div>
+      {/* Products Grid with scroll animation */}
+      <ScrollAnimatedGrid
+        loading={loading}
+        products={sortedProducts}
+        userCity={userCity}
+        onProductClick={handleProductClick}
+        onChat={handleChat}
+        searchQuery={searchQuery}
+      />
 
       {/* Chat Drawer */}
       {chatProduct && (
