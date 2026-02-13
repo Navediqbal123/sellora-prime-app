@@ -54,7 +54,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   const sidebarContent = (
     <aside 
-      className={`h-full flex flex-col transition-all duration-260 ease-[cubic-bezier(0.4,0,0.2,1)]
+      className={`h-full flex flex-col transition-all duration-300 ease-out will-change-[width]
                   ${collapsed ? 'w-20' : 'w-64'} 
                   bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 
                   border-r border-sidebar-border/50 backdrop-blur-xl`}
@@ -109,8 +109,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <button
               key={item.id}
               onClick={() => handleItemClick(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-180
-                          group relative overflow-hidden
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ease-out
+                          group relative overflow-hidden will-change-transform
                           ${isActive 
                             ? 'bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground shadow-glow' 
                             : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:translate-x-1'
