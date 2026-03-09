@@ -146,11 +146,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      iles:', profilesError);
-      }
-
-      // Get sellers for each user
-      const { data: sellersData } = await supabase.from('sellers').select('*');
+         const { data: sellersData } = await supabase.from('sellers').select('*');
 
       if (profilesData && profilesData.length > 0) {
         // profiles table - role is read DIRECTLY from profiles.role column
@@ -172,9 +168,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         console.log('Users with sellers (role from profiles.role):', usersWithS('No users found in profiles table');
         setUsers([]);
       }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setUsers([]);
+   etUsers([]);
     }
   };
 
