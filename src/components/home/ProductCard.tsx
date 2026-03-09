@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Eye, Package, Navigation, MessageCircle } from 'lucide-react';
+import { MapPin, Eye, Package, Navigation, MessageCircle, Heart } from 'lucide-react';
 import { Product } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 
@@ -9,6 +9,8 @@ interface ProductCardProps {
   delay?: number;
   isNearby?: boolean;
   onChat?: () => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: () => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false, onChat }) => {
