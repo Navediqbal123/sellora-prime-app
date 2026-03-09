@@ -145,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (session?.user) {
         setTimeout(() => {
-          fetchUserRole(session.user.id, session.user.email || undefined);
+          fetchUserRole(session.user.id);
         }, 0);
       } else {
         setRole('user');
