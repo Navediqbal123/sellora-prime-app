@@ -46,6 +46,7 @@ const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onCha
 
 const HomePage = () => {
   const { user } = useAuth();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
