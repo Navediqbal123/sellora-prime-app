@@ -509,14 +509,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         await adminApi.unblockSeller(seller.user_id);
         toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
       } catch (error: any) {
-        // Fallback
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved', rejection_reason: null })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to unblock seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };
