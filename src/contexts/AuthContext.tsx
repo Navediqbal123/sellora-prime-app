@@ -28,14 +28,7 @@ export const useAuth = () => {
 
 type RoleRow = { role: UserRole };
 
-const ADMIN_EMAIL = 'navedahmad9012@gmail.com';
-
-const pickHighestRole = (rows: RoleRow[], email?: string): UserRole => {
-  // Force admin for specific email
-  if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    return 'admin';
-  }
-  
+const pickHighestRole = (rows: RoleRow[]): UserRole => {
   const roles = new Set(rows.map((r) => r.role));
   if (roles.has('admin')) return 'admin';
   if (roles.has('shopkeeper')) return 'shopkeeper';
