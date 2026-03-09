@@ -146,7 +146,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Profiles fetch result:', { profilesData, profilesError });
+      
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
