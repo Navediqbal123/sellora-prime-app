@@ -146,8 +146,6 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Profiles fetch result:', { profilesData, profilesError });
-
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
       }
@@ -156,9 +154,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       const { data: sellersData } = await supabase.from('sellers').select('*');
 
       if (profilesData && profilesData.length > 0) {
-        // profiles table - role is read DIRECTLY from profiles.role column
         const usersWithSellers = profilesData.map((profile) => {
-          // Handle both 'id' and 'user_id' column names
           const userId = profile.user_id || profile.id;
           return {
             id: userId,
@@ -168,14 +164,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             is_active: profile.is_active !== false,
             created_at: profile.created_at,
             seller: sellersData?.find((s) => s.user_id === userId),
-            // Role is read DIRECTLY from profiles.role column - no fallback to user_roles
             userRole: profile.role || 'user',
           };
         });
-        console.log('Users with sellers (role from profiles.role):', usersWithSellers);
         setUsers(usersWithSellers);
       } else {
-        console.log('No users found in profiles table');
         setUsers([]);
       }
     } catch (error) {
@@ -190,12 +183,12 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     try {
       const newStatus = !currentStatus;
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: newStatus })
-        .eq('id', userId);
-
-      if (error) throw error;
+      // Route through backend API for server-side authorization
+      if (newStatus) {
+        await adminApi.unbanUser(userId);
+      } else {
+        await adminApi.banUser(userId);
+      }
 
       // Update local state
       setUsers(prev => prev.map(u => 
