@@ -132,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshRole = async () => {
     if (!user?.id) return;
-    await fetchUserRole(user.id, user.email || undefined);
+    await fetchUserRole(user.id);
   };
 
   useEffect(() => {
