@@ -391,11 +391,6 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
         if (dbError) throw dbError;
 
-        // Add shopkeeper role
-        await supabase
-          .from('user_roles')
-          .upsert({ user_id: seller.user_id, role: 'shopkeeper' }, { onConflict: 'user_id' });
-
         setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
         
         toast({ 
