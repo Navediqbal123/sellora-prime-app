@@ -447,11 +447,6 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           .eq('user_id', userId);
 
         if (dbError) throw dbError;
-
-        // Add shopkeeper role
-        await supabase
-          .from('user_roles')
-          .upsert({ user_id: userId, role: 'shopkeeper' }, { onConflict: 'user_id' });
       }
 
       // Smooth exit then remove from local state (no page reload)
