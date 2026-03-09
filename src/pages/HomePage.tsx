@@ -10,8 +10,9 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useWishlist } from '@/hooks/useWishlist';
 
-const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onChat, searchQuery }: any) => {
+const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onChat, searchQuery, isWishlisted, onToggleWishlist }: any) => {
   const { ref, isVisible } = useScrollAnimation(0.05);
 
   return (
@@ -31,6 +32,8 @@ const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onCha
               delay={0}
               isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
               onChat={() => onChat(product)}
+              isWishlisted={isWishlisted?.(product.id)}
+              onToggleWishlist={() => onToggleWishlist?.(product.id)}
             />
           </div>
         ))
@@ -43,6 +46,7 @@ const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onCha
 
 const HomePage = () => {
   const { user } = useAuth();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,6 +229,15 @@ const HomePage = () => {
         onProductClick={handleProductClick}
         onChat={handleChat}
         searchQuery={searchQuery}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={(id: string) => {
+          if (!user) {
+            toast({ title: 'Login Required', description: 'Please log in to save wishlist items', variant: 'destructive' });
+            navigate('/login');
+            return;
+          }
+          toggleWishlist(id);
+        }}
       />
 
       {/* Chat Drawer */}

@@ -29,6 +29,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import ChatDrawer from '@/components/chat/ChatDrawer';
+import ReviewSection from '@/components/product/ReviewSection';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -383,6 +384,9 @@ const ProductDetailPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reviews Section */}
+      <ReviewSection productId={product.id} sellerId={product.seller_id} />
 
       {/* Chat Drawer */}
       {seller && (

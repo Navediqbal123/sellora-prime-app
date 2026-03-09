@@ -4,6 +4,7 @@ import PremiumStatsCard from '@/components/seller/PremiumStatsCard';
 import { ViewsLineChart, ClicksBarChart } from '@/components/seller/SellerAnalyticsCharts';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
+import EarningsSection from '@/components/seller/EarningsSection';
 
 const SellerOverview = () => {
   const { data, loading } = useSellerAnalytics();
@@ -51,51 +52,54 @@ const SellerOverview = () => {
         <ClicksBarChart data={data.clicksPerProduct} loading={loading} />
       </div>
 
-      {/* Recent Activity Table */}
-      <div className="glass-card rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          Recent Products
-        </h3>
-        {data.products.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-8 text-center">No products yet. Add your first product to get started!</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground">
-                  <th className="text-left py-3 px-2 font-medium">Product</th>
-                  <th className="text-right py-3 px-2 font-medium">Price</th>
-                  <th className="text-right py-3 px-2 font-medium">Views</th>
-                  <th className="text-right py-3 px-2 font-medium">Clicks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.products.slice(0, 5).map((product: any) => (
-                  <tr key={product.id} className="border-b border-border/30 hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
-                          {product.image_url ? (
-                            <img src={product.image_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-4 h-4 text-muted-foreground/40" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="font-medium text-foreground truncate max-w-[200px]">{product.title}</span>
-                      </div>
-                    </td>
-                    <td className="text-right py-3 px-2 text-foreground font-semibold">₹{product.price?.toLocaleString()}</td>
-                    <td className="text-right py-3 px-2 text-muted-foreground">{product.views || 0}</td>
-                    <td className="text-right py-3 px-2 text-muted-foreground">{product.clicks || 0}</td>
+      {/* Earnings + Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EarningsSection />
+
+        {/* Recent Activity Table */}
+        <div className="glass-card rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            Recent Products
+          </h3>
+          {data.products.length === 0 ? (
+            <p className="text-muted-foreground text-sm py-8 text-center">No products yet. Add your first product to get started!</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground">
+                    <th className="text-left py-3 px-2 font-medium">Product</th>
+                    <th className="text-right py-3 px-2 font-medium">Price</th>
+                    <th className="text-right py-3 px-2 font-medium">Views</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {data.products.slice(0, 5).map((product: any) => (
+                    <tr key={product.id} className="border-b border-border/30 hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
+                            {product.image_url ? (
+                              <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package className="w-4 h-4 text-muted-foreground/40" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium text-foreground truncate max-w-[150px]">{product.title}</span>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-2 text-foreground font-semibold">₹{product.price?.toLocaleString()}</td>
+                      <td className="text-right py-3 px-2 text-muted-foreground">{product.views || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
