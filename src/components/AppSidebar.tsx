@@ -102,7 +102,7 @@ const AppSidebar = () => {
   const isApprovedSeller = sellerStatus === 'approved' || role === 'shopkeeper';
   
   // Determine if user is an admin
-  const isAdmin = role === 'admin';
+  const isAdmin = isProfileAdmin;
 
   // Show "Start Selling" only for users who are NOT approved sellers
   // This applies to regular users AND admins who haven't become sellers yet
