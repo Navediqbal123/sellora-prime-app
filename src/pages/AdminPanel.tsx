@@ -146,10 +146,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+      iles:', profilesError);
       }
 
       // Get sellers for each user
@@ -172,10 +169,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             userRole: profile.role || 'user',
           };
         });
-        console.log('Users with sellers (role from profiles.role):', usersWithSellers);
-        setUsers(usersWithSellers);
-      } else {
-        console.log('No users found in profiles table');
+        console.log('Users with sellers (role from profiles.role):', usersWithS('No users found in profiles table');
         setUsers([]);
       }
     } catch (error) {
