@@ -48,27 +48,37 @@ const AppSidebar = () => {
   // Track if user has a seller application (any status)
   const [hasSellerApplication, setHasSellerApplication] = useState(false);
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
+  const [isProfileAdmin, setIsProfileAdmin] = useState(false);
 
   useEffect(() => {
-    const checkSellerApplication = async () => {
+    const checkUserStatus = async () => {
       if (!user) return;
       
-      const { data } = await supabase
-        .from('sellers')
-        .select('id, status')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const [sellerResult, profileResult] = await Promise.all([
+        supabase
+          .from('sellers')
+          .select('id, status')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle(),
+      ]);
       
-      if (data) {
+      if (sellerResult.data) {
         setHasSellerApplication(true);
-        setSellerStatus(data.status);
+        setSellerStatus(sellerResult.data.status);
       } else {
         setHasSellerApplication(false);
         setSellerStatus(null);
       }
+
+      setIsProfileAdmin(profileResult.data?.role === 'admin');
     };
     
-    checkSellerApplication();
+    checkUserStatus();
   }, [user, role]);
 
   const handleSignOut = async () => {
@@ -92,7 +102,7 @@ const AppSidebar = () => {
   const isApprovedSeller = sellerStatus === 'approved' || role === 'shopkeeper';
   
   // Determine if user is an admin
-  const isAdmin = role === 'admin';
+  const isAdmin = isProfileAdmin;
 
   // Show "Start Selling" only for users who are NOT approved sellers
   // This applies to regular users AND admins who haven't become sellers yet
