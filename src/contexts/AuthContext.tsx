@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const fetchUserRole = async (userId: string, email?: string) => {
+  const fetchUserRole = async (userId: string) => {
     try {
       // Check ban status first
       const { data: profileData } = await supabase
@@ -101,12 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setIsActive(true);
 
-      // Force admin for specific email
-      if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        setRole('admin');
-        return;
-      }
-
       // 1) Authoritative roles table
       const { data: roleRows, error: roleError } = await supabase
         .from('user_roles')
@@ -114,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', userId);
 
       if (!roleError && roleRows && roleRows.length > 0) {
-        setRole(pickHighestRole(roleRows as RoleRow[], email));
+        setRole(pickHighestRole(roleRows as RoleRow[]));
         return;
       }
 
