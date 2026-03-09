@@ -107,4 +107,15 @@ export const adminApi = {
     method: 'POST',
     body: JSON.stringify({ user_id: userId }),
   }),
+
+  // User ban/unban
+  banUser: (userId: string) => apiRequest('/admin/ban-user', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
+
+  unbanUser: (userId: string) => apiRequest('/admin/unban-user', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  }),
 };

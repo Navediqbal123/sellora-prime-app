@@ -177,13 +177,25 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     
     try {
       const newStatus = !currentStatus;
+      const action = newStatus ? 'unblock' : 'block';
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: newStatus })
-        .eq('id', userId);
+      // Route through backend API for server-side authorization
+      const endpoint = newStatus ? '/admin/unban-user' : '/admin/ban-user';
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      const response = await fetch(`https://storelink-backend.onrender.com${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: `Failed to ${action} user` }));
+        throw new Error(err.message || `HTTP ${response.status}`);
+      }
 
       // Update local state
       setUsers(prev => prev.map(u => 
