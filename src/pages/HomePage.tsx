@@ -32,6 +32,8 @@ const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onCha
               delay={0}
               isNearby={!!userCity && product.city?.toLowerCase() === userCity.toLowerCase()}
               onChat={() => onChat(product)}
+              isWishlisted={isWishlisted?.(product.id)}
+              onToggleWishlist={() => onToggleWishlist?.(product.id)}
             />
           </div>
         ))
