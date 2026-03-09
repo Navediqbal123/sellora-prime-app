@@ -10,6 +10,7 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useWishlist } from '@/hooks/useWishlist';
 
 const ScrollAnimatedGrid = ({ loading, products, userCity, onProductClick, onChat, searchQuery }: any) => {
   const { ref, isVisible } = useScrollAnimation(0.05);
