@@ -48,7 +48,7 @@ const AppSidebar = () => {
   // Track if user has a seller application (any status)
   const [hasSellerApplication, setHasSellerApplication] = useState(false);
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
-  const [isProfileAdmin, setIsProfileAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkUserStatus = async () => {
