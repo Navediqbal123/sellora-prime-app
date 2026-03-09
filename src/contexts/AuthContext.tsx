@@ -28,14 +28,7 @@ export const useAuth = () => {
 
 type RoleRow = { role: UserRole };
 
-const ADMIN_EMAIL = 'navedahmad9012@gmail.com';
-
-const pickHighestRole = (rows: RoleRow[], email?: string): UserRole => {
-  // Force admin for specific email
-  if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    return 'admin';
-  }
-  
+const pickHighestRole = (rows: RoleRow[]): UserRole => {
   const roles = new Set(rows.map((r) => r.role));
   if (roles.has('admin')) return 'admin';
   if (roles.has('shopkeeper')) return 'shopkeeper';
@@ -83,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const fetchUserRole = async (userId: string, email?: string) => {
+  const fetchUserRole = async (userId: string) => {
     try {
       // Check ban status first
       const { data: profileData } = await supabase
@@ -108,12 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setIsActive(true);
 
-      // Force admin for specific email
-      if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        setRole('admin');
-        return;
-      }
-
       // 1) Authoritative roles table
       const { data: roleRows, error: roleError } = await supabase
         .from('user_roles')
@@ -121,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', userId);
 
       if (!roleError && roleRows && roleRows.length > 0) {
-        setRole(pickHighestRole(roleRows as RoleRow[], email));
+        setRole(pickHighestRole(roleRows as RoleRow[]));
         return;
       }
 
@@ -145,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshRole = async () => {
     if (!user?.id) return;
-    await fetchUserRole(user.id, user.email || undefined);
+    await fetchUserRole(user.id);
   };
 
   useEffect(() => {
@@ -158,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (session?.user) {
         setTimeout(() => {
-          fetchUserRole(session.user.id, session.user.email || undefined);
+          fetchUserRole(session.user.id);
         }, 0);
       } else {
         setRole('user');
@@ -174,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        fetchUserRole(session.user.id, session.user.email || undefined);
+        fetchUserRole(session.user.id);
       }
 
       setLoading(false);
