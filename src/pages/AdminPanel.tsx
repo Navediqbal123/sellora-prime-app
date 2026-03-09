@@ -383,19 +383,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           description: "The seller can now access their dashboard" 
         });
       } catch (error: any) {
-        // Fallback to direct Supabase update if API fails
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-
-        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
-        
         toast({ 
-          title: "✓ Seller Approved!", 
-          description: "The seller can now access their dashboard" 
+          title: "Error", 
+          description: error.message || "Failed to approve seller. Please try again.", 
+          variant: "destructive" 
         });
       }
     });
