@@ -161,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        fetchUserRole(session.user.id, session.user.email || undefined);
+        fetchUserRole(session.user.id);
       }
 
       setLoading(false);
