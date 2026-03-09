@@ -13,7 +13,7 @@ interface ProductCardProps {
   onToggleWishlist?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false, onChat }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, isNearby = false, onChat, isWishlisted = false, onToggleWishlist }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
