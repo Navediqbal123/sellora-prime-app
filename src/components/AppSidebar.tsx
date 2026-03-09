@@ -62,7 +62,7 @@ const AppSidebar = () => {
           .maybeSingle(),
         supabase
           .from('profiles')
-          .select('role')
+          .select('is_admin')
           .eq('id', user.id)
           .maybeSingle(),
       ]);
