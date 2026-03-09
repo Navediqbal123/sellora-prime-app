@@ -75,7 +75,7 @@ const AppSidebar = () => {
         setSellerStatus(null);
       }
 
-      setIsProfileAdmin(profileResult.data?.role === 'admin');
+      setIsAdmin(profileResult.data?.is_admin === true);
     };
     
     checkUserStatus();
