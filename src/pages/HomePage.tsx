@@ -229,6 +229,15 @@ const HomePage = () => {
         onProductClick={handleProductClick}
         onChat={handleChat}
         searchQuery={searchQuery}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={(id: string) => {
+          if (!user) {
+            toast({ title: 'Login Required', description: 'Please log in to save wishlist items', variant: 'destructive' });
+            navigate('/login');
+            return;
+          }
+          toggleWishlist(id);
+        }}
       />
 
       {/* Chat Drawer */}

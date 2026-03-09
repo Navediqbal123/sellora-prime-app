@@ -56,13 +56,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, delay = 0, 
         <div className={`absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent
                          transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
 
-        {/* Views Badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 
-                       bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-full
-                       border border-border/50 transition-transform duration-300
-                       group-hover:scale-105">
-          <Eye className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-medium text-foreground">{product.views || 0}</span>
+        {/* Top Right: Wishlist + Views */}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {onToggleWishlist && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}
+              className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-md border border-border/50 
+                         flex items-center justify-center transition-all duration-300 hover:scale-110"
+            >
+              <Heart className={`w-4 h-4 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-full
+                         border border-border/50 transition-transform duration-300 group-hover:scale-105">
+            <Eye className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-medium text-foreground">{product.views || 0}</span>
+          </div>
         </div>
 
         {/* Near You Badge */}

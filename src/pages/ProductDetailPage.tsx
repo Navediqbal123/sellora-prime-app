@@ -385,6 +385,9 @@ const ProductDetailPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Reviews Section */}
+      <ReviewSection productId={product.id} sellerId={product.seller_id} />
+
       {/* Chat Drawer */}
       {seller && (
         <ChatDrawer
