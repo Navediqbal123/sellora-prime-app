@@ -146,12 +146,15 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-         const { data: sellersData } = await supabase.from('sellers').select('*');
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      // Get sellers for each user
+      const { data: sellersData } = await supabase.from('sellers').select('*');
 
       if (profilesData && profilesData.length > 0) {
-        // profiles table - role is read DIRECTLY from profiles.role column
         const usersWithSellers = profilesData.map((profile) => {
-          // Handle both 'id' and 'user_id' column names
           const userId = profile.user_id || profile.id;
           return {
             id: userId,
@@ -161,14 +164,16 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
             is_active: profile.is_active !== false,
             created_at: profile.created_at,
             seller: sellersData?.find((s) => s.user_id === userId),
-            // Role is read DIRECTLY from profiles.role column - no fallback to user_roles
             userRole: profile.role || 'user',
           };
         });
-        console.log('Users with sellers (role from profiles.role):', usersWithS('No users found in profiles table');
+        setUsers(usersWithSellers);
+      } else {
         setUsers([]);
       }
-   etUsers([]);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
     }
   };
 
