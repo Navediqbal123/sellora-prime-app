@@ -424,14 +424,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       try {
         // Call backend API with user_id
         await adminApi.approveSeller(userId);
-      } catch (apiError) {
-        // Fallback: Update sellers table directly if API fails
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved' })
-          .eq('user_id', userId);
-
-        if (dbError) throw dbError;
+      } catch (apiError: any) {
+        toast({ 
+          title: "Error", 
+          description: apiError.message || "Failed to approve seller. Please try again.", 
+          variant: "destructive" 
+        });
+        return;
       }
 
       // Smooth exit then remove from local state (no page reload)
