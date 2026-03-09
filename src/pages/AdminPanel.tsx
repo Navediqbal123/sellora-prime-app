@@ -383,19 +383,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           description: "The seller can now access their dashboard" 
         });
       } catch (error: any) {
-        // Fallback to direct Supabase update if API fails
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-
-        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
-        
         toast({ 
-          title: "✓ Seller Approved!", 
-          description: "The seller can now access their dashboard" 
+          title: "Error", 
+          description: error.message || "Failed to approve seller. Please try again.", 
+          variant: "destructive" 
         });
       }
     });
@@ -418,17 +409,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         
         toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
       } catch (error: any) {
-        // Fallback to direct Supabase update
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        
-        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
-        
-        toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to reject seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };
@@ -439,14 +424,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       try {
         // Call backend API with user_id
         await adminApi.approveSeller(userId);
-      } catch (apiError) {
-        // Fallback: Update sellers table directly if API fails
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved' })
-          .eq('user_id', userId);
-
-        if (dbError) throw dbError;
+      } catch (apiError: any) {
+        toast({ 
+          title: "Error", 
+          description: apiError.message || "Failed to approve seller. Please try again.", 
+          variant: "destructive" 
+        });
+        return;
       }
 
       // Smooth exit then remove from local state (no page reload)
@@ -469,14 +453,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       try {
         // Call backend API with user_id
         await adminApi.rejectSeller(userId);
-      } catch (apiError) {
-        // Fallback: Update sellers table directly if API fails
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'rejected', rejection_reason: 'Application rejected by admin' })
-          .eq('user_id', userId);
-
-        if (dbError) throw dbError;
+      } catch (apiError: any) {
+        toast({ 
+          title: "Error", 
+          description: apiError.message || "Failed to reject seller. Please try again.", 
+          variant: "destructive" 
+        });
+        return;
       }
 
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
@@ -505,14 +488,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         await adminApi.blockSeller(seller.user_id);
         toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
       } catch (error: any) {
-        // Fallback
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to block seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };
@@ -529,14 +509,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         await adminApi.unblockSeller(seller.user_id);
         toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
       } catch (error: any) {
-        // Fallback
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'approved', rejection_reason: null })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        toast({ title: "Seller Unblocked", description: "The seller can now access their dashboard" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to unblock seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };

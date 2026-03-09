@@ -86,24 +86,22 @@ const ProductDetailPage = () => {
 
     setOrdering(true);
     try {
-      const code = Math.floor(1000 + Math.random() * 9000).toString();
       const address = [seller.address, seller.city, seller.state, seller.pincode]
         .filter(Boolean)
         .join(', ');
 
-      const { error } = await supabase.from('orders').insert({
+      const { data, error } = await supabase.from('orders').insert({
         product_id: product.id,
         buyer_id: user.id,
         seller_id: product.seller_id,
-        pickup_code: code,
         status: 'pending',
         shop_address: address,
         shop_name: seller.shop_name,
-      });
+      }).select('pickup_code').single();
 
       if (error) throw error;
 
-      setPickupCode(code);
+      setPickupCode(data.pickup_code);
       setShopAddress(address);
       setShopName(seller.shop_name);
       setShowConfirm(false);
