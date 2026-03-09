@@ -488,14 +488,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         await adminApi.blockSeller(seller.user_id);
         toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
       } catch (error: any) {
-        // Fallback
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'blocked', rejection_reason: 'Account blocked by admin' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        toast({ title: "Seller Blocked", description: "The seller's account has been blocked" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to block seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };
