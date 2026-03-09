@@ -4,6 +4,7 @@ import PremiumStatsCard from '@/components/seller/PremiumStatsCard';
 import { ViewsLineChart, ClicksBarChart } from '@/components/seller/SellerAnalyticsCharts';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
+import EarningsSection from '@/components/seller/EarningsSection';
 
 const SellerOverview = () => {
   const { data, loading } = useSellerAnalytics();
