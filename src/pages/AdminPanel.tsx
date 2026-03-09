@@ -409,17 +409,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         
         toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
       } catch (error: any) {
-        // Fallback to direct Supabase update
-        const { error: dbError } = await supabase
-          .from('sellers')
-          .update({ status: 'rejected', rejection_reason: reason || 'Application rejected by admin' })
-          .eq('id', sellerId);
-
-        if (dbError) throw dbError;
-        
-        setPendingSellers(prev => prev.filter(s => s.id !== sellerId));
-        
-        toast({ title: "Seller Rejected", description: "The seller request has been rejected" });
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to reject seller. Please try again.", 
+          variant: "destructive" 
+        });
       }
     });
   };
