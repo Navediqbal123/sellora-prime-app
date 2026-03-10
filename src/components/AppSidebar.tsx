@@ -48,24 +48,17 @@ const AppSidebar = () => {
   // Track if user has a seller application (any status)
   const [hasSellerApplication, setHasSellerApplication] = useState(false);
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = user?.email === 'navedahmad9012@gmail.com';
 
   useEffect(() => {
     const checkUserStatus = async () => {
       if (!user) return;
       
-      const [sellerResult, profileResult] = await Promise.all([
-        supabase
-          .from('sellers')
-          .select('id, status')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .maybeSingle(),
-      ]);
+      const sellerResult = await supabase
+        .from('sellers')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
       if (sellerResult.data) {
         setHasSellerApplication(true);
@@ -74,8 +67,6 @@ const AppSidebar = () => {
         setHasSellerApplication(false);
         setSellerStatus(null);
       }
-
-      setIsAdmin(profileResult.data?.is_admin === true);
     };
     
     checkUserStatus();
