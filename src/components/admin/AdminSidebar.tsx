@@ -45,6 +45,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const handleItemClick = (sectionId: string) => {
     onSectionChange(sectionId);
     onMobileClose?.();
+    // Collapse sidebar on desktop with smooth animation
+    if (!isMobileOpen) {
+      onCollapsedChange(true);
+    }
   };
 
   const handleLogout = async () => {

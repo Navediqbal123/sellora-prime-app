@@ -42,7 +42,7 @@ const AppSidebar = () => {
   const { role, signOut, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpen, setOpenMobile, isMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   
   // Track if user has a seller application (any status)
