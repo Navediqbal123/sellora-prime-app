@@ -130,6 +130,14 @@ const AppSidebar = () => {
 
   const visible = (item: NavItem) => item.roles.includes(role);
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+  };
+
   const renderItem = (item: NavItem, index: number) => {
     const active = isActive(item.path);
     const ItemIcon = item.icon;
@@ -144,6 +152,7 @@ const AppSidebar = () => {
           <NavLink
             to={item.path}
             end={item.path === '/'}
+            onClick={handleNavClick}
             className={
               `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ` +
               (active
