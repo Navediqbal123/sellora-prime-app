@@ -68,6 +68,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <>{children}</>;
   }
 
+  // Email-based admin override
+  if (allowedRoles.includes("admin") && user.email === "navedahmad9012@gmail.com") {
+    return <>{children}</>;
+  }
+
   // Seller exception: allow access when sellers.status is approved even if role mapping isn't ready yet
   if (needsApprovedSellerCheck && isApprovedSeller) {
     return <>{children}</>;
