@@ -20,6 +20,7 @@ import ProfilePage from "./pages/ProfilePage";
 import LoginHistoryPage from "./pages/LoginHistoryPage";
 import NotFound from "./pages/NotFound";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import SellerProfilePage from "./pages/SellerProfilePage";
 
 // Seller Pages
 import SellerOverview from "./pages/seller/SellerOverview";
@@ -84,6 +85,7 @@ const AppRoutes = () => {
       >
         <Route index element={<HomePage />} />
         <Route path="product/:id" element={<ProductDetailPage />} />
+        <Route path="seller/:id" element={<SellerProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="login-history" element={<LoginHistoryPage />} />
 
