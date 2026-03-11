@@ -1009,14 +1009,46 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       {/* Products */}
       {activeSection === 'products' && (
         <div className="animate-fade-in-up">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-foreground mb-1">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-foreground mb-0.5">
               All <span className="text-gradient">Products</span>
             </h2>
-            <p className="text-muted-foreground">{products.length} products listed</p>
+            <p className="text-xs text-muted-foreground">{products.length} products listed</p>
           </div>
 
-          <AnimatedTable columns={productColumns} data={products} />
+          {/* Mobile card layout */}
+          <div className="space-y-2">
+            {products.length > 0 ? products.map((product, index) => (
+              <div
+                key={product.id}
+                className="glass-card rounded-xl p-3 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                style={{ animationDelay: `${index * 0.03}s` }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-semibold text-foreground truncate">{product.title}</h4>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {(product as any).seller?.shop_name || 'Unknown Seller'}
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-sellora-gold whitespace-nowrap">₹{product.price?.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-0.5">
+                    <Eye className="w-3 h-3" /> {product.views || 0}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <MousePointer className="w-3 h-3" /> {product.clicks || 0}
+                  </span>
+                </div>
+              </div>
+            )) : (
+              <div className="glass-card rounded-xl p-8 text-center">
+                <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3 animate-float" />
+                <p className="text-sm text-muted-foreground">No products listed yet</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
