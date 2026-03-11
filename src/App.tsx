@@ -85,6 +85,7 @@ const AppRoutes = () => {
       >
         <Route index element={<HomePage />} />
         <Route path="product/:id" element={<ProductDetailPage />} />
+        <Route path="seller/:id" element={<SellerProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="login-history" element={<LoginHistoryPage />} />
 
