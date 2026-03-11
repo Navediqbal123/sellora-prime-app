@@ -4,7 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product } from '@/lib/supabase';
 import ProductCard from '@/components/home/ProductCard';
 import SearchBar from '@/components/home/SearchBar';
-import CategoryFilter from '@/components/home/CategoryFilter';
+import SearchFilters from '@/components/home/SearchFilters';
+import FlashDeals from '@/components/home/FlashDeals';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
@@ -56,6 +57,10 @@ const HomePage = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatProduct, setChatProduct] = useState<{ id: string; title: string; sellerId: string; sellerName: string } | null>(null);
 
+  // Filter state
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [locationFilter, setLocationFilter] = useState('');
+
   const categories = [
     { id: 'all', label: 'All' },
     { id: 'Electronics', label: 'Electronics' },
@@ -65,74 +70,38 @@ const HomePage = () => {
     { id: 'Services', label: 'Services' },
   ];
 
-  // Fetch user's city from sellers table
   useEffect(() => {
     const fetchUserCity = async () => {
-      if (!user) {
-        setUserCity(null);
-        return;
-      }
-
-      const { data: seller } = await supabase
-        .from('sellers')
-        .select('city')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (seller?.city) {
-        setUserCity(seller.city);
-      }
+      if (!user) { setUserCity(null); return; }
+      const { data: seller } = await supabase.from('sellers').select('city').eq('user_id', user.id).maybeSingle();
+      if (seller?.city) setUserCity(seller.city);
     };
-
     fetchUserCity();
   }, [user]);
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchProducts();
-    }, 300);
-
+    const debounce = setTimeout(() => { fetchProducts(); }, 300);
     return () => clearTimeout(debounce);
   }, [selectedCategory, searchQuery]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-
+      let query = supabase.from('products').select('*').order('created_at', { ascending: false });
+      if (selectedCategory !== 'all') query = query.eq('category', selectedCategory);
       if (searchQuery.trim()) {
         query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-        
-        // Log search
-        await supabase.from('search_logs').insert({
-          query: searchQuery.trim()
-        });
+        await supabase.from('search_logs').insert({ query: searchQuery.trim() });
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
-      // Fetch seller info separately
       const sellerIds = [...new Set((data || []).map((p: any) => p.seller_id).filter(Boolean))];
       let sellerMap: Record<string, { shop_name: string; city: string; state: string }> = {};
-      
       if (sellerIds.length > 0) {
-        const { data: sellers } = await supabase
-          .from('sellers')
-          .select('id, shop_name, city, state')
-          .in('id', sellerIds);
-        
-        (sellers || []).forEach((s: any) => {
-          sellerMap[s.id] = { shop_name: s.shop_name, city: s.city, state: s.state };
-        });
+        const { data: sellers } = await supabase.from('sellers').select('id, shop_name, city, state').in('id', sellerIds);
+        (sellers || []).forEach((s: any) => { sellerMap[s.id] = { shop_name: s.shop_name, city: s.city, state: s.state }; });
       }
 
       const productsWithSeller = (data || []).map((p: any) => ({
@@ -140,7 +109,6 @@ const HomePage = () => {
         seller: sellerMap[p.seller_id] || null,
         city: sellerMap[p.seller_id]?.city || p.city,
       }));
-
       setProducts(productsWithSeller);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -150,27 +118,31 @@ const HomePage = () => {
     }
   };
 
-  // Sort products: user's city first, then others
+  // Apply client-side filters (price + location)
+  const filteredProducts = useMemo(() => {
+    let result = products;
+    // Price filter
+    result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    // Location filter
+    if (locationFilter.trim()) {
+      const loc = locationFilter.toLowerCase();
+      result = result.filter(p => p.city?.toLowerCase().includes(loc) || p.state?.toLowerCase().includes(loc));
+    }
+    return result;
+  }, [products, priceRange, locationFilter]);
+
+  // Sort: user's city first
   const sortedProducts = useMemo(() => {
-    if (!userCity || products.length === 0) return products;
-
+    if (!userCity || filteredProducts.length === 0) return filteredProducts;
     const cityLower = userCity.toLowerCase();
-    const nearby = products.filter(p => p.city?.toLowerCase() === cityLower);
-    const others = products.filter(p => p.city?.toLowerCase() !== cityLower);
-
+    const nearby = filteredProducts.filter(p => p.city?.toLowerCase() === cityLower);
+    const others = filteredProducts.filter(p => p.city?.toLowerCase() !== cityLower);
     return [...nearby, ...others];
-  }, [products, userCity]);
+  }, [filteredProducts, userCity]);
 
   const handleProductClick = async (productId: string) => {
-    // Log click
-    await supabase.from('click_logs').insert({
-      product_id: productId
-    });
-
-    // Increment views
+    await supabase.from('click_logs').insert({ product_id: productId });
     await supabase.rpc('increment_product_views', { product_id: productId });
-
-    // Navigate to product detail
     navigate(`/product/${productId}`);
   };
 
@@ -190,11 +162,17 @@ const HomePage = () => {
     setChatOpen(true);
   };
 
+  const clearAllFilters = () => {
+    setPriceRange([0, 100000]);
+    setLocationFilter('');
+    setSelectedCategory('all');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
-      <div className="text-center mb-12 animate-fade-in-up">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+      <div className="text-center mb-10 animate-fade-in-up">
+        <h1 className="text-3xl md:text-6xl font-bold mb-4 leading-tight">
           Explore Premium{' '}
           <span className="text-gradient relative animate-float">
             Deals
@@ -202,26 +180,36 @@ const HomePage = () => {
           </span>{' '}
           Near You
         </h1>
-        <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+        <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto leading-relaxed">
           Discover the best products from trusted sellers in your city
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="max-w-2xl mx-auto mb-10 animate-fade-in-up stagger-1">
+      <div className="max-w-2xl mx-auto mb-6 animate-fade-in-up stagger-1">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
       </div>
 
-      {/* Categories */}
-      <div className="mb-10 animate-fade-in-up stagger-2">
-        <CategoryFilter 
-          categories={categories} 
-          selected={selectedCategory} 
-          onChange={setSelectedCategory} 
+      {/* Filters */}
+      <div className="max-w-2xl mx-auto mb-8 flex justify-center animate-fade-in-up stagger-2">
+        <SearchFilters
+          priceRange={priceRange}
+          onPriceRangeChange={setPriceRange}
+          location={locationFilter}
+          onLocationChange={setLocationFilter}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categories={categories}
+          onClearAll={clearAllFilters}
         />
       </div>
 
-      {/* Products Grid with scroll animation */}
+      {/* Flash Deals */}
+      {!loading && products.length > 0 && (
+        <FlashDeals products={products} onProductClick={handleProductClick} />
+      )}
+
+      {/* Products Grid */}
       <ScrollAnimatedGrid
         loading={loading}
         products={sortedProducts}
