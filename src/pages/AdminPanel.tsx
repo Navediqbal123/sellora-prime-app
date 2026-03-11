@@ -1188,96 +1188,88 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       {/* Users */}
       {activeSection === 'users' && (
         <div className="animate-fade-in-up">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-foreground mb-1">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-foreground mb-0.5">
               All <span className="text-gradient">Users</span>
             </h2>
-            <p className="text-muted-foreground">{users.length} registered users</p>
+            <p className="text-xs text-muted-foreground">{users.length} registered users</p>
           </div>
 
           {users.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {users.map((user, index) => (
                 <div
                   key={user.id}
-                  className="glass-card rounded-2xl p-5 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
+                  className="glass-card rounded-xl p-3 animate-fade-in-up hover:border-primary/30 transition-all duration-300"
                   style={{ animationDelay: `${index * 0.03}s` }}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 
-                                       flex items-center justify-center">
-                          <Users className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 
+                                     flex items-center justify-center flex-shrink-0">
+                        <Users className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-sm font-semibold text-foreground truncate">
                             {user.full_name || 'Unnamed User'}
                           </h3>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                          {user.is_active ? (
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-green-500/20 text-green-500 flex items-center gap-0.5">
+                              <Shield className="w-2.5 h-2.5" />
+                              ACTIVE
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-red-500/20 text-red-500 flex items-center gap-0.5">
+                              <ShieldOff className="w-2.5 h-2.5" />
+                              BANNED
+                            </span>
+                          )}
+                          {(user as any).userRole && (
+                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
+                              (user as any).userRole === 'admin' 
+                                ? 'bg-purple-500/20 text-purple-400' 
+                                : (user as any).userRole === 'shopkeeper'
+                                  ? 'bg-accent/20 text-accent'
+                                  : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {(user as any).userRole}
+                            </span>
+                          )}
                         </div>
-                        {/* Status Badge */}
-                        {user.is_active ? (
-                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-500 flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            ACTIVE
+                        <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-[10px] text-muted-foreground/70 flex items-center gap-0.5">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(user.created_at).toLocaleDateString()}
                           </span>
-                        ) : (
-                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-500 flex items-center gap-1">
-                            <ShieldOff className="w-3 h-3" />
-                            BANNED
-                          </span>
-                        )}
-                        {/* Role Badge */}
-                        {(user as any).userRole && (
-                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                            (user as any).userRole === 'admin' 
-                              ? 'bg-purple-500/20 text-purple-400' 
-                              : (user as any).userRole === 'shopkeeper'
-                                ? 'bg-accent/20 text-accent'
-                                : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {(user as any).userRole}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          Joined {new Date(user.created_at).toLocaleDateString()}
-                        </span>
-                        {user.seller && (
-                          <span className="px-2 py-0.5 rounded-full bg-accent/20 text-accent text-xs">
-                            Seller: {user.seller.shop_name}
-                          </span>
-                        )}
+                          {user.seller && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-accent/20 text-accent text-[10px]">
+                              {user.seller.shop_name}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
                     {/* Ban/Unban Toggle */}
-                    <div className="flex items-center gap-4">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs text-muted-foreground">
-                          {user.is_active ? 'Active' : 'Banned'}
-                        </span>
-                        <Switch
-                          checked={user.is_active}
-                          onCheckedChange={() => handleToggleUserBan(user.id, user.is_active)}
-                          disabled={togglingUser === user.id}
-                          className={`${user.is_active ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500/50'}`}
-                        />
-                      </div>
+                    <div className="flex-shrink-0">
+                      <Switch
+                        checked={user.is_active}
+                        onCheckedChange={() => handleToggleUserBan(user.id, user.is_active)}
+                        disabled={togglingUser === user.id}
+                        className={`scale-90 ${user.is_active ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500/50'}`}
+                      />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="glass-card rounded-2xl p-12 text-center">
-              <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4 animate-float" />
-              <p className="text-lg text-muted-foreground mb-2">No users found</p>
-              <p className="text-sm text-muted-foreground/70">
+            <div className="glass-card rounded-xl p-8 text-center">
+              <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3 animate-float" />
+              <p className="text-sm text-muted-foreground mb-1">No users found</p>
+              <p className="text-xs text-muted-foreground/70">
                 Users will appear here once they register.
               </p>
             </div>
