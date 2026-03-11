@@ -7,7 +7,8 @@ const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, ...props }, ref) => {
-  const thumbCount = Array.isArray(props.value || props.defaultValue) ? (props.value || props.defaultValue)!.length : 1;
+  const vals = props.value || props.defaultValue;
+  const thumbCount = Array.isArray(vals) ? vals.length : 1;
   return (
     <SliderPrimitive.Root
       ref={ref}
@@ -22,8 +23,7 @@ const Slider = React.forwardRef<
       ))}
     </SliderPrimitive.Root>
   );
-}
-));
+});
 Slider.displayName = SliderPrimitive.Root.displayName;
 
 export { Slider };
