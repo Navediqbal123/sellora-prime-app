@@ -1220,6 +1220,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         </div>
       )}
 
+      {/* Sales History */}
+      {activeSection === 'sales-history' && (
+        <div className="animate-fade-in-up">
+          <AdminSalesHistory />
+        </div>
+      )}
+
       {/* Users */}
       {activeSection === 'users' && (
         <div className="animate-fade-in-up">
