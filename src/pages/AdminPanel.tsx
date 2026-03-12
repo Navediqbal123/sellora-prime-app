@@ -82,7 +82,7 @@ interface SellerRequestRow {
   created_at: string;
 }
 
-type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
+type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests' | 'sales-history';
 
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [loading, setLoading] = useState(true);
