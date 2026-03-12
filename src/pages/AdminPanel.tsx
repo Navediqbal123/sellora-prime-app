@@ -1299,12 +1299,19 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                     </div>
                     
                     {/* Ban/Unban Toggle */}
-                    <div className="flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {togglingUser === user.id && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                      )}
                       <Switch
                         checked={user.is_active}
                         onCheckedChange={() => handleToggleUserBan(user.id, user.is_active)}
                         disabled={togglingUser === user.id}
-                        className={`scale-90 ${user.is_active ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500/50'}`}
+                        className={`transition-all duration-300 ease-out scale-90 ${
+                          user.is_active 
+                            ? 'data-[state=checked]:bg-green-500 data-[state=checked]:shadow-[0_0_10px_rgba(34,197,94,0.4)]' 
+                            : 'data-[state=unchecked]:bg-red-500/50'
+                        }`}
                       />
                     </div>
                   </div>
