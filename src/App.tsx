@@ -29,6 +29,7 @@ import SellerAddProduct from "./pages/seller/SellerAddProduct";
 import SellerAnalytics from "./pages/seller/SellerAnalytics";
 import SellerOrders from "./pages/seller/SellerOrders";
 import SellerMessages from "./pages/seller/SellerMessages";
+import SellerSalesHistory from "./pages/seller/SellerSalesHistory";
 
 const queryClient = new QueryClient();
 
