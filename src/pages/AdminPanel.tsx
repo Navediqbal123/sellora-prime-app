@@ -137,6 +137,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     if (activeSection === 'searches') fetchSearchLogs();
     if (activeSection === 'clicks') fetchClickLogs();
     if (activeSection === 'users') fetchUsers();
+    // sales-history section handles its own fetching
   }, [activeSection]);
 
   const fetchUsers = async () => {
