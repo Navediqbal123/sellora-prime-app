@@ -26,6 +26,7 @@ import {
   ClipboardList,
   MessageCircle,
   MoreVertical,
+  Receipt,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -83,6 +84,7 @@ const SellerSidebar = () => {
     { path: '/seller/orders', label: 'Pickup Orders', icon: ClipboardList },
     { path: '/seller/messages', label: 'Messages', icon: MessageCircle },
     { path: '/seller/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/seller/sales-history', label: 'Sales History', icon: Receipt },
   ];
 
   const renderItem = (item: NavItem, index: number) => {

@@ -9,7 +9,8 @@ import {
   LogOut,
   ChevronLeft,
   Sparkles,
-  X
+  X,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -28,6 +29,7 @@ const menuItems = [
   { id: 'sellers', label: 'Sellers', icon: Store },
   { id: 'products', label: 'Products', icon: Package },
   { id: 'seller-requests', label: 'Seller Requests', icon: Sparkles },
+  { id: 'sales-history', label: 'Sales History', icon: Receipt },
   { id: 'searches', label: 'Searches', icon: Search },
   { id: 'clicks', label: 'Views / Clicks', icon: MousePointer },
 ];

@@ -35,6 +35,7 @@ import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminSalesHistory from '@/components/admin/AdminSalesHistory';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 
@@ -82,7 +83,7 @@ interface SellerRequestRow {
   created_at: string;
 }
 
-type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests';
+type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests' | 'sales-history';
 
 const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [loading, setLoading] = useState(true);
@@ -136,6 +137,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     if (activeSection === 'searches') fetchSearchLogs();
     if (activeSection === 'clicks') fetchClickLogs();
     if (activeSection === 'users') fetchUsers();
+    // sales-history section handles its own fetching
   }, [activeSection]);
 
   const fetchUsers = async () => {
@@ -654,6 +656,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       case 'sellers': return { title: 'Sellers', subtitle: 'View all registered sellers' };
       case 'products': return { title: 'Products', subtitle: 'All products on the platform' };
       case 'seller-requests': return { title: 'Seller Requests', subtitle: 'New seller registrations' };
+      case 'sales-history': return { title: 'Sales History', subtitle: 'All completed sales across sellers' };
       case 'searches': return { title: 'Search Logs', subtitle: 'User search analytics' };
       case 'clicks': return { title: 'Views & Clicks', subtitle: 'Product interaction data' };
       default: return { title: 'Admin', subtitle: 'Panel' };
@@ -1214,6 +1217,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           </div>
 
           <AnimatedTable columns={clickColumns} data={clickLogs} />
+        </div>
+      )}
+
+      {/* Sales History */}
+      {activeSection === 'sales-history' && (
+        <div className="animate-fade-in-up">
+          <AdminSalesHistory />
         </div>
       )}
 

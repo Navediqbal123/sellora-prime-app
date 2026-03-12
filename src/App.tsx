@@ -29,6 +29,7 @@ import SellerAddProduct from "./pages/seller/SellerAddProduct";
 import SellerAnalytics from "./pages/seller/SellerAnalytics";
 import SellerOrders from "./pages/seller/SellerOrders";
 import SellerMessages from "./pages/seller/SellerMessages";
+import SellerSalesHistory from "./pages/seller/SellerSalesHistory";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<SellerOrders />} />
         <Route path="messages" element={<SellerMessages />} />
         <Route path="analytics" element={<SellerAnalytics />} />
+        <Route path="sales-history" element={<SellerSalesHistory />} />
       </Route>
 
       {/* Admin routes - Wrapped in MainLayout */}
