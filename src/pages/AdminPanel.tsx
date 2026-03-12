@@ -35,6 +35,7 @@ import StatsCard from '@/components/admin/StatsCard';
 import SellerCard from '@/components/admin/SellerCard';
 import AnimatedTable from '@/components/admin/AnimatedTable';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminSalesHistory from '@/components/admin/AdminSalesHistory';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 
