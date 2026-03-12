@@ -132,6 +132,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<SellerOrders />} />
         <Route path="messages" element={<SellerMessages />} />
         <Route path="analytics" element={<SellerAnalytics />} />
+        <Route path="sales-history" element={<SellerSalesHistory />} />
       </Route>
 
       {/* Admin routes - Wrapped in MainLayout */}
