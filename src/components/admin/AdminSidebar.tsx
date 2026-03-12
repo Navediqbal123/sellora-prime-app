@@ -9,7 +9,8 @@ import {
   LogOut,
   ChevronLeft,
   Sparkles,
-  X
+  X,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
