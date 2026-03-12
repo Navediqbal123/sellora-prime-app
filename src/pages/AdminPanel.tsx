@@ -656,6 +656,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       case 'sellers': return { title: 'Sellers', subtitle: 'View all registered sellers' };
       case 'products': return { title: 'Products', subtitle: 'All products on the platform' };
       case 'seller-requests': return { title: 'Seller Requests', subtitle: 'New seller registrations' };
+      case 'sales-history': return { title: 'Sales History', subtitle: 'All completed sales across sellers' };
       case 'searches': return { title: 'Search Logs', subtitle: 'User search analytics' };
       case 'clicks': return { title: 'Views & Clicks', subtitle: 'Product interaction data' };
       default: return { title: 'Admin', subtitle: 'Panel' };
