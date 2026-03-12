@@ -181,29 +181,33 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
   const handleToggleUserBan = async (userId: string, currentStatus: boolean) => {
     setTogglingUser(userId);
+    const newStatus = !currentStatus;
     
-    try {
-      const newStatus = !currentStatus;
-      
-      // Route through backend API for server-side authorization
-      if (newStatus) {
-        await adminApi.unbanUser(userId);
-      } else {
-        await adminApi.banUser(userId);
-      }
+    // Optimistic update for instant UI feedback
+    setUsers(prev => prev.map(u => 
+      u.id === userId ? { ...u, is_active: newStatus } : u
+    ));
 
-      // Update local state
-      setUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, is_active: newStatus } : u
-      ));
+    try {
+      // Update directly in profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: newStatus })
+        .or(`id.eq.${userId},user_id.eq.${userId}`);
+
+      if (error) throw error;
 
       toast({
-        title: newStatus ? "User Unbanned" : "User Banned",
+        title: newStatus ? "✓ User Activated" : "⛔ User Banned",
         description: newStatus 
           ? "User can now access the platform" 
           : "User has been blocked from accessing the platform"
       });
     } catch (error: any) {
+      // Revert on failure
+      setUsers(prev => prev.map(u => 
+        u.id === userId ? { ...u, is_active: currentStatus } : u
+      ));
       toast({
         title: "Error",
         description: error.message || "Failed to update user status",
