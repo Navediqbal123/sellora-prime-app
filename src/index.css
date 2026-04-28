@@ -499,6 +499,15 @@
   animation: ripple 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Hide scrollbar utility (used in horizontal scroll rows) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Premium hover lift */
 .hover-lift {
   @apply transition-transform duration-150;
