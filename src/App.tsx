@@ -23,6 +23,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import SellerProfilePage from "./pages/SellerProfilePage";
 import WishlistPage from "./pages/WishlistPage";
 import OrdersPage from "./pages/OrdersPage";
+import CategoriesPage from "./pages/CategoriesPage";
 
 // Seller Pages
 import SellerOverview from "./pages/seller/SellerOverview";
@@ -93,6 +94,7 @@ const AppRoutes = () => {
         <Route path="login-history" element={<LoginHistoryPage />} />
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="orders" element={<OrdersPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
 
         <Route
           path="seller/onboarding"

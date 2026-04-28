@@ -4,7 +4,7 @@ import { Home, LayoutGrid, Heart, ShoppingBag, User } from 'lucide-react';
 
 const items = [
   { id: 'home', label: 'Home', icon: Home, path: '/' },
-  { id: 'categories', label: 'Categories', icon: LayoutGrid, path: '/?focus=categories' },
+  { id: 'categories', label: 'Categories', icon: LayoutGrid, path: '/categories' },
   { id: 'wishlist', label: 'Wishlist', icon: Heart, path: '/wishlist' },
   { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/orders' },
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
