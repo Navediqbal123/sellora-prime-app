@@ -13,7 +13,7 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
-import { Bell, MapPin } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -102,32 +102,19 @@ const HomePage = () => {
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
       <div className="container mx-auto px-4 pt-5 pb-6 max-w-6xl">
-        {/* Top Bar: location + bell */}
-        <div className="flex items-center justify-between mb-4 animate-fade-in-up">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Deliver to</p>
-              <p className="text-sm font-semibold text-foreground truncate">
-                {userCity || 'All over India'}
-              </p>
-            </div>
+        {/* Search bar with mic */}
+        <div className="mb-5 mt-2 flex items-center gap-2 animate-fade-in-up">
+          <div className="flex-1">
+          <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
           <button
             aria-label="Notifications"
             className="relative w-10 h-10 rounded-xl bg-card border border-border/60 flex items-center justify-center
-                       hover:border-primary/40 hover:scale-105 transition-all duration-300"
+                       hover:border-primary/40 hover:scale-105 transition-all duration-300 shrink-0"
           >
             <Bell className="w-4 h-4 text-foreground" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive shadow-[0_0_6px_hsl(var(--destructive))]" />
           </button>
-        </div>
-
-        {/* Search bar with mic */}
-        <div className="mb-5 animate-fade-in-up stagger-1">
-          <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
         </div>
 
         {/* Hero banner */}
