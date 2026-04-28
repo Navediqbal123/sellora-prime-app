@@ -1,10 +1,10 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Search, Heart, ShoppingBag, User } from 'lucide-react';
+import { Home, LayoutGrid, Heart, ShoppingBag, User } from 'lucide-react';
 
 const items = [
   { id: 'home', label: 'Home', icon: Home, path: '/' },
-  { id: 'search', label: 'Search', icon: Search, path: '/?focus=search' },
+  { id: 'categories', label: 'Categories', icon: LayoutGrid, path: '/?focus=categories' },
   { id: 'wishlist', label: 'Wishlist', icon: Heart, path: '/wishlist' },
   { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/orders' },
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
