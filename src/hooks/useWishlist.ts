@@ -14,7 +14,7 @@ export const useWishlist = () => {
 
     const fetchWishlist = async () => {
       const { data } = await supabase
-        .from('wishlist')
+        .from('wishlists')
         .select('product_id')
         .eq('user_id', user.id);
 
@@ -36,14 +36,14 @@ export const useWishlist = () => {
         return next;
       });
       await supabase
-        .from('wishlist')
+        .from('wishlists')
         .delete()
         .eq('user_id', user.id)
         .eq('product_id', productId);
     } else {
       setWishlistIds(prev => new Set(prev).add(productId));
       await supabase
-        .from('wishlist')
+        .from('wishlists')
         .insert({ user_id: user.id, product_id: productId });
     }
 
