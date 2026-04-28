@@ -21,6 +21,8 @@ import LoginHistoryPage from "./pages/LoginHistoryPage";
 import NotFound from "./pages/NotFound";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import SellerProfilePage from "./pages/SellerProfilePage";
+import WishlistPage from "./pages/WishlistPage";
+import OrdersPage from "./pages/OrdersPage";
 
 // Seller Pages
 import SellerOverview from "./pages/seller/SellerOverview";
@@ -89,6 +91,8 @@ const AppRoutes = () => {
         <Route path="seller/:id" element={<SellerProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="login-history" element={<LoginHistoryPage />} />
+        <Route path="wishlist" element={<WishlistPage />} />
+        <Route path="orders" element={<OrdersPage />} />
 
         <Route
           path="seller/onboarding"
