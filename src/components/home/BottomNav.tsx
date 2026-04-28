@@ -26,7 +26,7 @@ const BottomNav: React.FC = () => {
                  bg-background/85 backdrop-blur-xl border-t border-border/60
                  pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-20 px-2">
         {items.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -41,14 +41,14 @@ const BottomNav: React.FC = () => {
                 <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
               )}
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300
+                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
                   ${active
                     ? 'bg-primary/15 text-primary scale-105'
                     : 'text-muted-foreground group-active:scale-95'}`}
               >
-                <Icon className={`w-5 h-5 ${active ? 'fill-primary/20' : ''}`} strokeWidth={active ? 2.5 : 2} />
+                <Icon className={`w-7 h-7 ${active ? 'fill-primary/20' : ''}`} strokeWidth={active ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-medium leading-none ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span className={`text-[12px] font-medium leading-none ${active ? 'text-primary' : 'text-muted-foreground'}`}>
                 {item.label}
               </span>
             </button>
