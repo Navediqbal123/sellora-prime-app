@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import {
   ShoppingBag,
   Heart,
@@ -24,36 +25,55 @@ import {
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ full_name?: string; avatar_url?: string; email?: string } | null>(null);
   const [stats, setStats] = useState({ orders: 0, wishlist: 0, reviews: 0, coupons: 0 });
   const [orderCounts, setOrderCounts] = useState({ pending: 0, shipped: 0, delivered: 0, cancelled: 0 });
+  const [loading, setLoading] = useState(true);
 
   const fullName =
+    profile?.full_name ||
     (user?.user_metadata as any)?.full_name ||
     (user?.email ? user.email.split('@')[0] : 'Guest');
+  const email = profile?.email || user?.email || '';
+  const avatarUrl = profile?.avatar_url || (user?.user_metadata as any)?.avatar_url;
 
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const [{ count: orders }, { count: wishlist }, { count: reviews }, ordersList] = await Promise.all([
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+      setLoading(true);
+      const [profileRes, ordersCountRes, wishlistRes, reviewsRes, ordersListRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('buyer_id', user.id),
         supabase.from('wishlists').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('orders').select('status').eq('user_id', user.id),
+        supabase.from('orders').select('status').eq('buyer_id', user.id),
       ]);
-      setStats({ orders: orders || 0, wishlist: wishlist || 0, reviews: reviews || 0, coupons: 0 });
-      const list = (ordersList.data || []) as { status: string }[];
+      if (profileRes.data) setProfile(profileRes.data as any);
+      setStats({
+        orders: ordersCountRes.count || 0,
+        wishlist: wishlistRes.count || 0,
+        reviews: reviewsRes.count || 0,
+        coupons: 0,
+      });
+      const list = (ordersListRes.data || []) as { status: string }[];
       setOrderCounts({
         pending: list.filter((o) => o.status === 'pending').length,
         shipped: list.filter((o) => o.status === 'ready').length,
         delivered: list.filter((o) => o.status === 'completed').length,
         cancelled: list.filter((o) => o.status === 'cancelled').length,
       });
+      setLoading(false);
     })();
   }, [user?.id]);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      await signOut();
+      toast({ title: 'Signed out', description: 'You have been logged out successfully.' });
+      navigate('/login', { replace: true });
+    } catch (e: any) {
+      toast({ title: 'Sign out failed', description: e?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const statItems = [
@@ -71,11 +91,11 @@ const ProfilePage = () => {
   ];
 
   const menuItems = [
-    { icon: MapPin, label: 'My Addresses', onClick: () => {} },
-    { icon: CreditCard, label: 'Payment Methods', onClick: () => {} },
-    { icon: Ticket, label: 'My Coupons', onClick: () => {} },
-    { icon: Bell, label: 'Notifications', onClick: () => {} },
-    { icon: HelpCircle, label: 'Help Center', onClick: () => {} },
+    { icon: MapPin, label: 'My Addresses', onClick: () => navigate('/profile/addresses') },
+    { icon: CreditCard, label: 'Payment Methods', onClick: () => navigate('/profile/payment-methods') },
+    { icon: Ticket, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
+    { icon: Bell, label: 'Notifications', onClick: () => navigate('/profile/notifications') },
+    { icon: HelpCircle, label: 'Help Center', onClick: () => navigate('/profile/help') },
     { icon: LogOut, label: 'Logout', onClick: handleLogout, danger: true },
   ];
 
@@ -92,15 +112,21 @@ const ProfilePage = () => {
         {/* Header card */}
         <div className="card-premium p-6 animate-fade-in-up">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-[hsl(280,80%,50%)] flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-glow">
-              {initials}
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-[hsl(280,80%,50%)] flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-glow overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-foreground truncate">{fullName}</h1>
-              <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+              <h1 className="text-xl font-bold text-foreground truncate">
+                {loading ? 'Loading...' : fullName}
+              </h1>
+              <p className="text-sm text-muted-foreground truncate">{email}</p>
             </div>
           </div>
-          <Button className="btn-glow w-full mt-5 h-11">
+          <Button className="btn-glow w-full mt-5 h-11" onClick={() => navigate('/profile/edit')}>
             <Pencil className="w-4 h-4 mr-2" />
             Edit Profile
           </Button>
