@@ -79,27 +79,27 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-3">
-        <h3 className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+      <div className="p-2">
+        <h3 className="text-xs font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
           {product.title}
         </h3>
 
-        <div className="flex items-center gap-1 mt-1 text-[11px] text-muted-foreground">
-          <Star className="w-3 h-3 fill-sellora-gold text-sellora-gold" />
+        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
+          <Star className="w-2.5 h-2.5 fill-sellora-gold text-sellora-gold" />
           <span className="font-medium text-foreground">{rating}</span>
           <span className="mx-1 opacity-50">•</span>
-          <MapPin className="w-3 h-3" />
+          <MapPin className="w-2.5 h-2.5" />
           <span className="truncate">{product.city || '—'}</span>
         </div>
 
-        <div className="flex items-baseline gap-1.5 mt-2">
-          <span className="text-base font-extrabold text-foreground">
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className="text-sm font-extrabold text-foreground">
             ₹{product.price.toLocaleString()}
           </span>
-          <span className="text-[11px] text-muted-foreground line-through">
+          <span className="text-[10px] text-muted-foreground line-through">
             ₹{originalPrice.toLocaleString()}
           </span>
-          <span className="ml-auto text-[11px] font-bold text-sellora-success">
+          <span className="ml-auto text-[10px] font-bold text-sellora-success">
             -{discount}%
           </span>
         </div>

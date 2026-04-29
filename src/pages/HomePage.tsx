@@ -101,15 +101,15 @@ const HomePage = () => {
 
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
-      <div className="container mx-auto px-4 pt-5 pb-6 max-w-6xl">
+      <div className="container mx-auto px-3 pt-3 pb-4 max-w-6xl">
         {/* Search bar with mic */}
-        <div className="mb-5 mt-2 flex items-center gap-2 animate-fade-in-up">
+        <div className="mb-3 mt-1 flex items-center gap-2 animate-fade-in-up">
           <div className="flex-1">
           <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
           <button
             aria-label="Notifications"
-            className="relative w-10 h-10 rounded-xl bg-card border border-border/60 flex items-center justify-center
+            className="relative w-10 h-10 rounded-lg bg-card border border-border/60 flex items-center justify-center
                        hover:border-primary/40 hover:scale-105 transition-all duration-300 shrink-0"
           >
             <Bell className="w-4 h-4 text-foreground" />
@@ -118,15 +118,15 @@ const HomePage = () => {
         </div>
 
         {/* Hero banner */}
-        <div className="mb-6 animate-fade-in-up stagger-2">
+        <div className="mb-4 animate-fade-in-up stagger-2">
           <HeroBanner onShop={() => setSelectedCategory('all')} />
         </div>
 
         {/* Categories */}
-        <div className="mb-6 animate-fade-in-up stagger-3">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-foreground">Categories</h2>
-            <button className="text-xs text-primary font-medium hover:underline">See all</button>
+        <div className="mb-4 animate-fade-in-up stagger-3">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold text-foreground">Categories</h2>
+            <button className="text-[11px] text-primary font-medium hover:underline">See all</button>
           </div>
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
@@ -138,13 +138,13 @@ const HomePage = () => {
 
         {/* Product grid */}
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-base font-bold text-foreground">
+          <h2 className="text-sm font-bold text-foreground">
             {selectedCategory === 'all' ? 'Recommended for you' : selectedCategory}
           </h2>
-          <span className="text-xs text-muted-foreground">{sortedProducts.length} items</span>
+          <span className="text-[11px] text-muted-foreground">{sortedProducts.length} items</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {loading ? (
             <SkeletonGrid count={8} />
           ) : sortedProducts.length > 0 ? (

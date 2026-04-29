@@ -38,9 +38,9 @@ const CountdownTimer: React.FC<{ endTime: Date }> = ({ endTime }) => {
         { val: timeLeft.seconds, label: 'S' },
       ].map((unit, i) => (
         <React.Fragment key={unit.label}>
-          {i > 0 && <span className="text-primary font-bold text-xs">:</span>}
-          <div className="bg-primary/20 border border-primary/30 rounded-md px-1.5 py-0.5 min-w-[28px] text-center">
-            <span className="text-xs font-bold text-primary tabular-nums">{pad(unit.val)}</span>
+          {i > 0 && <span className="text-primary font-bold text-[10px]">:</span>}
+          <div className="bg-primary/20 border border-primary/30 rounded px-1 py-0.5 min-w-[22px] text-center">
+            <span className="text-[10px] font-bold text-primary tabular-nums">{pad(unit.val)}</span>
           </div>
         </React.Fragment>
       ))}
@@ -67,53 +67,53 @@ const FlashDeals: React.FC<FlashDealsProps> = ({ products, onProductClick }) => 
     }));
 
   return (
-    <div className="mb-10 animate-fade-in-up">
+    <div className="mb-5 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sellora-warning to-destructive flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white fill-white" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground">Flash Deals</h2>
-          <Badge variant="destructive" className="text-[10px] animate-pulse">LIVE</Badge>
-        </div>
+      <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground mr-1">Ends in</span>
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-sellora-warning to-destructive flex items-center justify-center">
+            <Zap className="w-3 h-3 text-white fill-white" />
+          </div>
+          <h2 className="text-sm font-bold text-foreground">Flash Deals</h2>
+          <Badge variant="destructive" className="text-[9px] px-1.5 py-0 animate-pulse">LIVE</Badge>
+        </div>
+        <div className="flex items-center gap-1">
+          <Clock className="w-3 h-3 text-muted-foreground" />
+          <span className="text-[9px] text-muted-foreground mr-0.5">Ends</span>
           <CountdownTimer endTime={endOfDay} />
         </div>
       </div>
 
       {/* Horizontal scroll cards */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+      <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
         {deals.map((deal) => (
           <div
             key={deal.id}
             onClick={() => onProductClick(deal.id)}
-            className="flex-shrink-0 w-36 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
+            className="flex-shrink-0 w-28 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
                        overflow-hidden cursor-pointer group hover:border-primary/30 hover:shadow-glow transition-all duration-300"
           >
             {/* Image */}
-            <div className="relative h-28 bg-secondary overflow-hidden">
+            <div className="relative h-24 bg-secondary overflow-hidden">
               {deal.image_url ? (
                 <img src={deal.image_url} alt={deal.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                  <Zap className="w-8 h-8 text-muted-foreground/30" />
+                  <Zap className="w-6 h-6 text-muted-foreground/30" />
                 </div>
               )}
               {/* Discount badge */}
-              <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+              <div className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-md">
                 -{deal.discount}%
               </div>
             </div>
 
             {/* Info */}
-            <div className="p-2.5">
-              <h4 className="text-xs font-semibold text-foreground truncate">{deal.title}</h4>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-sm font-bold text-gradient-gold">₹{deal.price.toLocaleString()}</span>
-                <span className="text-[10px] text-muted-foreground line-through">₹{deal.originalPrice.toLocaleString()}</span>
+            <div className="p-2">
+              <h4 className="text-[11px] font-semibold text-foreground truncate">{deal.title}</h4>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-xs font-bold text-gradient-gold">₹{deal.price.toLocaleString()}</span>
+                <span className="text-[9px] text-muted-foreground line-through">₹{deal.originalPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>
