@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product } from '@/lib/supabase';
 import HomeSearchBar from '@/components/home/HomeSearchBar';
-import HeroBanner from '@/components/home/HeroBanner';
+import HeroCarousel from '@/components/home/HeroCarousel';
 import CategoryIconsRow from '@/components/home/CategoryIconsRow';
 import DiscountProductCard from '@/components/home/DiscountProductCard';
 import FlashDeals from '@/components/home/FlashDeals';
@@ -13,7 +13,7 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
-import { Bell } from 'lucide-react';
+import { Bell, ShoppingBag } from 'lucide-react';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -102,24 +102,40 @@ const HomePage = () => {
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
       <div className="container mx-auto px-3 pt-3 pb-4 max-w-6xl">
-        {/* Search bar with mic */}
-        <div className="mb-3 mt-1 flex items-center gap-2 animate-fade-in-up">
-          <div className="flex-1">
-          <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
-          </div>
+        {/* Brand + Notifications */}
+        <div className="mb-3 mt-1 flex items-center justify-between gap-3 animate-fade-in-up">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 group"
+            aria-label="Sellora home"
+          >
+            <span className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-[hsl(280,80%,50%)] flex items-center justify-center shadow-[0_6px_18px_-4px_hsl(var(--primary)/0.7)] group-hover:scale-105 transition-transform duration-300">
+              <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
+              <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
+            </span>
+            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent">
+              Sellora
+            </span>
+          </button>
+
           <button
             aria-label="Notifications"
-            className="relative w-10 h-10 rounded-lg bg-card border border-border/60 flex items-center justify-center
-                       hover:border-primary/40 hover:scale-105 transition-all duration-300 shrink-0"
+            className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
+                       hover:border-primary/50 hover:shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] hover:scale-105 transition-all duration-300 shrink-0"
           >
-            <Bell className="w-4 h-4 text-foreground" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive shadow-[0_0_6px_hsl(var(--destructive))]" />
+            <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_hsl(var(--destructive))] animate-pulse" />
           </button>
         </div>
 
-        {/* Hero banner */}
+        {/* Search bar */}
+        <div className="mb-3 animate-fade-in-up stagger-1">
+          <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
+        </div>
+
+        {/* Hero carousel */}
         <div className="mb-4 animate-fade-in-up stagger-2">
-          <HeroBanner onShop={() => setSelectedCategory('all')} />
+          <HeroCarousel onShop={() => setSelectedCategory('all')} />
         </div>
 
         {/* Categories */}
