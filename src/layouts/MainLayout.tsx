@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ShoppingBag } from "lucide-react";
 
 const MainLayout = () => {
   return (
@@ -11,6 +12,10 @@ const MainLayout = () => {
           <div className="flex h-full items-center gap-2 px-3">
             {/* Global trigger: required for mobile drawer + desktop collapse */}
             <SidebarTrigger className="hover-scale" />
+            <span className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-primary via-primary to-[hsl(280,80%,50%)] flex items-center justify-center shadow-[0_6px_18px_-4px_hsl(var(--primary)/0.7)]">
+              <ShoppingBag className="w-4 h-4 text-white" strokeWidth={2.5} />
+              <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/20" />
+            </span>
             <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent leading-none">
               Sellora
             </span>
