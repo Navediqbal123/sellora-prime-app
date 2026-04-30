@@ -101,15 +101,15 @@ const HomePage = () => {
 
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
-      <div className="container mx-auto px-3 pt-2 pb-4 max-w-6xl">
+      <div className="container mx-auto px-3 pt-0 pb-4 max-w-6xl">
         {/* Search + Notifications */}
-        <div className="mb-3 flex items-center gap-2 animate-fade-in-up">
+        <div className="mb-2.5 pt-2 flex items-center gap-2 animate-fade-in-up">
           <div className="flex-1 min-w-0">
             <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
           <button
             aria-label="Notifications"
-            className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
+            className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
                        hover:border-primary/50 hover:shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] hover:scale-105 transition-all duration-300 shrink-0"
           >
             <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />

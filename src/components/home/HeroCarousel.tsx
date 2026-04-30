@@ -67,9 +67,9 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="overflow-hidden rounded-2xl">
+      <div className="overflow-hidden rounded-2xl h-[160px]">
         <div
-          className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((s, i) => {
@@ -78,15 +78,15 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
               <div
                 key={i}
                 onClick={onShop}
-                className="relative shrink-0 w-full cursor-pointer group border border-primary/30 rounded-2xl
-                           p-2.5 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]
+                className="relative shrink-0 w-full h-full cursor-pointer group border border-primary/30 rounded-2xl
+                           p-3 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]
                            hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.6)] transition-shadow duration-500"
                 style={{ background: s.gradient }}
               >
                 <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/30 blur-3xl animate-float" />
                 <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-accent/20 blur-3xl" />
 
-                <div className="relative flex items-center justify-between gap-2.5 min-h-[78px]">
+                <div className="relative flex items-center justify-between gap-2.5 h-full">
                   <div className="flex-1 min-w-0">
                     <div className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full bg-white/10 backdrop-blur-md border border-white/15 mb-0.5">
                       <BadgeIcon className="w-2.5 h-2.5 text-sellora-gold" />
