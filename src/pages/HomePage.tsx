@@ -13,7 +13,7 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
-import { Bell, ShoppingBag } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -102,22 +102,8 @@ const HomePage = () => {
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
       <div className="container mx-auto px-3 pt-3 pb-4 max-w-6xl">
-        {/* Brand + Notifications */}
-        <div className="mb-3 mt-1 flex items-center justify-between gap-3 animate-fade-in-up">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 group"
-            aria-label="Sellora home"
-          >
-            <span className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-[hsl(280,80%,50%)] flex items-center justify-center shadow-[0_6px_18px_-4px_hsl(var(--primary)/0.7)] group-hover:scale-105 transition-transform duration-300">
-              <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
-              <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
-            </span>
-            <span className="text-[26px] leading-none font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent">
-              Sellora
-            </span>
-          </button>
-
+        {/* Notifications */}
+        <div className="mb-3 mt-1 flex items-center justify-end gap-3 animate-fade-in-up">
           <button
             aria-label="Notifications"
             className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
