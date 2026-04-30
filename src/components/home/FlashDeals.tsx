@@ -90,11 +90,11 @@ const FlashDeals: React.FC<FlashDealsProps> = ({ products, onProductClick }) => 
           <div
             key={deal.id}
             onClick={() => onProductClick(deal.id)}
-            className="flex-shrink-0 w-[104px] rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
+            className="flex-shrink-0 w-[92px] rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
                        overflow-hidden cursor-pointer group hover:border-primary/30 hover:shadow-glow transition-all duration-300"
           >
             {/* Image */}
-            <div className="relative h-20 bg-secondary overflow-hidden">
+            <div className="relative h-[72px] bg-secondary overflow-hidden">
               {deal.image_url ? (
                 <img src={deal.image_url} alt={deal.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               ) : (
