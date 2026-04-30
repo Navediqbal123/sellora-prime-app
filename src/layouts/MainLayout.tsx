@@ -11,6 +11,9 @@ const MainLayout = () => {
           <div className="flex h-full items-center gap-2 px-3">
             {/* Global trigger: required for mobile drawer + desktop collapse */}
             <SidebarTrigger className="hover-scale" />
+            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent leading-none">
+              Sellora
+            </span>
             <div className="flex-1" />
           </div>
         </header>
