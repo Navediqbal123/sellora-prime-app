@@ -85,16 +85,16 @@ const FlashDeals: React.FC<FlashDealsProps> = ({ products, onProductClick }) => 
       </div>
 
       {/* Horizontal scroll cards */}
-      <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide">
         {deals.map((deal) => (
           <div
             key={deal.id}
             onClick={() => onProductClick(deal.id)}
-            className="flex-shrink-0 w-28 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
+            className="flex-shrink-0 w-[104px] rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 
                        overflow-hidden cursor-pointer group hover:border-primary/30 hover:shadow-glow transition-all duration-300"
           >
             {/* Image */}
-            <div className="relative h-24 bg-secondary overflow-hidden">
+            <div className="relative h-20 bg-secondary overflow-hidden">
               {deal.image_url ? (
                 <img src={deal.image_url} alt={deal.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               ) : (
