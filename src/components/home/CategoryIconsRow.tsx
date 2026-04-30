@@ -17,7 +17,7 @@ const items = [
 
 const CategoryIconsRow: React.FC<CategoryIconsRowProps> = ({ selected, onSelect }) => {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x">
+    <div className="flex gap-3 overflow-x-auto pb-1.5 -mx-3 px-3 scrollbar-hide snap-x">
       {items.map((item) => {
         const Icon = item.icon;
         const active = selected === item.id;
@@ -25,18 +25,18 @@ const CategoryIconsRow: React.FC<CategoryIconsRowProps> = ({ selected, onSelect 
           <button
             key={item.id}
             onClick={() => onSelect(item.id)}
-            className="flex flex-col items-center gap-2 shrink-0 snap-start group"
+            className="flex flex-col items-center gap-1.5 shrink-0 snap-start group"
           >
             <div
-              className={`relative w-[72px] h-[72px] rounded-2xl flex items-center justify-center transition-all duration-300
+              className={`relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
                 ${active
                   ? `bg-gradient-to-br ${item.color} shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.6)] scale-105`
                   : 'bg-card border border-border/60 group-hover:border-primary/40 group-hover:scale-105'}`}
             >
-              <Icon className={`w-8 h-8 transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
+              <Icon className={`w-6 h-6 transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
               {active && <div className="absolute -bottom-1.5 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />}
             </div>
-            <span className={`text-[13px] font-medium transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+            <span className={`text-[11px] font-medium transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
               {item.label}
             </span>
           </button>
