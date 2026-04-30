@@ -113,7 +113,7 @@ const HomePage = () => {
               <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.5} />
               <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
             </span>
-            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent">
+            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent">
               Sellora
             </span>
           </button>
