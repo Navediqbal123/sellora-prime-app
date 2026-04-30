@@ -101,12 +101,15 @@ const HomePage = () => {
 
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
-      <div className="container mx-auto px-3 pt-3 pb-4 max-w-6xl">
-        {/* Notifications */}
-        <div className="mb-3 mt-1 flex items-center justify-end gap-3 animate-fade-in-up">
+      <div className="container mx-auto px-3 pt-2 pb-4 max-w-6xl">
+        {/* Search + Notifications */}
+        <div className="mb-3 flex items-center gap-2 animate-fade-in-up">
+          <div className="flex-1 min-w-0">
+            <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
+          </div>
           <button
             aria-label="Notifications"
-            className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
+            className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
                        hover:border-primary/50 hover:shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] hover:scale-105 transition-all duration-300 shrink-0"
           >
             <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
@@ -114,19 +117,14 @@ const HomePage = () => {
           </button>
         </div>
 
-        {/* Search bar */}
-        <div className="mb-3 animate-fade-in-up stagger-1">
-          <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
-        </div>
-
         {/* Hero carousel */}
-        <div className="mb-4 animate-fade-in-up stagger-2">
+        <div className="mb-3 animate-fade-in-up stagger-2">
           <HeroCarousel onShop={() => setSelectedCategory('all')} />
         </div>
 
         {/* Categories */}
-        <div className="mb-4 animate-fade-in-up stagger-3">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-3 animate-fade-in-up stagger-3">
+          <div className="flex items-center justify-between mb-1.5">
             <h2 className="text-sm font-bold text-foreground">Categories</h2>
             <button className="text-[11px] text-primary font-medium hover:underline">See all</button>
           </div>
