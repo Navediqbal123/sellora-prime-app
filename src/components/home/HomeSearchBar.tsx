@@ -38,9 +38,9 @@ const HomeSearchBar: React.FC<HomeSearchBarProps> = ({ value, onChange }) => {
   };
 
   return (
-    <div className={`relative transition-all duration-300 ${focused ? 'scale-[1.01]' : ''}`}>
+    <div className={`relative min-w-0 transition-all duration-300 ${focused ? 'scale-[1.01]' : ''}`}>
       <div className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary via-primary/60 to-primary blur-lg transition-opacity duration-500 ${focused ? 'opacity-40' : 'opacity-0'}`} />
-      <div className="relative flex items-center bg-card/80 backdrop-blur-xl border border-border/60 rounded-xl pl-3 pr-1 h-10 shadow-lg">
+      <div className="relative flex items-center bg-card/80 backdrop-blur-xl border border-border/60 rounded-xl pl-3 pr-1 h-10 shadow-lg min-w-0">
         <Search className={`w-[18px] h-[18px] mr-2 transition-colors ${focused ? 'text-primary' : 'text-muted-foreground'}`} strokeWidth={2.25} />
         <input
           type="text"
@@ -49,7 +49,7 @@ const HomeSearchBar: React.FC<HomeSearchBarProps> = ({ value, onChange }) => {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Search products, brands & shops"
-          className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
+          className="flex-1 min-w-0 w-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
         />
         <button
           onClick={toggleMic}
