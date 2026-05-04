@@ -13,7 +13,7 @@ import SkeletonGrid from '@/components/home/SkeletonGrid';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
-import { Bell } from 'lucide-react';
+import { Bell, ShoppingCart } from 'lucide-react';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -101,19 +101,27 @@ const HomePage = () => {
 
   return (
     <div className="bg-background min-h-screen pb-24 md:pb-8">
-      <div className="container mx-auto px-3 pt-0 pb-4 max-w-6xl">
+      <div className="container mx-auto px-3 pt-1.5 pb-4 max-w-6xl">
         {/* Search + Notifications */}
-        <div className="mb-2.5 pt-2 flex items-center gap-2 animate-fade-in-up">
+        <div className="mb-2.5 flex items-center gap-1.5 animate-fade-in-up">
           <div className="flex-1 min-w-0">
             <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
           <button
             aria-label="Notifications"
-            className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
-                       hover:border-primary/50 hover:shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] hover:scale-105 transition-all duration-300 shrink-0"
+            className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
+                       hover:border-primary/50 transition-all duration-300 shrink-0"
           >
-            <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_hsl(var(--destructive))] animate-pulse" />
+            <Bell className="w-4 h-4 text-foreground" strokeWidth={2.25} />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-destructive shadow-[0_0_8px_hsl(var(--destructive))] animate-pulse" />
+          </button>
+          <button
+            aria-label="Cart"
+            onClick={() => navigate('/orders')}
+            className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
+                       hover:border-primary/50 transition-all duration-300 shrink-0"
+          >
+            <ShoppingCart className="w-4 h-4 text-foreground" strokeWidth={2.25} />
           </button>
         </div>
 
@@ -144,7 +152,7 @@ const HomePage = () => {
           <span className="text-[11px] text-muted-foreground">{sortedProducts.length} items</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {loading ? (
             <SkeletonGrid count={8} />
           ) : sortedProducts.length > 0 ? (
