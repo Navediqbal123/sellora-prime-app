@@ -28,12 +28,12 @@ const CategoryIconsRow: React.FC<CategoryIconsRowProps> = ({ selected, onSelect 
             className="flex flex-col items-center gap-1.5 shrink-0 snap-start group"
           >
             <div
-              className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300
+              className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
                 ${active
                   ? `bg-gradient-to-br ${item.color} shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.6)] scale-105`
                   : 'bg-card border border-border/60 group-hover:border-primary/40 group-hover:scale-105'}`}
             >
-              <Icon className={`w-[18px] h-[18px] transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
+              <Icon className={`w-5 h-5 transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
               {active && <div className="absolute -bottom-1.5 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />}
             </div>
             <span className={`text-[12px] font-medium transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
