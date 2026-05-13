@@ -67,7 +67,7 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="overflow-hidden rounded-2xl h-[64px] md:h-[104px] -mx-1 md:mx-0">
+      <div className="overflow-hidden rounded-2xl h-[56px] md:h-[96px] -mx-3 md:mx-0">
         <div
           className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ transform: `translateX(-${index * 100}%)` }}
