@@ -16,7 +16,7 @@ const items = [
 
 const CategoryIconsRow: React.FC<CategoryIconsRowProps> = ({ selected, onSelect }) => {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-1.5 -mx-3 px-3 scrollbar-hide snap-x">
+    <div className="flex justify-between gap-2 pb-1.5 px-1">
       {items.map((item) => {
         const Icon = item.icon;
         const active = selected === item.id;
@@ -24,17 +24,17 @@ const CategoryIconsRow: React.FC<CategoryIconsRowProps> = ({ selected, onSelect 
           <button
             key={item.id}
             onClick={() => onSelect(item.id)}
-            className="flex flex-col items-center gap-1.5 shrink-0 snap-start group active:scale-95 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            className="flex flex-col items-center gap-1.5 flex-1 min-w-0 group active:scale-95 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
           >
             <div
-              className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+              className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
                 ${active
                   ? `bg-gradient-to-br ${item.color} shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.6)] scale-105`
                   : 'bg-card border border-border/60 group-hover:border-primary/40 group-hover:scale-105'}`}
             >
-              <Icon className={`w-5 h-5 transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
+              <Icon className={`w-7 h-7 transition-colors ${active ? 'text-white' : 'text-foreground/80'}`} />
             </div>
-            <span className={`text-[12px] font-medium transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+            <span className={`text-[13px] font-medium transition-colors truncate max-w-full ${active ? 'text-primary' : 'text-muted-foreground'}`}>
               {item.label}
             </span>
           </button>
