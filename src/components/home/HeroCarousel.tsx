@@ -67,7 +67,7 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="overflow-hidden rounded-2xl h-[56px] md:h-[96px] -mx-3 md:mx-0">
+      <div className="overflow-hidden rounded-2xl h-[170px] md:h-[200px]">
         <div
           className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ transform: `translateX(-${index * 100}%)` }}
@@ -79,44 +79,35 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
                 key={i}
                 onClick={onShop}
                 className="relative shrink-0 w-full h-full cursor-pointer group border border-primary/30 rounded-2xl
-                           p-2 md:p-3 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]
+                           p-4 md:p-5 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]
                            hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.6)] transition-shadow duration-500"
                 style={{ background: s.gradient }}
               >
                 <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/30 blur-3xl animate-float" />
                 <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-accent/20 blur-3xl" />
 
-                <div className="relative flex items-center justify-between gap-2 h-full">
-                  <div className="flex-1 min-w-0">
-                    <div className="inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full bg-white/10 backdrop-blur-md border border-white/15 mb-0.5">
-                      <BadgeIcon className="w-2 h-2 text-sellora-gold" />
-                      <span className="text-[6px] font-semibold text-white tracking-wider uppercase">{s.badge}</span>
-                    </div>
-                    <h2 className="text-xs font-extrabold text-white leading-tight">{s.title}</h2>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                      <span className="text-sm font-black text-gradient-gold">{s.highlight}</span>
-                      <span className="text-[9px] font-bold text-white/90">{s.highlightSuffix}</span>
-                    </div>
-                    <p className="text-[7px] text-white/70 mt-0.5 max-w-[180px] line-clamp-1 hidden md:block">{s.subtitle}</p>
-
-                    <button
-                      className="mt-0.5 inline-flex items-center gap-1 px-1.5 py-[1px] rounded bg-white text-background text-[8px] font-semibold
-                                 hover:bg-white/90 transition-all duration-300 group-hover:gap-2 shadow-lg"
-                    >
-                      {s.cta}
-                      <ArrowRight className="w-2 h-2" />
-                    </button>
+                <div className="relative flex flex-col justify-between h-full">
+                  <div className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
+                    <BadgeIcon className="w-3 h-3 text-sellora-gold" />
+                    <span className="text-[10px] font-semibold text-white tracking-wider uppercase">{s.badge}</span>
                   </div>
 
-                  <div className="flex relative w-[48px] h-[48px] md:w-[60px] md:h-[60px] shrink-0 items-center justify-center">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sellora-gold/40 to-primary/40 blur-2xl" />
-                    <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-primary/60 border-[3px] border-white/20
-                                    flex flex-col items-center justify-center shadow-2xl rotate-[-8deg] group-hover:rotate-0 transition-transform duration-500">
-                      <span className="text-[6px] font-bold text-white/80 uppercase tracking-wider">Up to</span>
-                      <span className="text-xs font-black text-white">{s.highlight}</span>
-                      <span className="text-[6px] font-bold text-white/80 uppercase tracking-wider">{s.highlightSuffix}</span>
-                    </div>
+                  <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <h2 className="text-lg md:text-xl font-extrabold text-white leading-tight">
+                      {s.title}{' '}
+                      <span className="text-gradient-gold">{s.highlight}</span>{' '}
+                      <span className="text-white/90">{s.highlightSuffix}</span>
+                    </h2>
+                    <p className="text-[11px] md:text-xs text-white/70 mt-1 line-clamp-1">{s.subtitle}</p>
                   </div>
+
+                  <button
+                    className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-background text-xs font-semibold
+                               hover:bg-white/90 transition-all duration-300 group-hover:gap-2 shadow-lg"
+                  >
+                    {s.cta}
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             );
