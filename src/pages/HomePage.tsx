@@ -110,7 +110,7 @@ const HomePage = () => {
           <button
             aria-label="Notifications"
             className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
-                       hover:border-primary/50 transition-all duration-300 shrink-0"
+                       hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0"
           >
             <Bell className="w-4 h-4 text-foreground" strokeWidth={2.25} />
             <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-destructive shadow-[0_0_8px_hsl(var(--destructive))] animate-pulse" />
@@ -119,7 +119,7 @@ const HomePage = () => {
             aria-label="Cart"
             onClick={() => navigate('/orders')}
             className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center
-                       hover:border-primary/50 transition-all duration-300 shrink-0"
+                       hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0"
           >
             <ShoppingCart className="w-4 h-4 text-foreground" strokeWidth={2.25} />
           </button>
@@ -145,7 +145,7 @@ const HomePage = () => {
         )}
 
         {/* Product grid */}
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between animate-fade-in-up stagger-4">
           <h2 className="text-sm font-bold text-foreground">
             {selectedCategory === 'all' ? 'Recommended for you' : selectedCategory}
           </h2>
