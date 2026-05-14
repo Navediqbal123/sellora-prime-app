@@ -7,7 +7,7 @@ const items = [
   { id: 'categories', label: 'Categories', icon: LayoutGrid, path: '/categories' },
   { id: 'wishlist', label: 'Wishlist', icon: Heart, path: '/wishlist' },
   { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/orders' },
-  { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+  { id: 'profile', label: 'Account', icon: User, path: '/profile' },
 ];
 
 const BottomNav: React.FC = () => {
