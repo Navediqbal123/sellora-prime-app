@@ -24,7 +24,12 @@ import SellerProfilePage from "./pages/SellerProfilePage";
 import WishlistPage from "./pages/WishlistPage";
 import OrdersPage from "./pages/OrdersPage";
 import CategoriesPage from "./pages/CategoriesPage";
-import ProfileSubPage from "./pages/ProfileSubPage";
+import EditProfilePage from "./pages/profile/EditProfilePage";
+import AddressesPage from "./pages/profile/AddressesPage";
+import PaymentMethodsPage from "./pages/profile/PaymentMethodsPage";
+import CouponsPage from "./pages/profile/CouponsPage";
+import NotificationsPage from "./pages/profile/NotificationsPage";
+import HelpCenterPage from "./pages/profile/HelpCenterPage";
 
 // Seller Pages
 import SellerOverview from "./pages/seller/SellerOverview";
@@ -92,12 +97,12 @@ const AppRoutes = () => {
         <Route path="product/:id" element={<ProductDetailPage />} />
         <Route path="seller/:id" element={<SellerProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="profile/addresses" element={<ProfileSubPage title="My Addresses" emptyText="You haven't added any addresses yet." />} />
-        <Route path="profile/payment-methods" element={<ProfileSubPage title="Payment Methods" emptyText="No payment methods added yet." />} />
-        <Route path="profile/coupons" element={<ProfileSubPage title="My Coupons" emptyText="You don't have any coupons." />} />
-        <Route path="profile/notifications" element={<ProfileSubPage title="Notifications" emptyText="No notifications yet." />} />
-        <Route path="profile/help" element={<ProfileSubPage title="Help Center" emptyText="Need help? Contact support@sellora.app" />} />
-        <Route path="profile/edit" element={<ProfileSubPage title="Edit Profile" emptyText="Profile editing coming soon." />} />
+        <Route path="profile/edit" element={<EditProfilePage />} />
+        <Route path="profile/addresses" element={<AddressesPage />} />
+        <Route path="profile/payment-methods" element={<PaymentMethodsPage />} />
+        <Route path="profile/coupons" element={<CouponsPage />} />
+        <Route path="profile/notifications" element={<NotificationsPage />} />
+        <Route path="profile/help" element={<HelpCenterPage />} />
         <Route path="login-history" element={<LoginHistoryPage />} />
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="orders" element={<OrdersPage />} />
