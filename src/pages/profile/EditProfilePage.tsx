@@ -56,8 +56,17 @@ const EditProfilePage: React.FC = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName, phone, avatar_url: avatarUrl })
-        .eq('id', user.id);
+        .upsert(
+          {
+            id: user.id,
+            email: user.email,
+            full_name: fullName,
+            phone,
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        );
       if (error) throw error;
       await supabase.auth.updateUser({ data: { full_name: fullName, phone, avatar_url: avatarUrl } });
       toast({ title: 'Profile updated', description: 'Your changes have been saved.' });
