@@ -30,7 +30,7 @@ const faqs = [
     section: 'Account',
     items: [
       { q: 'How do I edit my profile?', a: 'Go to Account > Edit Profile to update your name, phone number and photo.' },
-      { q: 'How do I delete my account?', a: 'Contact support@sellora.app and we\'ll process the request within 48 hours.' },
+              { q: 'How do I delete my account?', a: 'Contact navedahmad9012@gmail.com and we\'ll process the request within 48 hours.' },
     ],
   },
 ];
@@ -58,14 +58,14 @@ const HelpCenterPage: React.FC = () => {
           <p className="text-xs text-muted-foreground mb-4">Our team typically replies within a few hours.</p>
           <div className="flex flex-col gap-2">
             <Button asChild variant="outline" className="w-full h-11 justify-start">
-              <a href="mailto:support@sellora.app">
+              <a href="mailto:navedahmad9012@gmail.com">
                 <Mail className="w-4 h-4 mr-2" />
-                support@sellora.app
+                navedahmad9012@gmail.com
               </a>
             </Button>
             <Button asChild className="btn-glow w-full h-11 justify-start bg-emerald-600 hover:bg-emerald-700">
               <a
-                href="https://wa.me/919876543210?text=Hi%20Sellora%20Support"
+                href="https://wa.me/918191971463?text=Hi%20Sellora%20Support"
                 target="_blank"
                 rel="noopener noreferrer"
               >
