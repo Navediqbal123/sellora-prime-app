@@ -65,7 +65,7 @@ const HelpCenterPage: React.FC = () => {
             </Button>
             <Button asChild className="btn-glow w-full h-11 justify-start bg-emerald-600 hover:bg-emerald-700">
               <a
-                href="https://wa.me/918191971463?text=Hi%20Sellora%20Support"
+                href="https://wa.me/918191971463?text=Hi%20Sellora%20Support!%20%F0%9F%91%8B%20I%20need%20help%20with%20my%20order.%20Please%20assist%20me"
                 target="_blank"
                 rel="noopener noreferrer"
               >
