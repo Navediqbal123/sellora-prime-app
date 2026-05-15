@@ -23,7 +23,7 @@ const EditProfilePage: React.FC = () => {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
       const p = data as any;
       setFullName(p?.full_name || (user.user_metadata as any)?.full_name || '');
       setPhone(p?.phone || (user.user_metadata as any)?.phone || '');
@@ -58,14 +58,14 @@ const EditProfilePage: React.FC = () => {
         .from('profiles')
         .upsert(
           {
-            id: user.id,
+            user_id: user.id,
             email: user.email,
             full_name: fullName,
             phone,
             avatar_url: avatarUrl,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: 'id' }
+          { onConflict: 'user_id' }
         );
       if (error) throw error;
       await supabase.auth.updateUser({ data: { full_name: fullName, phone, avatar_url: avatarUrl } });
