@@ -143,7 +143,7 @@ const EditProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <Button className="btn-glow w-full mt-6 h-11" onClick={handleSave} disabled={saving || loading}>
+        <Button className="btn-glow w-full mt-6 h-11 text-white" onClick={handleSave} disabled={saving || loading}>
           {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Save Changes
         </Button>
