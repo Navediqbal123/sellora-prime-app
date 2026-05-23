@@ -20,6 +20,7 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
+  ArrowLeft,
 } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -108,7 +109,19 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-2xl mx-auto px-4 pt-6">
+      <div className="max-w-2xl mx-auto px-4 pt-4">
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 mb-3 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Back"
+        >
+          <span className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5" />
+          </span>
+          <span className="text-sm font-medium">Back</span>
+        </button>
+
         {/* Header card */}
         <div className="card-premium p-6 animate-fade-in-up">
           <div className="flex items-center gap-4">
