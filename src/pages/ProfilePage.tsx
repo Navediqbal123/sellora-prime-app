@@ -20,7 +20,6 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
-  ArrowLeft,
 } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -110,15 +109,6 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-2xl mx-auto px-4 pt-4">
-        {/* Back button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 w-11 h-11 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          aria-label="Back"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-
         {/* Header card */}
         <div className="card-premium p-6 animate-fade-in-up">
           <div className="flex items-center gap-4">
@@ -200,23 +190,10 @@ const ProfilePage = () => {
                 idx !== menuItems.length - 1 ? 'border-b border-border/50' : ''
               }`}
             >
-              <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                  item.danger ? 'bg-destructive/10' : 'bg-primary/10'
-                }`}
-              >
-                <item.icon
-                  className={`w-4.5 h-4.5 ${item.danger ? 'text-destructive' : 'text-primary'}`}
-                  size={18}
-                />
+              <div className="w-10 h-10 rounded-full bg-[hsl(265,40%,18%)] flex items-center justify-center flex-shrink-0">
+                <item.icon className="text-white" size={18} strokeWidth={2.25} />
               </div>
-              <span
-                className={`flex-1 text-sm font-medium ${
-                  item.danger ? 'text-destructive' : 'text-foreground'
-                }`}
-              >
-                {item.label}
-              </span>
+              <span className="flex-1 text-sm font-medium text-white">{item.label}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
           ))}
