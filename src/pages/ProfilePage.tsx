@@ -113,13 +113,10 @@ const ProfilePage = () => {
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-3 text-muted-foreground hover:text-foreground transition-colors"
+          className="mb-4 w-11 h-11 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
           aria-label="Back"
         >
-          <span className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5" />
-          </span>
-          <span className="text-sm font-medium">Back</span>
+          <ArrowLeft className="w-6 h-6" />
         </button>
 
         {/* Header card */}
