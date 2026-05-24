@@ -76,6 +76,36 @@ const HelpCenterPage: React.FC = () => {
               </svg>
               WhatsApp Support
             </a>
+            <a
+              href="https://whatsapp.com/channel/0029VbBZO1FGE56tUHcbAd3c"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center w-full px-4 py-3 rounded-md bg-zinc-900 text-white"
+            >
+              <svg viewBox="0 0 32 32" className="w-5 h-5 mr-3 shrink-0" aria-hidden="true">
+                <path fill="#25D366" d="M16 .5C7.45.5.5 7.45.5 16c0 2.82.74 5.57 2.15 8L.5 31.5l7.7-2.02A15.46 15.46 0 0 0 16 31.5C24.55 31.5 31.5 24.55 31.5 16S24.55.5 16 .5z"/>
+                <path fill="#fff" d="M23.4 19.5c-.32-.16-1.9-.94-2.2-1.05-.3-.11-.5-.16-.72.16-.21.32-.82 1.05-1 1.27-.18.21-.37.24-.69.08-.32-.16-1.36-.5-2.6-1.6-.96-.86-1.6-1.92-1.79-2.24-.18-.32-.02-.5.14-.66.15-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.72-1.74-.99-2.38-.26-.62-.53-.54-.72-.55l-.62-.01c-.21 0-.56.08-.85.4s-1.12 1.1-1.12 2.67 1.15 3.1 1.31 3.32c.16.21 2.26 3.45 5.48 4.84.77.33 1.36.53 1.83.68.77.24 1.47.21 2.02.13.62-.09 1.9-.78 2.17-1.53.27-.75.27-1.39.19-1.53-.08-.13-.29-.21-.61-.37z"/>
+              </svg>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium truncate">📢 Sellora Updates Channel</span>
+                <span className="text-xs text-white/70 truncate">Get order updates & offers</span>
+              </div>
+            </a>
+            <a
+              href="https://whatsapp.com/channel/0029Vb88ymp6GcGIVrGOfu1r"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center w-full px-4 py-3 rounded-md bg-zinc-900 text-white"
+            >
+              <svg viewBox="0 0 32 32" className="w-5 h-5 mr-3 shrink-0" aria-hidden="true">
+                <path fill="#25D366" d="M16 .5C7.45.5.5 7.45.5 16c0 2.82.74 5.57 2.15 8L.5 31.5l7.7-2.02A15.46 15.46 0 0 0 16 31.5C24.55 31.5 31.5 24.55 31.5 16S24.55.5 16 .5z"/>
+                <path fill="#fff" d="M23.4 19.5c-.32-.16-1.9-.94-2.2-1.05-.3-.11-.5-.16-.72.16-.21.32-.82 1.05-1 1.27-.18.21-.37.24-.69.08-.32-.16-1.36-.5-2.6-1.6-.96-.86-1.6-1.92-1.79-2.24-.18-.32-.02-.5.14-.66.15-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.72-1.74-.99-2.38-.26-.62-.53-.54-.72-.55l-.62-.01c-.21 0-.56.08-.85.4s-1.12 1.1-1.12 2.67 1.15 3.1 1.31 3.32c.16.21 2.26 3.45 5.48 4.84.77.33 1.36.53 1.83.68.77.24 1.47.21 2.02.13.62-.09 1.9-.78 2.17-1.53.27-.75.27-1.39.19-1.53-.08-.13-.29-.21-.61-.37z"/>
+              </svg>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium truncate">🛍️ Sellora Support Channel</span>
+                <span className="text-xs text-white/70 truncate">Help with orders, payments & queries</span>
+              </div>
+            </a>
           </div>
         </div>
       </div>
