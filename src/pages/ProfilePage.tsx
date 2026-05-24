@@ -20,6 +20,8 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
+  Store,
+  LayoutDashboard,
 } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -29,6 +31,8 @@ const ProfilePage = () => {
   const [stats, setStats] = useState({ orders: 0, wishlist: 0, reviews: 0, coupons: 0 });
   const [orderCounts, setOrderCounts] = useState({ pending: 0, shipped: 0, delivered: 0, cancelled: 0 });
   const [loading, setLoading] = useState(true);
+  const [sellerStatus, setSellerStatus] = useState<string | null>(null);
+  const [hasSellerApp, setHasSellerApp] = useState(false);
 
   const fullName =
     profile?.full_name ||
@@ -49,6 +53,18 @@ const ProfilePage = () => {
         supabase.from('orders').select('status').eq('buyer_id', user.id),
       ]);
       if (profileRes.data) setProfile(profileRes.data as any);
+      const sellerRes = await supabase
+        .from('sellers')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (sellerRes.data) {
+        setHasSellerApp(true);
+        setSellerStatus((sellerRes.data as any).status);
+      } else {
+        setHasSellerApp(false);
+        setSellerStatus(null);
+      }
       setStats({
         orders: ordersCountRes.count || 0,
         wishlist: wishlistRes.count || 0,
@@ -90,7 +106,26 @@ const ProfilePage = () => {
     { icon: XCircle, label: 'Cancelled', count: orderCounts.cancelled, color: 'text-rose-400' },
   ];
 
-  const menuItems = [
+  const isApprovedSeller = sellerStatus === 'approved';
+  const isPendingSeller = hasSellerApp && !isApprovedSeller;
+
+  const sellerItem = isApprovedSeller
+    ? { icon: LayoutDashboard, label: 'Seller Dashboard', onClick: () => navigate('/seller') }
+    : isPendingSeller
+    ? {
+        icon: Store,
+        label: 'Sell on Sellora',
+        badge: 'Pending',
+        onClick: () =>
+          toast({
+            title: 'Application under review',
+            description: 'Your seller application is being reviewed by our team.',
+          }),
+      }
+    : { icon: Store, label: 'Sell on Sellora', onClick: () => navigate('/seller/onboarding') };
+
+  const menuItems: Array<{ icon: any; label: string; onClick: () => void; danger?: boolean; badge?: string }> = [
+    sellerItem,
     { icon: MapPin, label: 'My Addresses', onClick: () => navigate('/profile/addresses') },
     { icon: CreditCard, label: 'Payment Methods', onClick: () => navigate('/profile/payment-methods') },
     { icon: Ticket, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
@@ -193,7 +228,14 @@ const ProfilePage = () => {
               <div className="w-10 h-10 rounded-full bg-[hsl(265,40%,18%)] flex items-center justify-center flex-shrink-0">
                 <item.icon className="text-white" size={18} strokeWidth={2.25} />
               </div>
-              <span className="flex-1 text-sm font-medium text-white">{item.label}</span>
+              <span className="flex-1 text-sm font-medium text-white flex items-center gap-2">
+                {item.label}
+                {item.badge && (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    {item.badge}
+                  </span>
+                )}
+              </span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
           ))}
