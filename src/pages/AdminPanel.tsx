@@ -70,18 +70,6 @@ interface UserProfile {
   seller?: SellerProfile;
 }
 
-// Seller Requests list is sourced from `seller` table (single source of truth)
-interface SellerRequestRow {
-  user_id: string;
-  shop_name: string;
-  owner_name: string;
-  phone?: string;
-  city: string;
-  state: string;
-  pincode: string;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-}
 
 type AdminSection = 'dashboard' | 'users' | 'sellers' | 'products' | 'searches' | 'clicks' | 'seller-requests' | 'sales-history';
 
@@ -100,8 +88,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   const [pendingSellers, setPendingSellers] = useState<SellerProfile[]>([]);
   const [approvedSellers, setApprovedSellers] = useState<SellerProfile[]>([]);
 
-  // Seller Requests page (pending only) — sourced from `seller` table
-  const [pendingSellerRequests, setPendingSellerRequests] = useState<SellerRequestRow[]>([]);
+  // Seller Requests page (pending only) — sourced from `sellers` table
+  const [pendingSellerRequests, setPendingSellerRequests] = useState<SellerProfile[]>([]);
   const [removingSellerRequests, setRemovingSellerRequests] = useState<Record<string, boolean>>({});
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -263,7 +251,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     // Fetch pending sellers from sellers table (single source of truth)
     const { data, error } = await supabase
       .from('sellers')
-      .select('id, user_id, shop_name, owner_name, phone, phone_number, city, state, pincode, status, created_at')
+      .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
@@ -273,20 +261,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       return;
     }
 
-    // Map to SellerRequestRow format, handling both phone and phone_number columns
-    const mappedData = (data || []).map(seller => ({
-      user_id: seller.user_id,
-      shop_name: seller.shop_name,
-      owner_name: seller.owner_name,
-      phone: seller.phone || seller.phone_number,
-      city: seller.city,
-      state: seller.state,
-      pincode: seller.pincode,
-      status: seller.status as 'pending' | 'approved' | 'rejected',
-      created_at: seller.created_at,
-    }));
-
-    setPendingSellerRequests(mappedData);
+    setPendingSellerRequests(data || []);
   };
 
   const fetchProducts = async () => {
@@ -1080,7 +1055,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           </div>
 
           {pendingSellerRequests.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {pendingSellerRequests.map((seller, index) => {
                 const approveState = getButtonState(seller.user_id, 'approve');
                 const rejectState = getButtonState(seller.user_id, 'reject');
@@ -1090,40 +1065,60 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                   <div
                     key={seller.user_id}
                     className={
-                      "glass-card rounded-2xl p-6 animate-fade-in-up hover:border-primary/30 transition-all duration-300 " +
-                      (isRemoving ? "opacity-0 translate-y-1 pointer-events-none" : "")
+                      "group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 " +
+                      "transform transition-all duration-500 ease-out " +
+                      (isRemoving ? "opacity-0 translate-y-1 pointer-events-none " : "hover:scale-[1.02] hover:-translate-y-1 hover:border-primary/30 hover:shadow-glow ")
                     }
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground">{seller.shop_name}</h3>
-                          {getStatusBadge(seller.status as SellerStatus)}
-                        </div>
-                        <p className="text-muted-foreground mb-3">{seller.owner_name}</p>
+                    {/* Hover gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="w-4 h-4" />
-                            <span>{seller.phone || '-'}</span>
+                    <div className="p-5 relative z-10">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
+                              {seller.shop_name}
+                            </h3>
+                            {getStatusBadge(seller.status)}
                           </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="w-4 h-4" />
-                            <span>{seller.city}, {seller.state} • {seller.pincode}</span>
-                          </div>
+                          <p className="text-muted-foreground text-sm">{seller.owner_name}</p>
                         </div>
-
-                        <p className="text-xs text-muted-foreground mt-3">
-                          Applied on {new Date(seller.created_at).toLocaleDateString()}
-                        </p>
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                          <Store className="w-5 h-5 text-primary" />
+                        </div>
                       </div>
 
-                      <div className="flex gap-2 lg:flex-col">
+                      <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-2 group-hover:text-foreground transition-colors">
+                          <Phone className="w-4 h-4" />
+                          <span>{seller.phone_number || '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 group-hover:text-foreground transition-colors">
+                          <MapPin className="w-4 h-4" />
+                          <span>{seller.city}, {seller.state} • {seller.pincode}</span>
+                        </div>
+                        <div className="flex items-center gap-2 group-hover:text-foreground transition-colors">
+                          <Mail className="w-4 h-4" />
+                          <span className="truncate">{seller.email || '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 group-hover:text-foreground transition-colors">
+                          <Building className="w-4 h-4" />
+                          <span>{seller.business_type || '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 group-hover:text-foreground transition-colors">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(seller.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-4 border-t border-border/50 relative z-10">
                         <Button
                           onClick={() => handleApproveSellerRequest(seller.user_id)}
                           disabled={approveState.isLoading || approveState.isSuccess}
-                          className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                          className={`flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
                             ${approveState.isSuccess 
                               ? 'bg-green-500 hover:bg-green-500' 
                               : approveState.isError 
@@ -1153,7 +1148,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                           onClick={() => handleRejectSellerRequest(seller.user_id)}
                           disabled={rejectState.isLoading || rejectState.isSuccess}
                           variant="outline"
-                          className={`flex-1 min-w-[120px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                          className={`flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
                             ${rejectState.isSuccess 
                               ? 'border-red-500 bg-red-500/20 text-red-500' 
                               : rejectState.isError 
@@ -1180,6 +1175,10 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                         </Button>
                       </div>
                     </div>
+
+                    {/* Bottom gradient line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary 
+                                    transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                   </div>
                 );
               })}
