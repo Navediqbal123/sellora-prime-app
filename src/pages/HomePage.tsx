@@ -115,7 +115,6 @@ const HomePage = () => {
         <div className="mb-3 animate-fade-in-up stagger-3">
           <div className="flex items-center justify-between mb-1.5">
             <h2 className="text-sm font-bold text-foreground">Categories</h2>
-            <button className="text-[11px] text-primary font-medium hover:underline">See all</button>
           </div>
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
