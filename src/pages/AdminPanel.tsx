@@ -565,12 +565,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     if (!confirm('Are you sure you want to delete this seller? This action cannot be undone.')) return;
 
     try {
-      const { error } = await supabase
-        .from('sellers')
-        .delete()
-        .eq('id', sellerId);
-
-      if (error) throw error;
+      // Route through backend API (admin JWT validated server-side).
+      await adminApi.deleteSeller(sellerId);
       toast({ title: "Seller Deleted", description: "The seller has been removed" });
       setSelectedSeller(null);
       fetchSellers();
