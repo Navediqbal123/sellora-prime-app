@@ -38,6 +38,15 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminSalesHistory from '@/components/admin/AdminSalesHistory';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface AdminStats {
   totalUsers: number;
@@ -108,6 +117,11 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
   // Sidebar state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Reject reason modal
+  const [rejectTarget, setRejectTarget] = useState<SellerProfile | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
 
   useEffect(() => {
     setActiveSection(section);
@@ -407,6 +421,18 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
         return;
       }
 
+      // Insert in-app notification for the seller
+      try {
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          title: 'Application Approved 🎉',
+          message: 'Congratulations! Your seller application has been approved.',
+          is_read: false,
+        });
+      } catch (e) {
+        console.error('Failed to create approval notification', e);
+      }
+
       // Smooth exit then remove from local state (no page reload)
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
       setTimeout(() => {
@@ -422,7 +448,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     });
   };
 
-  const handleRejectSellerRequest = async (userId: string) => {
+  const handleRejectSellerRequest = async (userId: string, reason: string) => {
     await withActionAnimation(userId, 'reject', async () => {
       try {
         // Call backend API with user_id
@@ -434,6 +460,18 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
           variant: "destructive" 
         });
         return;
+      }
+
+      // Insert in-app notification for the seller
+      try {
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          title: 'Application Rejected ❌',
+          message: `Your seller application was not approved. Reason: ${reason}`,
+          is_read: false,
+        });
+      } catch (e) {
+        console.error('Failed to create rejection notification', e);
       }
 
       setRemovingSellerRequests(prev => ({ ...prev, [userId]: true }));
@@ -448,6 +486,28 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
 
       toast({ title: "Seller rejected", description: "Seller request has been rejected" });
     });
+  };
+
+  const openRejectModal = (seller: SellerProfile) => {
+    setRejectTarget(seller);
+    setRejectReason('');
+  };
+
+  const submitRejectReason = async () => {
+    if (!rejectTarget) return;
+    const reason = rejectReason.trim();
+    if (!reason) {
+      toast({ title: 'Reason required', description: 'Please enter a rejection reason.', variant: 'destructive' });
+      return;
+    }
+    setRejectSubmitting(true);
+    try {
+      await handleRejectSellerRequest(rejectTarget.user_id, reason);
+      setRejectTarget(null);
+      setRejectReason('');
+    } finally {
+      setRejectSubmitting(false);
+    }
   };
 
   const handleBlockSeller = async (sellerId: string) => {
