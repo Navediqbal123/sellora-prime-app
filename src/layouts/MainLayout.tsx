@@ -2,8 +2,9 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ShoppingBag, Bell, ShoppingCart, ArrowLeft } from "lucide-react";
+import { ShoppingBag, ShoppingCart, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import NotificationBell from "@/components/NotificationBell";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -42,13 +43,7 @@ const MainLayout = () => {
             <div className="flex-1" />
             {!isProfilePage && (
               <>
-                <button
-                  aria-label="Notifications"
-                  className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                >
-                  <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_hsl(var(--destructive))] animate-pulse" />
-                </button>
+                <NotificationBell />
                 <button
                   aria-label="Cart"
                   onClick={() => navigate('/orders')}
