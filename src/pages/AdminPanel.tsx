@@ -1390,6 +1390,43 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       )}
         </div>
       </div>
+      <Dialog open={!!rejectTarget} onOpenChange={(o) => { if (!o) { setRejectTarget(null); setRejectReason(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Seller Application</DialogTitle>
+            <DialogDescription>
+              {rejectTarget ? `Provide a reason for rejecting ${rejectTarget.shop_name}.` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Enter rejection reason (e.g. incomplete documents, invalid address)"
+            rows={4}
+            autoFocus
+          />
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => { setRejectTarget(null); setRejectReason(''); }} disabled={rejectSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitRejectReason}
+              disabled={rejectSubmitting || !rejectReason.trim()}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {rejectSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Rejecting...
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" /> Confirm Reject
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
