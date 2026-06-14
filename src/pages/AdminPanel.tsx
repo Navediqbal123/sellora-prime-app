@@ -1205,7 +1205,7 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
                         </Button>
 
                         <Button
-                          onClick={() => handleRejectSellerRequest(seller.user_id)}
+                          onClick={() => openRejectModal(seller)}
                           disabled={rejectState.isLoading || rejectState.isSuccess}
                           variant="outline"
                           className={`flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
