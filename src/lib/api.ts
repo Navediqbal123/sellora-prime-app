@@ -118,4 +118,21 @@ export const adminApi = {
     method: 'POST',
     body: JSON.stringify({ user_id: userId }),
   }),
+
+  // Seller deletion
+  deleteSeller: (sellerId: string) => apiRequest('/admin/delete-seller', {
+    method: 'POST',
+    body: JSON.stringify({ seller_id: sellerId }),
+  }),
+
+  // Order soft-delete / restore (admin sales history)
+  softDeleteOrder: (orderId: string) => apiRequest('/admin/orders/soft-delete', {
+    method: 'POST',
+    body: JSON.stringify({ order_id: orderId }),
+  }),
+
+  restoreOrder: (orderId: string) => apiRequest('/admin/orders/restore', {
+    method: 'POST',
+    body: JSON.stringify({ order_id: orderId }),
+  }),
 };

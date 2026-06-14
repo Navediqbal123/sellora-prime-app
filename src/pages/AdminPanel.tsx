@@ -191,13 +191,13 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     ));
 
     try {
-      // Update directly in profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: newStatus })
-        .or(`id.eq.${userId},user_id.eq.${userId}`);
-
-      if (error) throw error;
+      // Route through backend API which validates the admin JWT.
+      // Never write to profiles.is_active directly from the client.
+      if (newStatus) {
+        await adminApi.unbanUser(userId);
+      } else {
+        await adminApi.banUser(userId);
+      }
 
       toast({
         title: newStatus ? "✓ User Activated" : "⛔ User Banned",
@@ -565,12 +565,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
     if (!confirm('Are you sure you want to delete this seller? This action cannot be undone.')) return;
 
     try {
-      const { error } = await supabase
-        .from('sellers')
-        .delete()
-        .eq('id', sellerId);
-
-      if (error) throw error;
+      // Route through backend API (admin JWT validated server-side).
+      await adminApi.deleteSeller(sellerId);
       toast({ title: "Seller Deleted", description: "The seller has been removed" });
       setSelectedSeller(null);
       fetchSellers();

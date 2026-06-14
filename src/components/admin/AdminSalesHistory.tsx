@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -129,12 +130,8 @@ const AdminSalesHistory = () => {
   const handleSoftDelete = async (orderId: string) => {
     setActionId(orderId);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      // Route through backend API (admin JWT validated server-side).
+      await adminApi.softDeleteOrder(orderId);
       toast({ title: 'Deleted', description: 'Sale record soft-deleted' });
       fetchSales();
     } catch (err: any) {
@@ -147,12 +144,8 @@ const AdminSalesHistory = () => {
   const handleRestore = async (orderId: string) => {
     setActionId(orderId);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ deleted_at: null })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      // Route through backend API (admin JWT validated server-side).
+      await adminApi.restoreOrder(orderId);
       toast({ title: 'Restored', description: 'Sale record restored' });
       fetchSales();
     } catch (err: any) {
