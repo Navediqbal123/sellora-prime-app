@@ -90,62 +90,67 @@ const NotificationsPage: React.FC = () => {
       ) : items.length === 0 ? (
         <EmptyCard text="No notifications yet." />
       ) : (
-        <div className="space-y-3 animate-fade-in">
+        <>
+        <div className="space-y-3">
           {items.map((n, i) => {
             const Icon = iconFor(n.type);
             return (
               <div
                 key={n.id}
-                className={`card-premium p-4 flex gap-3 transition-all duration-300 ${
-                  !n.is_read
-                    ? 'border-primary/40 bg-primary/[0.03]'
-                    : ''
-                } stagger-${Math.min(i + 1, 5)}`}
-                style={{ animationDelay: `${i * 0.05}s` }}
+                className="relative overflow-hidden rounded-2xl p-4 border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(124,58,237,0.35)] opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]"
+                style={{
+                  animationDelay: `${i * 70}ms`,
+                  background: n.is_read
+                    ? 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--secondary)/0.4) 100%)'
+                    : 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary)/0.08) 100%)',
+                  borderColor: n.is_read
+                    ? 'hsl(var(--border)/0.6)'
+                    : 'hsl(var(--primary)/0.35)',
+                }}
               >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    !n.is_read ? 'bg-primary/15' : 'bg-secondary'
-                  }`}
-                >
-                  <Icon
-                    className={`w-5 h-5 ${
-                      !n.is_read ? 'text-primary' : 'text-muted-foreground'
-                    }`}
+                {!n.is_read && (
+                  <span
+                    className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"
+                    style={{ boxShadow: '0 0 10px 2px rgba(52,211,153,0.7), 0 0 20px 4px rgba(52,211,153,0.35)' }}
                   />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p
-                      className={`text-sm font-semibold truncate ${
-                        !n.is_read ? 'text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
+                )}
+
+                <div className="flex gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      !n.is_read ? 'bg-primary/15' : 'bg-secondary'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 ${!n.is_read ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-6">
+                    <p className="text-sm font-bold text-foreground leading-snug">
                       {n.title}
                     </p>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {timeAgo(n.created_at)}
-                    </span>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      {n.message}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 mt-3">
+                      {!n.is_read ? (
+                        <button
+                          onClick={() => markRead(n.id)}
+                          className="text-[11px] font-medium text-primary hover:text-primary/80 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
+                        >
+                          <Check className="w-3 h-3" /> Mark as read
+                        </button>
+                      ) : <span />}
+                      <span className="text-[10px] text-muted-foreground ml-auto">
+                        {timeAgo(n.created_at)}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-3">
-                    {n.message}
-                  </p>
-                  {!n.is_read && (
-                    <button
-                      onClick={() => markRead(n.id)}
-                      className="mt-2 text-[11px] font-medium text-primary hover:text-primary/80 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
-                    >
-                      <Check className="w-3 h-3" /> Mark as read
-                    </button>
-                  )}
                 </div>
-                {!n.is_read && (
-                  <span className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0 animate-pulse" />
-                )}
               </div>
             );
           })}
         </div>
+        <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }`}</style>
+        </>
       )}
     </SubPageShell>
   );
