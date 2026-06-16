@@ -425,8 +425,8 @@ const AdminPanel = ({ section = 'dashboard' }: { section?: AdminSection }) => {
       try {
         await supabase.from('notifications').insert({
           user_id: userId,
-          title: 'Application Approved 🎉',
-          message: 'Congratulations! Your seller application has been approved.',
+          title: 'Welcome to Sellora! Your shop is live 🛍️',
+          message: "Congratulations! You are now an official Sellora seller. Start adding your products and reach thousands of customers today. Let's grow together! 🚀",
           is_read: false,
         });
       } catch (e) {
