@@ -90,6 +90,7 @@ const NotificationsPage: React.FC = () => {
       ) : items.length === 0 ? (
         <EmptyCard text="No notifications yet." />
       ) : (
+        <>
         <div className="space-y-3">
           {items.map((n, i) => {
             const Icon = iconFor(n.type);
@@ -149,6 +150,7 @@ const NotificationsPage: React.FC = () => {
           })}
         </div>
         <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }`}</style>
+        </>
       )}
     </SubPageShell>
   );
