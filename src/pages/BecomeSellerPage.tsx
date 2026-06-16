@@ -281,7 +281,7 @@ const BecomeSellerPage = () => {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold" style={{ color: textPri }}>Business Information</h2>
-          <p className="text-sm mt-1" style={{ color: textMut }}>Tell us about your business</p>
+          <p className="text-sm mt-1" style={{ color: textMut }}>Please provide your business details</p>
         </div>
         <span
           className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
@@ -355,7 +355,7 @@ const BecomeSellerPage = () => {
           <p className="text-sm font-medium" style={{ color: textPri }}>
             {docFile ? docFile.name : 'Click or drag file to upload'}
           </p>
-          <p className="text-xs" style={{ color: textMut }}>PDF, JPG, PNG up to 10MB</p>
+          <p className="text-xs" style={{ color: textMut }}>PDF, JPG, PNG • Max 5MB</p>
         </button>
       </div>
 
