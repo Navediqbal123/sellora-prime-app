@@ -20,6 +20,7 @@ import {
   Lock,
   Zap,
   Headphones,
+  Store,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -278,15 +279,22 @@ const BecomeSellerPage = () => {
   // ---------- STEP CONTENT ----------
   const Step1 = (
     <div key="step1" className={`space-y-5 ${animationClass}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold" style={{ color: textPri }}>Business Information</h2>
-          <p className="text-sm mt-1" style={{ color: textMut }}>Please provide your business details</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(124,58,237,0.15)', border: `1px solid ${PURPLE}40` }}>
+            <Store className="w-6 h-6" style={{ color: '#c4b5fd' }} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold leading-tight" style={{ color: textPri }}>Business Information</h2>
+            <p className="text-xs mt-1" style={{ color: textMut }}>Please provide your business details</p>
+          </div>
         </div>
         <span
-          className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
           style={{ background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', border: `1px solid ${PURPLE}40` }}
         >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: PURPLE, boxShadow: '0 0 8px #7C3AED' }} />
           Step 1 of 3
         </span>
       </div>
@@ -317,7 +325,7 @@ const BecomeSellerPage = () => {
           <input name="gst_tax_id" value={formData.gst_tax_id} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
             placeholder="22AAAAA0000A1Z5" className={inputClass} style={inputStyle} />
         </div>
-        <div className="md:col-span-2">
+        <div>
           <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Year of Establishment</label>
           <select name="year_established" value={formData.year_established} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
             className={`${inputClass} appearance-none cursor-pointer`} style={inputStyle}>
@@ -343,32 +351,47 @@ const BecomeSellerPage = () => {
       </div>
 
       <div>
-        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Upload Business Document</label>
+        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>
+          Upload Business Document <span style={{ color: textMut }}>(Optional)</span>
+        </label>
         <input ref={fileInputRef} type="file" className="hidden"
           onChange={(e) => setDocFile(e.target.files?.[0] || null)} />
         <button type="button" onClick={() => fileInputRef.current?.click()}
-          className="w-full rounded-[14px] py-8 px-4 flex flex-col items-center gap-2 transition-all duration-200 hover:bg-[rgba(124,58,237,0.06)]"
+          className="w-full rounded-[14px] py-5 px-5 flex items-center gap-4 transition-all duration-200 hover:bg-[rgba(124,58,237,0.06)] text-left"
           style={{ border: `1.5px dashed ${PURPLE}55`, background: 'rgba(124,58,237,0.04)' }}>
-          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.18)' }}>
-            <UploadCloud className="w-6 h-6" style={{ color: '#c4b5fd' }} />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(124,58,237,0.18)', border: `1px solid ${PURPLE}40` }}>
+            <UploadCloud className="w-7 h-7" style={{ color: '#c4b5fd' }} />
           </div>
-          <p className="text-sm font-medium" style={{ color: textPri }}>
-            {docFile ? docFile.name : 'Click or drag file to upload'}
-          </p>
-          <p className="text-xs" style={{ color: textMut }}>PDF, JPG, PNG • Max 5MB</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: textPri }}>
+              {docFile ? docFile.name : <>Drag &amp; drop file here or </>}
+              {!docFile && <span style={{ color: '#c4b5fd' }}>Browse files</span>}
+            </p>
+          </div>
+          <div className="hidden sm:block text-right shrink-0">
+            <p className="text-xs" style={{ color: textMut }}>PDF, JPG or PNG</p>
+            <p className="text-xs" style={{ color: textMut }}>Max size 5MB</p>
+          </div>
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3 pt-4">
         {[
-          { icon: Lock, label: '100% Secure' },
-          { icon: Zap, label: 'Quick Approval' },
-          { icon: Headphones, label: '24/7 Support' },
+          { icon: Lock, label: '100% Secure', sub: 'Your data is protected' },
+          { icon: Zap, label: 'Quick Approval', sub: 'Get started in minutes' },
+          { icon: Headphones, label: '24/7 Support', sub: 'We\u2019re here to help' },
         ].map(b => (
-          <div key={b.label} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl"
+          <div key={b.label} className="flex items-center gap-2 py-3 px-3 rounded-xl"
             style={{ background: 'rgba(124,58,237,0.06)', border: `1px solid ${border}` }}>
-            <b.icon className="w-4 h-4" style={{ color: '#c4b5fd' }} />
-            <span className="text-[11px] font-medium text-center" style={{ color: textPri }}>{b.label}</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(124,58,237,0.2)' }}>
+              <b.icon className="w-3.5 h-3.5" style={{ color: '#c4b5fd' }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold leading-tight" style={{ color: textPri }}>{b.label}</p>
+              <p className="text-[10px] truncate" style={{ color: textMut }}>{b.sub}</p>
+            </div>
           </div>
         ))}
       </div>
