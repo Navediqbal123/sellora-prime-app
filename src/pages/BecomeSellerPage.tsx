@@ -20,6 +20,7 @@ import {
   Lock,
   Zap,
   Headphones,
+  Store,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
