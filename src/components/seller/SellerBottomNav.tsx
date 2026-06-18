@@ -67,6 +67,7 @@ const SellerBottomNav: React.FC = () => {
                 <Icon
                   className="w-5 h-5 transition-colors"
                   style={{ color: active ? '#a78bfa' : 'rgba(255,255,255,0.5)' }}
+                  fill={active && it.label === 'Dashboard' ? '#a78bfa' : 'none'}
                 />
                 <span
                   className="text-[10px] font-medium transition-colors"
