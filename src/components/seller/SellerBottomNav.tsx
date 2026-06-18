@@ -2,10 +2,12 @@ import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Package, Plus, ShoppingBag, BarChart3, FileText } from 'lucide-react';
 
-const items = [
+// Left-side items (before center) and right-side items (after center)
+const leftItems = [
   { to: '/seller/dashboard', label: 'Dashboard', icon: Home },
-  { to: '/seller/add-product', label: 'Add Product', icon: Plus, center: true },
   { to: '/seller/products', label: 'My Products', icon: Package },
+];
+const rightItems = [
   { to: '/seller/orders', label: 'Orders', icon: ShoppingBag },
   { to: '/seller/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/seller/sales-history', label: 'Sales History', icon: FileText },
@@ -19,6 +21,37 @@ const SellerBottomNav: React.FC = () => {
       ? pathname === '/seller' || pathname === '/seller/dashboard'
       : pathname === p || pathname.startsWith(p + '/');
 
+  const NavItem = ({ to, label, icon: Icon }: { to: string; label: string; icon: any }) => {
+    const active = isActive(to);
+    return (
+      <NavLink
+        to={to}
+        className="relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 h-full"
+      >
+        <Icon
+          className="w-[22px] h-[22px] transition-colors"
+          strokeWidth={active ? 2.3 : 1.9}
+          style={{ color: active ? '#a78bfa' : 'rgba(255,255,255,0.55)' }}
+          fill={active && label === 'Dashboard' ? '#a78bfa' : 'none'}
+        />
+        <span
+          className="text-[10px] font-semibold leading-none truncate max-w-full px-1"
+          style={{ color: active ? '#c4b5fd' : 'rgba(255,255,255,0.6)' }}
+        >
+          {label}
+        </span>
+        {active && (
+          <span
+            className="absolute bottom-1 w-6 h-[3px] rounded-full"
+            style={{ background: '#a78bfa', boxShadow: '0 0 10px #a78bfa' }}
+          />
+        )}
+      </NavLink>
+    );
+  };
+
+  const addActive = isActive('/seller/add-product');
+
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-50 lg:hidden"
@@ -27,71 +60,44 @@ const SellerBottomNav: React.FC = () => {
       <div
         className="relative mx-2 mb-2 rounded-3xl border backdrop-blur-xl"
         style={{
-          background: 'linear-gradient(180deg, rgba(16,8,35,0.92), rgba(10,6,19,0.96))',
-          borderColor: 'rgba(124,58,237,0.25)',
+          background: 'linear-gradient(180deg, rgba(16,8,35,0.94), rgba(10,6,19,0.97))',
+          borderColor: 'rgba(124,58,237,0.28)',
           boxShadow: '0 -10px 40px -10px rgba(124,58,237,0.35)',
         }}
       >
-        <div className="grid grid-cols-6 h-[72px] items-end pb-2 pt-2">
-          {items.map((it) => {
-            const active = isActive(it.to);
-            const Icon = it.icon;
+        {/* Row: left items | spacer for floating button | right items */}
+        <div className="flex items-stretch h-[68px] px-1">
+          {leftItems.map((it) => (
+            <NavItem key={it.to} {...it} />
+          ))}
 
-            if (it.center) {
-              return (
-                <button
-                  key={it.to}
-                  onClick={() => navigate(it.to)}
-                  className="relative flex flex-col items-center justify-end h-full"
-                  aria-label={it.label}
-                >
-                  <span
-                    className="absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform hover:scale-105 active:scale-95"
-                    style={{
-                      background: 'linear-gradient(135deg,#a855f7,#7C3AED)',
-                      boxShadow: '0 12px 30px -8px rgba(124,58,237,0.85), inset 0 1px 0 rgba(255,255,255,0.3)',
-                    }}
-                  >
-                    <Plus className="w-7 h-7" strokeWidth={3} />
-                  </span>
-                  <span
-                    className="text-[11px] font-semibold mt-9"
-                    style={{ color: active ? '#c4b5fd' : 'rgba(255,255,255,0.6)' }}
-                  >
-                    {it.label}
-                  </span>
-                </button>
-              );
-            }
+          {/* Spacer reserves space for the floating center button */}
+          <div className="flex-1 min-w-0 flex flex-col items-center justify-end pb-1.5">
+            <span
+              className="text-[10px] font-semibold leading-none"
+              style={{ color: addActive ? '#c4b5fd' : 'rgba(255,255,255,0.6)' }}
+            >
+              Add Product
+            </span>
+          </div>
 
-            return (
-              <NavLink
-                key={it.to}
-                to={it.to}
-                className="relative flex flex-col items-center justify-end gap-1 h-full pb-0.5"
-              >
-                <Icon
-                  className="w-[22px] h-[22px] transition-colors"
-                  strokeWidth={active ? 2.2 : 1.8}
-                  style={{ color: active ? '#a78bfa' : 'rgba(255,255,255,0.55)' }}
-                  fill={active && it.label === 'Dashboard' ? '#a78bfa' : 'none'}
-                />
-                <span
-                  className="text-[10.5px] font-semibold transition-colors leading-none"
-                  style={{ color: active ? '#c4b5fd' : 'rgba(255,255,255,0.55)' }}
-                >
-                  {it.label}
-                </span>
-                {active && (
-                  <span
-                    className="absolute -bottom-0.5 w-8 h-[3px] rounded-full"
-                    style={{ background: '#a78bfa', boxShadow: '0 0 10px #a78bfa' }}
-                  />
-                )}
-              </NavLink>
-            );
-          })}
+          {rightItems.map((it) => (
+            <NavItem key={it.to} {...it} />
+          ))}
         </div>
+
+        {/* Floating, perfectly-centered Add Product button */}
+        <button
+          onClick={() => navigate('/seller/add-product')}
+          aria-label="Add Product"
+          className="absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform hover:scale-105 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg,#a855f7,#6d28d9)',
+            boxShadow: '0 12px 30px -8px rgba(124,58,237,0.85), inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 4px rgba(10,6,19,0.95)',
+          }}
+        >
+          <Plus className="w-7 h-7" strokeWidth={3} />
+        </button>
       </div>
     </nav>
   );
