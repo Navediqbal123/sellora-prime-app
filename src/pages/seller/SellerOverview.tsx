@@ -148,43 +148,38 @@ const SellerOverview = () => {
     <div className="min-h-screen" style={{ background: '#0a0613', color: '#fff' }}>
       <div className="px-4 py-5 space-y-6 max-w-7xl mx-auto lg:px-8 lg:py-8">
         {/* HEADER */}
-        <header className="flex items-center justify-between animate-fade-in">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0" aria-label="Sellora">
-              <svg viewBox="0 0 48 56" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="sLogoGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#d8b4fe" />
-                    <stop offset="45%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#5b21b6" />
-                  </linearGradient>
-                </defs>
-                {/* Shopping bag handle */}
-                <path d="M13 16 C13 6, 35 6, 35 16" stroke="url(#sLogoGrad)" strokeWidth="5" strokeLinecap="round" fill="none" />
-                {/* Bold rounded S */}
-                <path d="M37 22 C37 16, 31 13, 24 13 C16 13, 10 17, 10 23.5 C10 30, 17 31.5, 24 32.5 C31 33.5, 38 35, 38 41.5 C38 48, 31 52, 23 52 C15 52, 9 49, 8 42.5"
-                  stroke="url(#sLogoGrad)" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <header className="flex items-center justify-between gap-2 animate-fade-in">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            {/* Sellora S logo — filled gradient tile with bold S */}
+            <div
+              className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg,#c084fc 0%,#a855f7 45%,#6d28d9 100%)',
+                boxShadow: '0 10px 24px -8px rgba(124,58,237,0.8), inset 0 1px 0 rgba(255,255,255,0.35)',
+              }}
+              aria-label="Sellora"
+            >
+              <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M24 9.5 C22 7.5 19 6.5 16 6.5 C11 6.5 7.5 9 7.5 12.5 C7.5 16 11 17 16 17.8 C21 18.6 24.5 19.6 24.5 23.2 C24.5 26.7 21 29 16 29 C12.5 29 9.5 28 7.5 26"
+                  stroke="#ffffff"
+                  strokeWidth="3.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
               </svg>
             </div>
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{
-                background: 'linear-gradient(135deg,#a855f7,#6d28d9)',
-                boxShadow: '0 8px 24px -8px rgba(124,58,237,0.7), inset 0 1px 0 rgba(255,255,255,0.25)',
-              }}
-            >
-              <Store className="w-6 h-6 text-white" strokeWidth={2.2} />
-            </div>
             <div className="min-w-0">
-              <h1 className="text-base font-bold truncate">{shopName || 'My Shop'}</h1>
-              <p className="text-[11px] text-white/50">Sellora Seller Hub</p>
+              <h1 className="text-[15px] font-bold truncate leading-tight">{shopName || 'My Shop'}</h1>
+              <p className="text-[10.5px] text-white/50 leading-tight">Sellora Seller Hub</p>
             </div>
           </div>
 
           {/* Shop Live toggle */}
           <button
             onClick={toggleLive}
-            className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full border transition-all"
+            className="flex items-center gap-2 pl-2.5 pr-1.5 py-1.5 rounded-full border transition-all flex-shrink-0"
             style={{
               background: isLive ? 'rgba(16,185,129,0.10)' : 'rgba(255,255,255,0.04)',
               borderColor: isLive ? 'rgba(16,185,129,0.45)' : 'rgba(255,255,255,0.1)',
@@ -192,22 +187,22 @@ const SellerOverview = () => {
             }}
           >
             <span
-              className="w-2 h-2 rounded-full"
+              className="w-1.5 h-1.5 rounded-full"
               style={{
                 background: isLive ? '#10b981' : '#6b7280',
                 boxShadow: isLive ? '0 0 10px 2px rgba(16,185,129,0.85)' : 'none',
               }}
             />
-            <span className="text-xs font-semibold" style={{ color: isLive ? '#6ee7b7' : 'rgba(255,255,255,0.5)' }}>
+            <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: isLive ? '#6ee7b7' : 'rgba(255,255,255,0.5)' }}>
               {isLive ? 'Shop Live' : 'Paused'}
             </span>
             <span
-              className="relative w-10 h-6 rounded-full transition-all flex-shrink-0"
+              className="relative w-9 h-5 rounded-full transition-all flex-shrink-0"
               style={{ background: isLive ? '#10b981' : 'rgba(255,255,255,0.15)' }}
             >
               <span
-                className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow"
-                style={{ left: isLive ? 'calc(100% - 22px)' : '2px' }}
+                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow"
+                style={{ left: isLive ? 'calc(100% - 18px)' : '2px' }}
               />
             </span>
           </button>
