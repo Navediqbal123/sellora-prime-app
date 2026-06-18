@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, Plus, ClipboardList, BarChart3, Receipt } from 'lucide-react';
+import { Home, Package, Plus, ClipboardList, BarChart3, Receipt } from 'lucide-react';
 
 const items = [
-  { to: '/seller/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/seller/dashboard', label: 'Dashboard', icon: Home },
   { to: '/seller/products', label: 'Products', icon: Package },
   { to: '/seller/add-product', label: 'Add', icon: Plus, center: true },
   { to: '/seller/orders', label: 'Orders', icon: ClipboardList },
@@ -67,6 +67,7 @@ const SellerBottomNav: React.FC = () => {
                 <Icon
                   className="w-5 h-5 transition-colors"
                   style={{ color: active ? '#a78bfa' : 'rgba(255,255,255,0.5)' }}
+                  fill={active && it.label === 'Dashboard' ? '#a78bfa' : 'none'}
                 />
                 <span
                   className="text-[10px] font-medium transition-colors"

@@ -150,13 +150,22 @@ const SellerOverview = () => {
         {/* HEADER */}
         <header className="flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-white font-black text-lg italic"
-              style={{
-                background: 'linear-gradient(135deg,#a855f7,#7C3AED)',
-                boxShadow: '0 10px 30px -8px rgba(124,58,237,0.7), inset 0 1px 0 rgba(255,255,255,0.25)',
-              }}
-            >S</div>
+            <div className="w-11 h-11 flex items-center justify-center flex-shrink-0" aria-label="Sellora">
+              <svg viewBox="0 0 48 56" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="sLogoGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#c084fc" />
+                    <stop offset="55%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#6d28d9" />
+                  </linearGradient>
+                </defs>
+                {/* Shopping bag handle */}
+                <path d="M14 16 C14 7, 34 7, 34 16" stroke="url(#sLogoGrad)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+                {/* Stylized S */}
+                <path d="M37 22 C37 17, 31 14, 24 14 C16 14, 11 18, 11 24 C11 30, 17 32, 24 33 C31 34, 37 36, 37 42 C37 48, 31 52, 23 52 C15 52, 10 49, 9 43"
+                  stroke="url(#sLogoGrad)" strokeWidth="6.5" strokeLinecap="round" fill="none" />
+              </svg>
+            </div>
             <div
               className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{
