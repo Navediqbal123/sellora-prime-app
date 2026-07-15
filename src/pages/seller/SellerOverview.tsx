@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   Package, Eye, MousePointer, TrendingUp, ArrowUpRight, ArrowRight,
   ShoppingBag, IndianRupee, Clock, CheckCircle2, MoreVertical, ChevronDown, Store,
-  ChevronRight, Percent, Calendar,
+  ChevronRight, Percent, Calendar, ArrowLeft,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ViewsLineChart, ClicksBarChart } from '@/components/seller/SellerAnalyticsCharts';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +28,7 @@ const Sparkline: React.FC<{ color: string; seed?: number }> = ({ color, seed = 5
 
 const SellerOverview = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data, loading } = useSellerAnalytics();
   const [shopName, setShopName] = useState('');
   const [ownerName, setOwnerName] = useState('');
@@ -88,19 +90,6 @@ const SellerOverview = () => {
       toast({ title: 'Could not update status', variant: 'destructive' });
     }
   };
-
-  if (loading) {
-    return (
-      <div className="px-4 py-5 space-y-5" style={{ background: '#0a0613', minHeight: '100vh' }}>
-        <Skeleton className="h-12 w-full mb-2" />
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-2xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   const stats = [
     {
