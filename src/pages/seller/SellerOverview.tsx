@@ -136,6 +136,16 @@ const SellerOverview = () => {
   return (
     <div className="min-h-screen" style={{ background: '#0a0613', color: '#fff' }}>
       <div className="px-4 py-5 space-y-6 max-w-7xl mx-auto lg:px-8 lg:py-8">
+        {/* BACK */}
+        <button
+          onClick={() => navigate('/profile')}
+          className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors -mb-2"
+          aria-label="Back to Profile"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+
         {/* HEADER */}
         <header className="flex items-center justify-between gap-2 animate-fade-in">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
