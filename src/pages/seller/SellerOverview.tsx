@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Package, Eye, MousePointer, TrendingUp, ArrowUpRight, ArrowRight,
-  ShoppingBag, IndianRupee, Clock, CheckCircle2, MoreVertical, ChevronDown, Store,
-  ChevronRight, Percent, Calendar, ArrowLeft,
+  Package, ArrowUpRight, ArrowRight, ArrowLeft, ShoppingBag, IndianRupee,
+  Users, Bell, ChevronDown, Store, Sparkles, Plus, Target, ShoppingCart,
+  Eye, Heart, MousePointer, Star, XCircle, Trophy,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ViewsLineChart, ClicksBarChart } from '@/components/seller/SellerAnalyticsCharts';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -29,7 +27,7 @@ const Sparkline: React.FC<{ color: string; seed?: number }> = ({ color, seed = 5
 const SellerOverview = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data, loading } = useSellerAnalytics();
+  const { data } = useSellerAnalytics();
   const [shopName, setShopName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [sellerId, setSellerId] = useState<string | null>(null);
@@ -91,325 +89,311 @@ const SellerOverview = () => {
     }
   };
 
-  const stats = [
-    {
-      label: 'Total Products', value: data.totalProducts, icon: Package, pct: '+12.5%',
-      numColor: '#c084fc',
-      iconGrad: 'linear-gradient(135deg,#a855f7,#7C3AED)',
-      cardGrad: 'linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(124,58,237,0.04) 60%, rgba(255,255,255,0.02) 100%)',
-      glow: 'rgba(124,58,237,0.35)',
-      borderC: 'rgba(124,58,237,0.35)',
-    },
-    {
-      label: 'Total Views', value: data.totalViews, icon: Eye, pct: '+18.7%',
-      numColor: '#60a5fa',
-      iconGrad: 'linear-gradient(135deg,#60a5fa,#1d4ed8)',
-      cardGrad: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.04) 60%, rgba(255,255,255,0.02) 100%)',
-      glow: 'rgba(59,130,246,0.35)',
-      borderC: 'rgba(59,130,246,0.35)',
-    },
-    {
-      label: 'Total Clicks', value: data.totalClicks, icon: MousePointer, pct: '+14.3%',
-      numColor: '#fb923c',
-      iconGrad: 'linear-gradient(135deg,#fb923c,#c2410c)',
-      cardGrad: 'linear-gradient(135deg, rgba(249,115,22,0.18) 0%, rgba(249,115,22,0.04) 60%, rgba(255,255,255,0.02) 100%)',
-      glow: 'rgba(249,115,22,0.35)',
-      borderC: 'rgba(249,115,22,0.35)',
-    },
-    {
-      label: 'Conversion Rate', value: `${data.conversionRate}%`, icon: Percent, pct: '+5.6%',
-      numColor: '#5eead4',
-      iconGrad: 'linear-gradient(135deg,#2dd4bf,#0f766e)',
-      cardGrad: 'linear-gradient(135deg, rgba(20,184,166,0.18) 0%, rgba(20,184,166,0.04) 60%, rgba(255,255,255,0.02) 100%)',
-      glow: 'rgba(20,184,166,0.35)',
-      borderC: 'rgba(20,184,166,0.35)',
-    },
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+
+  const summary = [
+    { label: 'Orders', value: earnings.orders, delta: '+8%', icon: ShoppingBag, tint: '#7C3AED' },
+    { label: 'Revenue', value: `₹${earnings.total.toLocaleString()}`, delta: '+12%', icon: IndianRupee, tint: '#059669' },
+    { label: 'Products', value: data.totalProducts, delta: '+5%', icon: Package, tint: '#2563eb' },
+    { label: 'Visitors', value: data.totalViews, delta: '+9%', icon: Users, tint: '#f59e0b' },
   ];
 
-  const earnCards = [
-    { label: 'Total Earnings', value: `₹${earnings.total.toLocaleString()}`, icon: IndianRupee, pct: '+18%', color: '#a78bfa', bg: 'rgba(124,58,237,0.12)' },
-    { label: 'Total Orders', value: earnings.orders, icon: ShoppingBag, pct: '+9%', color: '#60a5fa', bg: 'rgba(59,130,246,0.12)' },
-    { label: 'Pending', value: `₹${earnings.pending.toLocaleString()}`, icon: Clock, pct: '+3%', color: '#fb923c', bg: 'rgba(249,115,22,0.12)' },
-    { label: 'Completed', value: earnings.completed, icon: CheckCircle2, pct: '+22%', color: '#34d399', bg: 'rgba(16,185,129,0.12)' },
+  // Goal Progress — orders vs target of 30 this month
+  const target = 30;
+  const progress = Math.min(100, Math.round((earnings.orders / target) * 100));
+
+  // Sample activity items (feature same, UI redesign)
+  const activities = [
+    { name: 'Rahul Sharma', action: 'placed an order', product: 'Smart Watch Pro', time: '2 min ago', icon: ShoppingCart, color: '#7C3AED' },
+    { name: 'Priya Patel', action: 'viewed', product: 'Wireless Headphones', time: '5 min ago', icon: Eye, color: '#2563eb' },
+    { name: 'Amit Verma', action: 'added to wishlist', product: 'Gaming Mouse', time: '8 min ago', icon: Heart, color: '#db2777' },
+    { name: 'Sneha Reddy', action: 'clicked on', product: 'Bluetooth Speaker', time: '10 min ago', icon: MousePointer, color: '#f59e0b' },
+    { name: 'Karan Mehta', action: 'rated', product: 'USB-C Cable', time: '15 min ago', icon: Star, color: '#eab308' },
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0613', color: '#fff' }}>
-      <div className="px-4 py-5 space-y-6 max-w-7xl mx-auto lg:px-8 lg:py-8">
-        {/* BACK */}
+    <div className="min-h-screen" style={{ background: '#ffffff', color: '#0f172a' }}>
+      <div className="px-4 pt-4 pb-6 space-y-5 max-w-3xl mx-auto lg:px-6 lg:pt-6">
+        {/* Back */}
         <button
           onClick={() => navigate('/profile')}
-          className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors -mb-2"
-          aria-label="Back to Profile"
+          className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Back</span>
         </button>
 
-        {/* HEADER */}
-        <header className="flex items-center justify-between gap-2 animate-fade-in">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            {/* Sellora S logo — filled gradient tile with bold S */}
-            <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg,#c084fc 0%,#a855f7 45%,#6d28d9 100%)',
-                boxShadow: '0 10px 24px -8px rgba(124,58,237,0.8), inset 0 1px 0 rgba(255,255,255,0.35)',
-              }}
-              aria-label="Sellora"
-            >
-              <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M24 9.5 C22 7.5 19 6.5 16 6.5 C11 6.5 7.5 9 7.5 12.5 C7.5 16 11 17 16 17.8 C21 18.6 24.5 19.6 24.5 23.2 C24.5 26.7 21 29 16 29 C12.5 29 9.5 28 7.5 26"
-                  stroke="#ffffff"
-                  strokeWidth="3.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-[15px] font-bold truncate leading-tight">{shopName || 'My Shop'}</h1>
-              <p className="text-[10.5px] text-white/50 leading-tight">Sellora Seller Hub</p>
-            </div>
+        {/* HEADER — logo + shop name + toggle + notif + filter */}
+        <header className="flex items-center gap-3 animate-fade-in">
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg,#c084fc 0%,#a855f7 45%,#6d28d9 100%)',
+              boxShadow: '0 10px 24px -8px rgba(124,58,237,0.55)',
+            }}
+          >
+            <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+              <path
+                d="M24 9.5 C22 7.5 19 6.5 16 6.5 C11 6.5 7.5 9 7.5 12.5 C7.5 16 11 17 16 17.8 C21 18.6 24.5 19.6 24.5 23.2 C24.5 26.7 21 29 16 29 C12.5 29 9.5 28 7.5 26"
+                stroke="#ffffff" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[15px] font-bold truncate leading-tight text-slate-900">{shopName || 'My Shop'}</h1>
+            <p className="text-[11px] text-slate-500 leading-tight">Sellora Seller Hub</p>
           </div>
 
-          {/* Shop Live toggle */}
+          {/* Shop Live pill */}
           <button
             onClick={toggleLive}
-            className="flex items-center gap-2 pl-2.5 pr-1.5 py-1.5 rounded-full border transition-all flex-shrink-0"
+            className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full border transition-all flex-shrink-0"
             style={{
-              background: isLive ? 'rgba(16,185,129,0.10)' : 'rgba(255,255,255,0.04)',
-              borderColor: isLive ? 'rgba(16,185,129,0.45)' : 'rgba(255,255,255,0.1)',
-              boxShadow: isLive ? '0 0 24px -4px rgba(16,185,129,0.45)' : 'none',
+              background: isLive ? 'rgba(16,185,129,0.08)' : '#f8fafc',
+              borderColor: isLive ? 'rgba(16,185,129,0.35)' : '#e2e8f0',
             }}
+            aria-label="Toggle shop live"
           >
             <span
               className="w-1.5 h-1.5 rounded-full"
-              style={{
-                background: isLive ? '#10b981' : '#6b7280',
-                boxShadow: isLive ? '0 0 10px 2px rgba(16,185,129,0.85)' : 'none',
-              }}
+              style={{ background: isLive ? '#10b981' : '#94a3b8', boxShadow: isLive ? '0 0 8px 1px rgba(16,185,129,0.6)' : 'none' }}
             />
-            <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: isLive ? '#6ee7b7' : 'rgba(255,255,255,0.5)' }}>
-              {isLive ? 'Shop Live' : 'Paused'}
+            <span className="text-[10px] font-bold" style={{ color: isLive ? '#059669' : '#64748b' }}>
+              {isLive ? 'Live' : 'Paused'}
             </span>
             <span
-              className="relative w-9 h-5 rounded-full transition-all flex-shrink-0"
-              style={{ background: isLive ? '#10b981' : 'rgba(255,255,255,0.15)' }}
+              className="relative w-7 h-4 rounded-full transition-all"
+              style={{ background: isLive ? '#10b981' : '#cbd5e1' }}
             >
               <span
-                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow"
-                style={{ left: isLive ? 'calc(100% - 18px)' : '2px' }}
+                className="absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all"
+                style={{ left: isLive ? 'calc(100% - 14px)' : '2px' }}
               />
             </span>
           </button>
+
+          <button
+            className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4 h-4 text-slate-700" />
+          </button>
         </header>
 
-        {/* WELCOME */}
-        <section className="flex items-start justify-between gap-3 animate-fade-in">
+        {/* Greeting */}
+        <section className="flex items-end justify-between gap-3 animate-fade-in">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold leading-tight">
-              Welcome back, {ownerName?.split(' ')[0] || 'Seller'}! <span className="inline-block">👋</span>
+            <h2 className="text-[22px] font-bold leading-tight text-slate-900">
+              {greeting}, {ownerName?.split(' ')[0] || 'Seller'}! <span>👋</span>
             </h2>
-            <p className="text-xs text-white/50 mt-1">Here's what's happening with your store today.</p>
+            <p className="text-[13px] text-slate-500 mt-1">Let's grow your business today.</p>
           </div>
           <div className="relative shrink-0">
-            <Calendar className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/60" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="appearance-none pl-8 pr-8 py-2.5 text-xs rounded-xl border bg-white/[0.04] text-white outline-none cursor-pointer"
-              style={{ borderColor: 'rgba(255,255,255,0.12)' }}
+              className="appearance-none pl-3 pr-7 py-2 text-[11px] font-semibold rounded-xl border bg-white text-slate-700 outline-none cursor-pointer"
+              style={{ borderColor: '#e2e8f0' }}
             >
               <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="year">This Year</option>
             </select>
-            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-white/60" />
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500" />
           </div>
         </section>
 
-        {/* STATS 2x2 */}
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4 animate-fade-in">
-          {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className="relative overflow-hidden rounded-2xl p-4 border transition-transform hover:-translate-y-0.5"
-              style={{
-                background: s.cardGrad,
-                borderColor: s.borderC,
-                boxShadow: `0 14px 40px -18px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.05)`,
-                animationDelay: `${i * 60}ms`,
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{
-                    background: s.iconGrad,
-                    boxShadow: `0 8px 22px -6px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                  }}
-                >
-                  <s.icon className="w-6 h-6 text-white" strokeWidth={2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-medium text-white/70 truncate">{s.label}</p>
-                  <p className="mt-1 text-[34px] leading-none font-black tracking-tight" style={{ color: s.numColor }}>
-                    {typeof s.value === 'number' ? s.value.toLocaleString() : s.value}
-                  </p>
-                </div>
+        {/* GOAL PROGRESS CARD */}
+        <section
+          className="relative overflow-hidden rounded-[26px] p-5 animate-fade-in"
+          style={{
+            background: 'linear-gradient(135deg,#7C3AED 0%,#8b5cf6 45%,#a855f7 100%)',
+            boxShadow: '0 20px 40px -18px rgba(124,58,237,0.55)',
+          }}
+        >
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                <Target className="w-3 h-3 text-white" />
+                <span className="text-[10px] font-bold text-white">Monthly Goal</span>
               </div>
-              <div className="flex items-center justify-between mt-3">
-                <div className="min-w-0">
-                  <span
-                    className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
-                    style={{ background: 'rgba(16,185,129,0.14)', color: '#6ee7b7', border: '1px solid rgba(16,185,129,0.35)' }}
-                  >
-                    <ArrowUpRight className="w-3 h-3" /> {s.pct}
-                  </span>
-                  <p className="text-[10px] text-white/50 mt-1">vs last week</p>
-                </div>
-                <button
-                  className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.borderC}`, color: s.numColor }}
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <h3 className="text-white font-bold text-[17px] mt-2 leading-tight">
+                Let's achieve your goal <span>🎯</span>
+              </h3>
+              <p className="text-[11.5px] text-white/85 mt-1">
+                {earnings.orders} of {target} orders. You're doing great — keep it up!
+              </p>
             </div>
-          ))}
+            <div className="flex-shrink-0 text-right">
+              <p className="text-white font-black text-[34px] leading-none tracking-tight">{progress}%</p>
+              <p className="text-[10px] text-white/80 font-semibold mt-1">Goal Progress</p>
+            </div>
+          </div>
+          <div className="relative z-10 mt-4 h-2 rounded-full bg-white/25 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-white transition-all"
+              style={{ width: `${progress}%`, boxShadow: '0 0 12px rgba(255,255,255,0.6)' }}
+            />
+          </div>
+          {/* Decorative circles */}
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-white/10" />
+          <div className="absolute -right-2 -top-6 w-20 h-20 rounded-full bg-white/10" />
         </section>
 
-        {/* EARNINGS OVERVIEW */}
+        {/* TODAY AT A GLANCE — 4 mini cards */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold flex items-center gap-2">
-              <IndianRupee className="w-4 h-4" style={{ color: '#a78bfa' }} />
-              Earnings Overview
-            </h3>
-            <button className="text-[11px] text-white/50 hover:text-white flex items-center gap-1">
-              See all <ArrowRight className="w-3 h-3" />
-            </button>
+            <h3 className="text-[13px] font-bold text-slate-900">Today at a glance</h3>
           </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {earnCards.map((c, i) => (
+          <div className="grid grid-cols-2 gap-3">
+            {summary.map((s, i) => (
               <div
-                key={c.label}
-                className="rounded-2xl p-3 border"
+                key={s.label}
+                className="rounded-2xl bg-white border p-4 transition-all hover:-translate-y-0.5"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: '#f1f5f9',
+                  boxShadow: '0 4px 16px -8px rgba(15,23,42,0.08)',
+                  animation: `fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both`,
+                  animationDelay: `${i * 50}ms`,
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: c.bg }}>
-                    <c.icon className="w-4 h-4" style={{ color: c.color }} />
-                  </div>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }}>
-                    {c.pct}
-                  </span>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: s.tint + '15' }}
+                >
+                  <s.icon className="w-[18px] h-[18px]" style={{ color: s.tint }} strokeWidth={2.2} />
                 </div>
-                <p className="mt-2 text-lg font-bold text-white tracking-tight">{c.value}</p>
-                <p className="text-[10px] text-white/50">{c.label}</p>
-                <Sparkline color={c.color} seed={i + 1} />
+                <p className="text-[11px] text-slate-500 font-medium mt-3">{s.label}</p>
+                <p className="text-[22px] font-black text-slate-900 leading-tight tracking-tight">
+                  {typeof s.value === 'number' ? s.value.toLocaleString() : s.value}
+                </p>
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 mt-1">
+                  <ArrowUpRight className="w-3 h-3" /> {s.delta}
+                </span>
               </div>
             ))}
           </div>
         </section>
 
-        {/* CHARTS */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div
-            className="rounded-2xl p-4 border"
-            style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.08)' }}
-          >
-            <h3 className="text-sm font-bold mb-2">Views Over Time</h3>
-            <ViewsLineChart data={data.viewsOverTime} loading={false} />
+        {/* NEW ACTIVITY */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[13px] font-bold text-slate-900">New Activity</h3>
+            <button
+              onClick={() => navigate('/seller/insights')}
+              className="text-[11px] font-semibold flex items-center gap-1"
+              style={{ color: PURPLE }}
+            >
+              View All <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
           <div
-            className="rounded-2xl p-4 border"
-            style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.08)' }}
+            className="rounded-2xl bg-white border overflow-hidden"
+            style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}
           >
-            <h3 className="text-sm font-bold mb-2">Clicks Per Product</h3>
-            <ClicksBarChart data={data.clicksPerProduct} loading={false} />
+            {activities.slice(0, 4).map((a, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0"
+                style={{
+                  borderColor: '#f1f5f9',
+                  animation: `fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both`,
+                  animationDelay: `${i * 40}ms`,
+                }}
+              >
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: a.color + '18' }}
+                >
+                  <a.icon className="w-[16px] h-[16px]" style={{ color: a.color }} strokeWidth={2.2} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] leading-tight text-slate-900">
+                    <span className="font-semibold">{a.name}</span>{' '}
+                    <span className="text-slate-500">{a.action}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.product}</p>
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">{a.time}</span>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* RECENT PRODUCTS */}
+        {/* RECENT ORDERS PREVIEW */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold flex items-center gap-2">
-              <Package className="w-4 h-4" style={{ color: '#a78bfa' }} />
-              Recent Products
-            </h3>
-            <button className="text-[11px] text-white/50 hover:text-white flex items-center gap-1">
-              View all <ArrowRight className="w-3 h-3" />
+            <h3 className="text-[13px] font-bold text-slate-900">Recent Orders</h3>
+            <button
+              onClick={() => navigate('/seller/orders')}
+              className="text-[11px] font-semibold flex items-center gap-1"
+              style={{ color: PURPLE }}
+            >
+              See all <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
           {data.products.length === 0 ? (
             <div
-              className="rounded-2xl p-8 border text-center text-sm text-white/50"
-              style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.08)' }}
+              className="rounded-2xl bg-white border p-8 text-center text-sm text-slate-500"
+              style={{ borderColor: '#f1f5f9' }}
             >
-              No products yet. Add your first product to get started!
+              <Store className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              No orders yet. Share your shop link to get started!
             </div>
           ) : (
-            <div className="space-y-2">
-              {data.products.slice(0, 5).map((p: any) => {
-                const stock = p.stock ?? p.quantity ?? 10;
-                const lowStock = stock < 5;
-                return (
+            <div className="space-y-2.5">
+              {data.products.slice(0, 3).map((p: any, i) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white border transition-all hover:border-slate-200"
+                  style={{
+                    borderColor: '#f1f5f9',
+                    boxShadow: '0 2px 10px -6px rgba(15,23,42,0.06)',
+                    animation: `fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both`,
+                    animationDelay: `${i * 40}ms`,
+                  }}
+                >
                   <div
-                    key={p.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl border transition-all hover:border-[rgba(124,58,237,0.4)]"
-                    style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.08)' }}
+                    className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100"
                   >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      {p.image_url ? (
-                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Store className="w-5 h-5 text-white/30" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-white truncate">{p.title}</p>
-                        <span
-                          className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                          style={
-                            lowStock
-                              ? { background: 'rgba(249,115,22,0.18)', color: '#fdba74' }
-                              : { background: 'rgba(16,185,129,0.18)', color: '#6ee7b7' }
-                          }
-                        >
-                          {lowStock ? 'Low Stock' : 'Active'}
-                        </span>
+                    {p.image_url ? (
+                      <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-5 h-5 text-slate-300" />
                       </div>
-                      <p className="text-xs font-bold mt-0.5" style={{ color: '#a78bfa' }}>
-                        ₹{Number(p.price || 0).toLocaleString()}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-white/50">
-                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{p.views || 0}</span>
-                        <span className="flex items-center gap-1"><MousePointer className="w-3 h-3" />{p.clicks || 0}</span>
-                        <span className="flex items-center gap-1"><ShoppingBag className="w-3 h-3" />{p.orders_count || 0}</span>
-                      </div>
-                    </div>
-
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                    )}
                   </div>
-                );
-              })}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13.5px] font-semibold text-slate-900 truncate">{p.title}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {p.views || 0} views · {p.clicks || 0} clicks
+                    </p>
+                  </div>
+                  <p className="text-[14px] font-bold flex-shrink-0" style={{ color: PURPLE }}>
+                    ₹{Number(p.price || 0).toLocaleString()}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
         </section>
+
+        {/* QUICK ADD PRODUCT */}
+        <button
+          onClick={() => navigate('/seller/add-product')}
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-bold text-[14px] active:scale-[0.98] transition-transform"
+          style={{
+            background: 'linear-gradient(135deg,#7C3AED,#6d28d9)',
+            boxShadow: '0 14px 30px -10px rgba(124,58,237,0.55)',
+          }}
+        >
+          <Plus className="w-5 h-5" strokeWidth={2.6} />
+          Quick Add Product
+        </button>
       </div>
     </div>
   );

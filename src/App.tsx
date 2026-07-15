@@ -39,6 +39,7 @@ import SellerAnalytics from "./pages/seller/SellerAnalytics";
 import SellerOrders from "./pages/seller/SellerOrders";
 import SellerMessages from "./pages/seller/SellerMessages";
 import SellerSalesHistory from "./pages/seller/SellerSalesHistory";
+import SellerInsights from "./pages/seller/SellerInsights";
 
 const queryClient = new QueryClient();
 
@@ -150,6 +151,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<SellerOrders />} />
         <Route path="messages" element={<SellerMessages />} />
         <Route path="analytics" element={<SellerAnalytics />} />
+        <Route path="insights" element={<SellerInsights />} />
         <Route path="sales-history" element={<SellerSalesHistory />} />
       </Route>
 
