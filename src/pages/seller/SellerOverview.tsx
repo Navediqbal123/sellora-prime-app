@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   Package, Eye, MousePointer, TrendingUp, ArrowUpRight, ArrowRight,
   ShoppingBag, IndianRupee, Clock, CheckCircle2, MoreVertical, ChevronDown, Store,
-  ChevronRight, Percent, Calendar,
+  ChevronRight, Percent, Calendar, ArrowLeft,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ViewsLineChart, ClicksBarChart } from '@/components/seller/SellerAnalyticsCharts';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +28,7 @@ const Sparkline: React.FC<{ color: string; seed?: number }> = ({ color, seed = 5
 
 const SellerOverview = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data, loading } = useSellerAnalytics();
   const [shopName, setShopName] = useState('');
   const [ownerName, setOwnerName] = useState('');
@@ -89,19 +91,6 @@ const SellerOverview = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="px-4 py-5 space-y-5" style={{ background: '#0a0613', minHeight: '100vh' }}>
-        <Skeleton className="h-12 w-full mb-2" />
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-2xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const stats = [
     {
       label: 'Total Products', value: data.totalProducts, icon: Package, pct: '+12.5%',
@@ -147,6 +136,16 @@ const SellerOverview = () => {
   return (
     <div className="min-h-screen" style={{ background: '#0a0613', color: '#fff' }}>
       <div className="px-4 py-5 space-y-6 max-w-7xl mx-auto lg:px-8 lg:py-8">
+        {/* BACK */}
+        <button
+          onClick={() => navigate('/profile')}
+          className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors -mb-2"
+          aria-label="Back to Profile"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+
         {/* HEADER */}
         <header className="flex items-center justify-between gap-2 animate-fade-in">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
