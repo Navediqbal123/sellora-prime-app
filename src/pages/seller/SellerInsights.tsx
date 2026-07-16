@@ -399,6 +399,54 @@ const SellerInsights: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* INSIGHTS-ONLY BOTTOM NAVIGATION */}
+      <nav
+        className="fixed bottom-0 inset-x-0 z-40"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div
+          className="mx-3 mb-3 rounded-[28px] border bg-white animate-fade-in"
+          style={{
+            borderColor: 'rgba(15,23,42,0.06)',
+            boxShadow:
+              '0 20px 50px -20px rgba(15,23,42,0.25), 0 8px 20px -12px rgba(124,58,237,0.15)',
+          }}
+        >
+          <div className="flex items-stretch h-[72px] px-1">
+            {TABS.map((t) => {
+              const active = tab === t.key;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className="relative flex flex-col items-center justify-center flex-1 h-full active:scale-95 transition-transform"
+                >
+                  <div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all"
+                    style={{
+                      background: active ? 'rgba(124,58,237,0.10)' : 'transparent',
+                    }}
+                  >
+                    <Icon
+                      className="w-[22px] h-[22px]"
+                      strokeWidth={active ? 2.4 : 1.9}
+                      style={{ color: active ? PURPLE : '#6b7280' }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10.5px] font-semibold leading-none mt-0.5"
+                    style={{ color: active ? PURPLE : '#6b7280' }}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
     </div>
   );
 };
