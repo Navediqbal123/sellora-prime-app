@@ -100,7 +100,7 @@ const ProfilePage = () => {
     { icon: ShoppingBag, label: 'Orders', value: stats.orders },
     { icon: Heart, label: 'Wishlist', value: stats.wishlist },
     { icon: Star, label: 'Reviews', value: stats.reviews },
-    { icon: Ticket, label: 'Coupons', value: stats.coupons },
+    { icon: TicketPercent, label: 'Coupons', value: stats.coupons },
   ];
 
   const orderStatuses = [
@@ -132,7 +132,7 @@ const ProfilePage = () => {
     sellerItem,
     { icon: MapPin, label: 'My Addresses', onClick: () => navigate('/profile/addresses') },
     { icon: CreditCard, label: 'Payment Methods', onClick: () => navigate('/profile/payment-methods') },
-    { icon: Ticket, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
+    { icon: TicketPercent, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
     { icon: Bell, label: 'Notifications', onClick: () => navigate('/profile/notifications') },
     { icon: HelpCircle, label: 'Help Center', onClick: () => navigate('/profile/help') },
     { icon: LogOut, label: 'Logout', onClick: handleLogout, danger: true },
