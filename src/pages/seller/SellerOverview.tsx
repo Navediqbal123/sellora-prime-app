@@ -79,9 +79,36 @@ const SellerOverview = () => {
     const next = !isLive;
     setIsLive(next);
     try {
-      await supabase.from('sellers')
-        .update({ status: next ? 'approved' : 'paused' })
-        .eq('user_id', user!.id);
+      // SECURITY: Never allow a client to promote itself to 'approved'.
+      // Only allow toggling between an already-approved shop and 'paused'.
+      const { data: current, error: readErr } = await supabase
+        .from('sellers')
+        .select('status')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (readErr) throw readErr;
+
+      const currentStatus = current?.status;
+      const canToggle = currentStatus === 'approved' || currentStatus === 'paused';
+      if (!canToggle) {
+        setIsLive(!next);
+        toast({
+          title: 'Not approved yet',
+          description: 'Your shop must be approved by an admin before it can go live.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Only allow the approved <-> paused transition from the client.
+      const nextStatus = next ? 'approved' : 'paused';
+      const { error: updErr } = await supabase
+        .from('sellers')
+        .update({ status: nextStatus })
+        .eq('user_id', user!.id)
+        .in('status', ['approved', 'paused']);
+      if (updErr) throw updErr;
+
       toast({ title: next ? 'Shop is Live ✨' : 'Shop Paused', description: next ? 'Buyers can now see your shop.' : 'Your shop is temporarily hidden.' });
     } catch (e) {
       setIsLive(!next);
