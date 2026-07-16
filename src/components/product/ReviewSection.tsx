@@ -91,11 +91,13 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ productId, sellerId }) =>
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, full_name, email')
+          // SECURITY: never expose reviewer email addresses to product viewers.
+          // Fetch only the public display name.
+          .select('id, full_name')
           .in('id', userIds);
 
         (profiles || []).forEach((p: any) => {
-          nameMap[p.id] = p.full_name || p.email?.split('@')[0] || 'User';
+          nameMap[p.id] = p.full_name || 'User';
         });
       }
 
