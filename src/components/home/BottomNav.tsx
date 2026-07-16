@@ -2,6 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, LayoutGrid, Heart, ShoppingBag, User } from 'lucide-react';
 
+const PURPLE = '#7C3AED';
+
 const items = [
   { id: 'home', label: 'Home', icon: Home, path: '/' },
   { id: 'categories', label: 'Categories', icon: LayoutGrid, path: '/categories' },
@@ -15,47 +17,52 @@ const BottomNav: React.FC = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    const base = path.split('?')[0];
-    if (base === '/') return location.pathname === '/';
-    return location.pathname.startsWith(base);
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
   };
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 md:hidden
-                 bg-background/85 backdrop-blur-xl border-t border-border/60
-                 pb-[env(safe-area-inset-bottom)]"
-    >
-      <div className="flex items-center justify-around h-[72px] px-2">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.path);
-          return (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full group"
-              aria-label={item.label}
-            >
-              {active && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
-              )}
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300
-                  ${active
-                    ? 'bg-primary/15 text-primary scale-105'
-                    : 'text-muted-foreground group-active:scale-95'}`}
+    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden pointer-events-none pb-[calc(env(safe-area-inset-bottom)+12px)] px-4">
+      <nav
+        className="pointer-events-auto mx-auto max-w-md rounded-[28px] bg-white border border-black/5"
+        style={{
+          boxShadow:
+            '0 20px 40px -12px rgba(15, 15, 25, 0.18), 0 8px 16px -8px rgba(15, 15, 25, 0.08)',
+        }}
+        aria-label="Primary"
+      >
+        <div className="flex items-center justify-around h-[68px] px-2">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigate(item.path)}
+                className="relative flex flex-col items-center justify-center gap-1 flex-1 h-full outline-none focus-visible:ring-0 transition-transform active:scale-[0.94]"
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
               >
-                <Icon className={`w-[26px] h-[26px] ${active ? 'fill-primary/20' : ''}`} strokeWidth={active ? 2.5 : 2} />
-              </div>
-              <span className={`text-[11.5px] font-medium leading-none ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+                <Icon
+                  className="w-[24px] h-[24px] transition-colors duration-300"
+                  strokeWidth={2}
+                  style={{ color: active ? PURPLE : '#111214' }}
+                />
+                <span
+                  className="text-[11px] leading-none tracking-tight transition-colors duration-300"
+                  style={{
+                    color: active ? PURPLE : '#4B5563',
+                    fontWeight: active ? 600 : 500,
+                  }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
   );
 };
 
