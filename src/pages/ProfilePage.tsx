@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import {
   ShoppingBag,
   Heart,
   Star,
-  Ticket,
+  TicketPercent,
   Clock,
   Truck,
   PackageCheck,
@@ -22,7 +21,12 @@ import {
   Pencil,
   Store,
   LayoutDashboard,
+  Camera,
 } from 'lucide-react';
+
+const PURPLE = '#7C3AED';
+const CARD_SHADOW =
+  '0 1px 2px rgba(15,15,25,0.04), 0 8px 24px -12px rgba(15,15,25,0.08)';
 
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
@@ -96,7 +100,7 @@ const ProfilePage = () => {
     { icon: ShoppingBag, label: 'Orders', value: stats.orders },
     { icon: Heart, label: 'Wishlist', value: stats.wishlist },
     { icon: Star, label: 'Reviews', value: stats.reviews },
-    { icon: Ticket, label: 'Coupons', value: stats.coupons },
+    { icon: TicketPercent, label: 'Coupons', value: stats.coupons },
   ];
 
   const orderStatuses = [
@@ -128,7 +132,7 @@ const ProfilePage = () => {
     sellerItem,
     { icon: MapPin, label: 'My Addresses', onClick: () => navigate('/profile/addresses') },
     { icon: CreditCard, label: 'Payment Methods', onClick: () => navigate('/profile/payment-methods') },
-    { icon: Ticket, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
+    { icon: TicketPercent, label: 'My Coupons', onClick: () => navigate('/profile/coupons') },
     { icon: Bell, label: 'Notifications', onClick: () => navigate('/profile/notifications') },
     { icon: HelpCircle, label: 'Help Center', onClick: () => navigate('/profile/help') },
     { icon: LogOut, label: 'Logout', onClick: handleLogout, danger: true },
@@ -142,54 +146,97 @@ const ProfilePage = () => {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-2xl mx-auto px-4 pt-4">
-        {/* Header card */}
-        <div className="card-premium p-6 animate-fade-in-up">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-[hsl(280,80%,50%)] flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-glow overflow-hidden">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-foreground truncate">
-                {loading ? 'Loading...' : fullName}
-              </h1>
-              <p className="text-sm text-muted-foreground truncate">{email}</p>
-            </div>
-          </div>
-          <Button className="btn-glow w-full mt-5 h-11" onClick={() => navigate('/profile/edit')}>
-            <Pencil className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
+    <div className="min-h-screen pb-28" style={{ backgroundColor: '#FFFFFF', color: '#111111' }}>
+      <div className="max-w-2xl mx-auto px-5 pt-6">
+        {/* Header */}
+        <div className="mb-5 animate-fade-in-up">
+          <h1 className="text-[28px] font-bold tracking-tight" style={{ color: '#111111' }}>
+            Profile
+          </h1>
+          <p className="text-[14px] mt-1" style={{ color: '#6B7280' }}>
+            Manage your profile and preferences
+          </p>
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-4 gap-2 mt-4 animate-fade-in-up stagger-1">
+        {/* Profile card */}
+        <div
+          className="rounded-[24px] p-5 animate-fade-in-up"
+          style={{ backgroundColor: '#FFFFFF', border: '1px solid #EFEFF3', boxShadow: CARD_SHADOW }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div
+                className="w-[76px] h-[76px] rounded-full flex items-center justify-center text-xl font-bold overflow-hidden"
+                style={{ backgroundColor: '#F3F4F6', color: '#111111' }}
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </div>
+              <button
+                onClick={() => navigate('/profile/edit')}
+                aria-label="Change photo"
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center transition-transform active:scale-90"
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EAEAEE', boxShadow: '0 4px 10px rgba(15,15,25,0.08)' }}
+              >
+                <Camera size={14} style={{ color: '#111111' }} strokeWidth={2} />
+              </button>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-[19px] font-bold truncate" style={{ color: '#111111' }}>
+                {loading ? 'Loading...' : fullName}
+              </h2>
+              <p className="text-[13.5px] truncate mt-0.5" style={{ color: '#6B7280' }}>
+                {email}
+              </p>
+              <button
+                onClick={() => navigate('/profile/edit')}
+                className="mt-3 inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-[13px] font-semibold transition-all active:scale-[0.97]"
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111111' }}
+              >
+                <Pencil size={14} strokeWidth={2.25} />
+                Edit Profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-3 mt-4 animate-fade-in-up stagger-1">
           {statItems.map((s) => (
             <div
               key={s.label}
-              className="card-premium p-3 flex flex-col items-center justify-center text-center"
+              className="rounded-[20px] p-3 flex flex-col items-center justify-center text-center"
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #EFEFF3', boxShadow: CARD_SHADOW }}
             >
-              <s.icon className="w-5 h-5 text-primary mb-1.5" />
-              <span className="text-lg font-bold text-foreground leading-none">{s.value}</span>
-              <span className="text-[11px] text-muted-foreground mt-1">{s.label}</span>
+              <s.icon size={22} strokeWidth={1.75} style={{ color: '#111111' }} />
+              <span className="text-[20px] font-bold leading-none mt-2" style={{ color: '#111111' }}>
+                {s.value}
+              </span>
+              <span className="text-[11.5px] mt-1" style={{ color: '#6B7280' }}>
+                {s.label}
+              </span>
             </div>
           ))}
         </div>
 
         {/* My Orders */}
-        <div className="card-premium p-5 mt-4 animate-fade-in-up stagger-2">
+        <div
+          className="rounded-[24px] p-5 mt-4 animate-fade-in-up stagger-2"
+          style={{ backgroundColor: '#FFFFFF', border: '1px solid #EFEFF3', boxShadow: CARD_SHADOW }}
+        >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-foreground">My Orders</h2>
+            <h3 className="text-[15px] font-bold" style={{ color: '#111111' }}>
+              My Orders
+            </h3>
             <button
               onClick={() => navigate('/orders')}
-              className="text-xs text-primary font-medium hover:underline"
+              className="flex items-center gap-0.5 text-[12.5px] font-semibold"
+              style={{ color: '#6B7280' }}
             >
-              View All
+              View All <ChevronRight size={14} />
             </button>
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -197,46 +244,66 @@ const ProfilePage = () => {
               <button
                 key={o.label}
                 onClick={() => navigate('/orders')}
-                className="flex flex-col items-center p-2 rounded-lg hover:bg-secondary/60 transition-colors"
+                className="flex flex-col items-center p-2 rounded-xl transition-all active:scale-[0.96]"
               >
                 <div className="relative">
-                  <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
-                    <o.icon className={`w-5 h-5 ${o.color}`} />
-                  </div>
+                  <o.icon size={26} strokeWidth={1.75} style={{ color: '#111111' }} />
                   {o.count > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
+                    <span
+                      className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+                      style={{ backgroundColor: PURPLE, color: '#FFFFFF' }}
+                    >
                       {o.count}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-muted-foreground mt-1.5">{o.label}</span>
+                <span className="text-[11.5px] mt-2" style={{ color: '#6B7280' }}>
+                  {o.label}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Menu list */}
-        <div className="card-premium mt-4 overflow-hidden animate-fade-in-up stagger-3">
+        {/* Menu */}
+        <div
+          className="rounded-[24px] mt-4 overflow-hidden animate-fade-in-up stagger-3"
+          style={{ backgroundColor: '#FFFFFF', border: '1px solid #EFEFF3', boxShadow: CARD_SHADOW }}
+        >
           {menuItems.map((item, idx) => (
             <button
               key={item.label}
               onClick={item.onClick}
-              className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors active:bg-secondary/80 hover:bg-secondary/40 ${
-                idx !== menuItems.length - 1 ? 'border-b border-border/50' : ''
-              }`}
+              className="w-full flex items-center gap-4 px-5 py-4 text-left transition-colors active:bg-black/[0.03]"
+              style={{
+                borderBottom: idx !== menuItems.length - 1 ? '1px solid #F1F1F4' : 'none',
+              }}
             >
-              <div className="w-10 h-10 rounded-full bg-[hsl(265,40%,18%)] flex items-center justify-center flex-shrink-0">
-                <item.icon className="text-white" size={18} strokeWidth={2.25} />
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: '#F5F5F7' }}
+              >
+                <item.icon
+                  size={19}
+                  strokeWidth={2}
+                  style={{ color: item.danger ? '#DC2626' : '#111111' }}
+                />
               </div>
-              <span className="flex-1 text-sm font-medium text-white flex items-center gap-2">
+              <span
+                className="flex-1 text-[14.5px] font-semibold flex items-center gap-2"
+                style={{ color: item.danger ? '#DC2626' : '#111111' }}
+              >
                 {item.label}
                 {item.badge && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}
+                  >
                     {item.badge}
                   </span>
                 )}
               </span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <ChevronRight size={16} style={{ color: '#9CA3AF' }} />
             </button>
           ))}
         </div>
