@@ -46,7 +46,12 @@ const HomePage = () => {
       let query = supabase.from('products').select('*').order('created_at', { ascending: false });
       if (selectedCategory !== 'all') query = query.eq('category', selectedCategory);
       if (searchQuery.trim()) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        // SECURITY: escape PostgREST reserved chars in .or() (commas, parentheses,
+        // periods, backslashes) so user input can't inject additional filter clauses.
+        const escaped = searchQuery
+          .replace(/\\/g, '\\\\')
+          .replace(/([,()."])/g, '\\$1');
+        query = query.or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`);
         await supabase.from('search_logs').insert({ query: searchQuery.trim() });
       }
 
