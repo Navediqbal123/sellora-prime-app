@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ChevronDown, Eye, MousePointer, ShoppingBag, TrendingUp,
   ArrowUpRight, Search, Filter, MapPin, Star, Heart, ShoppingCart,
-  XCircle, Radio, ChevronRight, Package,
+  XCircle, Radio, ChevronRight, Package, LayoutGrid, Globe2, Activity as ActivityIcon,
 } from 'lucide-react';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
 
@@ -11,12 +11,12 @@ const PURPLE = '#7C3AED';
 
 type TabKey = 'overview' | 'products' | 'clicks' | 'activity' | 'countries';
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'overview', label: 'Overview' },
-  { key: 'products', label: 'Products' },
-  { key: 'clicks', label: 'Clicks' },
-  { key: 'activity', label: 'Activity' },
-  { key: 'countries', label: 'Countries' },
+const TABS: { key: TabKey; label: string; icon: any }[] = [
+  { key: 'overview', label: 'Overview', icon: LayoutGrid },
+  { key: 'products', label: 'Products', icon: Package },
+  { key: 'clicks', label: 'Clicks', icon: MousePointer },
+  { key: 'activity', label: 'Activity', icon: ActivityIcon },
+  { key: 'countries', label: 'Countries', icon: Globe2 },
 ];
 
 const Spark: React.FC<{ color: string; seed?: number; up?: boolean }> = ({ color, seed = 3, up = true }) => {
@@ -84,7 +84,7 @@ const SellerInsights: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ background: '#ffffff', color: '#0f172a' }}>
-      <div className="px-4 pt-4 pb-6 max-w-3xl mx-auto space-y-5">
+      <div className="px-4 pt-4 pb-32 max-w-3xl mx-auto space-y-5">
         {/* HEADER */}
         <header className="flex items-center gap-3 animate-fade-in">
           <button
@@ -128,27 +128,6 @@ const SellerInsights: React.FC = () => {
           <div className="absolute right-4 top-4 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
             <TrendingUp className="w-7 h-7 text-white" strokeWidth={2.2} />
           </div>
-        </div>
-
-        {/* TABS */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-          {TABS.map((t) => {
-            const active = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className="px-4 py-2 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all active:scale-95"
-                style={{
-                  background: active ? PURPLE : '#f1f5f9',
-                  color: active ? '#fff' : '#475569',
-                  boxShadow: active ? '0 8px 20px -8px rgba(124,58,237,0.6)' : 'none',
-                }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
         </div>
 
         {/* OVERVIEW */}
@@ -420,6 +399,54 @@ const SellerInsights: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* INSIGHTS-ONLY BOTTOM NAVIGATION */}
+      <nav
+        className="fixed bottom-0 inset-x-0 z-40"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div
+          className="mx-3 mb-3 rounded-[28px] border bg-white animate-fade-in"
+          style={{
+            borderColor: 'rgba(15,23,42,0.06)',
+            boxShadow:
+              '0 20px 50px -20px rgba(15,23,42,0.25), 0 8px 20px -12px rgba(124,58,237,0.15)',
+          }}
+        >
+          <div className="flex items-stretch h-[72px] px-1">
+            {TABS.map((t) => {
+              const active = tab === t.key;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className="relative flex flex-col items-center justify-center flex-1 h-full active:scale-95 transition-transform"
+                >
+                  <div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all"
+                    style={{
+                      background: active ? 'rgba(124,58,237,0.10)' : 'transparent',
+                    }}
+                  >
+                    <Icon
+                      className="w-[22px] h-[22px]"
+                      strokeWidth={active ? 2.4 : 1.9}
+                      style={{ color: active ? PURPLE : '#6b7280' }}
+                    />
+                  </div>
+                  <span
+                    className="text-[10.5px] font-semibold leading-none mt-0.5"
+                    style={{ color: active ? PURPLE : '#6b7280' }}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
     </div>
   );
 };
