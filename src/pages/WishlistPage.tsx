@@ -6,7 +6,7 @@ import { useWishlist } from '@/hooks/useWishlist';
 import DiscountProductCard from '@/components/home/DiscountProductCard';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
 import BottomNav from '@/components/home/BottomNav';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 const WishlistPage: React.FC = () => {
   const { user } = useAuth();
@@ -53,22 +53,13 @@ const WishlistPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: '#FFFFFF', color: '#111111' }}>
       <div className="container mx-auto px-4 pt-5 max-w-6xl">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-card border border-border/60 flex items-center justify-center"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Heart className="w-5 h-5 text-primary fill-primary/30" /> Wishlist
-            </h1>
-            <p className="text-xs text-muted-foreground">{products.length} saved items</p>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: '#111111' }}>
+            <Heart className="w-5 h-5 text-primary fill-primary/30" /> Wishlist
+          </h1>
+          <p className="text-xs text-muted-foreground">{products.length} saved items</p>
         </div>
 
         {loading ? (

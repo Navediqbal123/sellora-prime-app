@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ShoppingBag, ShoppingCart } from "lucide-react";
@@ -8,9 +8,15 @@ import NotificationBell from "@/components/NotificationBell";
 
 const MainLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const headerlessRoutes = ["/categories", "/wishlist", "/orders", "/profile"];
+  const hideHeader = headerlessRoutes.some(
+    (p) => location.pathname === p || location.pathname.startsWith(p + "/")
+  );
   return (
     <SidebarProvider defaultOpen>
       <div className="min-h-svh w-full bg-background">
+        {!hideHeader && (
         <header className="sticky top-0 z-40 h-16 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
           <div className="flex h-full items-center gap-2.5 px-3">
             <SidebarTrigger className="hover-scale h-9 w-9" />
@@ -32,8 +38,9 @@ const MainLayout = () => {
             </button>
           </div>
         </header>
+        )}
 
-        <div className="flex min-h-[calc(100svh-4rem)] w-full">
+        <div className={`flex w-full ${hideHeader ? "min-h-svh" : "min-h-[calc(100svh-4rem)]"}`}>
           <div className="animate-slide-in-left">
             <AppSidebar />
           </div>

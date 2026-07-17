@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import BottomNav from '@/components/home/BottomNav';
-import { ShoppingBag, ArrowLeft, MapPin, Copy, Check } from 'lucide-react';
+import { ShoppingBag, MapPin, Copy, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface OrderRow {
@@ -92,22 +92,13 @@ const OrdersPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: '#FFFFFF', color: '#111111' }}>
       <div className="container mx-auto px-4 pt-5 max-w-3xl">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-card border border-border/60 flex items-center justify-center"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-primary" /> My Orders
-            </h1>
-            <p className="text-xs text-muted-foreground">{orders.length} reservations</p>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: '#111111' }}>
+            <ShoppingBag className="w-5 h-5 text-primary" /> My Orders
+          </h1>
+          <p className="text-xs text-muted-foreground">{orders.length} reservations</p>
         </div>
 
         {loading ? (
