@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import BottomNav from '@/components/home/BottomNav';
 import {
   ShoppingBag,
   Heart,
@@ -308,6 +309,7 @@ const ProfilePage = () => {
           ))}
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 };
