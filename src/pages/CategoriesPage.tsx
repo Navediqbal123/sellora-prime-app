@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Smartphone, Shirt, Home as HomeIcon, Sparkles, Dumbbell,
-  Gamepad2, Car, BookOpen, ArrowLeft, Plus, Flame, Star,
+  Gamepad2, Car, BookOpen, Plus, Flame, Star,
 } from 'lucide-react';
 import { supabase, Product } from '@/lib/supabase';
 import BottomNav from '@/components/home/BottomNav';
@@ -66,21 +66,12 @@ const CategoriesPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: '#FFFFFF', color: '#111111' }}>
       <div className="container mx-auto px-4 pt-5 max-w-6xl">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-5">
-          <button
-            onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-xl bg-card border border-border/60 flex items-center justify-center hover:border-primary/40 transition"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Categories</h1>
-            <p className="text-xs text-muted-foreground">Browse by category</p>
-          </div>
+        <div className="mb-5">
+          <h1 className="text-xl font-bold" style={{ color: '#111111' }}>Categories</h1>
+          <p className="text-xs text-muted-foreground">Browse by category</p>
         </div>
 
         {/* Two-column layout: left rail + right content */}
