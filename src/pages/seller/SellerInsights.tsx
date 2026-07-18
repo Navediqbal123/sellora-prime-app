@@ -312,9 +312,9 @@ const SellerInsights: React.FC = () => {
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { l: 'Total Clicks', v: data.totalClicks.toLocaleString(), c: '#7C3AED' },
-                { l: 'Unique Users', v: '842', c: '#2563eb' },
-                { l: 'Clicks / User', v: '1.4', c: '#059669' },
+                { l: 'Total Clicks', v: insights.logs.filter((l) => String(l.action) === 'click').length.toLocaleString(), c: '#7C3AED' },
+                { l: 'Unique Users', v: customers.length.toLocaleString(), c: '#2563eb' },
+                { l: 'Clicks / User', v: customers.length ? (insights.logs.length / customers.length).toFixed(1) : '0', c: '#059669' },
               ].map((s) => (
                 <div key={s.l} className="rounded-2xl bg-white border p-3" style={{ borderColor: '#f1f5f9' }}>
                   <p className="text-[10px] text-slate-500 font-semibold">{s.l}</p>
@@ -340,11 +340,16 @@ const SellerInsights: React.FC = () => {
             </div>
 
             <div className="space-y-2.5">
-              {customers
+              {customers.length === 0 ? (
+                <div className="rounded-2xl bg-white border p-8 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                  <MousePointer className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  No customer activity yet.
+                </div>
+              ) : customers
                 .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
                 .map((c, i) => (
                   <div
-                    key={c.name}
+                    key={c.id}
                     className="rounded-2xl bg-white border p-3.5 flex items-center gap-3"
                     style={{
                       borderColor: '#f1f5f9',
@@ -357,14 +362,14 @@ const SellerInsights: React.FC = () => {
                       className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg,#a855f7,#7C3AED)' }}
                     >
-                      {c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      {initials(c.name)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[13.5px] font-semibold text-slate-900 truncate">{c.name}</p>
                       <p className="text-[11px] text-slate-500 truncate">{c.email}</p>
                       <div className="flex items-center gap-2 mt-1 text-[10.5px] text-slate-500">
                         <MapPin className="w-3 h-3" />
-                        <span>{c.city}, {c.country}</span>
+                        <span>{[c.city, c.country].filter(Boolean).join(', ') || '—'}</span>
                         {c.phone && <><span>·</span><span>{c.phone}</span></>}
                       </div>
                     </div>
@@ -394,9 +399,15 @@ const SellerInsights: React.FC = () => {
               className="rounded-2xl bg-white border overflow-hidden"
               style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}
             >
+              {activities.length === 0 && (
+                <div className="p-8 text-center text-sm text-slate-500">
+                  <ActivityIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  Waiting for activity…
+                </div>
+              )}
               {activities.map((a, i) => (
                 <div
-                  key={i}
+                  key={a.id}
                   className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0"
                   style={{
                     borderColor: '#f1f5f9',
@@ -413,9 +424,14 @@ const SellerInsights: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] leading-tight text-slate-900">
                       <span className="font-semibold">{a.name}</span>{' '}
-                      <span className="text-slate-500">{a.action}</span>
+                      <span className="text-slate-500">{a.action}</span>{' '}
+                      <span className="text-slate-900 font-medium">{a.product}</span>
                     </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.product}</p>
+                    {a.country && (
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                        {countryFlag(a.country)} {a.country}
+                      </p>
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">{a.time}</span>
                 </div>
@@ -427,6 +443,79 @@ const SellerInsights: React.FC = () => {
         {/* COUNTRIES */}
         {tab === 'countries' && (
           <div className="space-y-3 animate-fade-in">
+            {selectedCountry && selectedCountryData ? (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setSelectedCountry(null)}
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-600 hover:text-slate-900"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> All countries
+                </button>
+                <div className="rounded-2xl bg-white border p-4" style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[32px] leading-none">{countryFlag(selectedCountry)}</span>
+                    <div className="flex-1">
+                      <p className="text-[16px] font-bold text-slate-900">{selectedCountry}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {selectedCountryData.totals?.views.toLocaleString() || 0} views · {selectedCountryData.totals?.orders || 0} orders · {currencySymbol(selectedCountryData.totals?.currency)}{Number(selectedCountryData.totals?.revenue || 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">Top regions</p>
+                <div className="space-y-2">
+                  {selectedCountryData.regions.length === 0 && (
+                    <div className="rounded-2xl bg-white border p-6 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                      No regional data yet.
+                    </div>
+                  )}
+                  {selectedCountryData.regions.map((r, i) => (
+                    <div
+                      key={r.name}
+                      className="rounded-xl bg-white border p-3 flex items-center gap-3"
+                      style={{ borderColor: '#f1f5f9', animation: `fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both`, animationDelay: `${i * 30}ms` }}
+                    >
+                      <MapPin className="w-4 h-4 text-slate-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-900 truncate">{r.name}</p>
+                        <p className="text-[10.5px] text-slate-500">{r.views} views · {r.orders} orders</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+            <div className="rounded-2xl bg-white border p-3" style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}>
+              <ComposableMap projectionConfig={{ scale: 130 }} width={800} height={360} style={{ width: '100%', height: 'auto' }}>
+                <Geographies geography={WORLD_TOPO_URL}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const name = geo.properties.name as string;
+                      const match = countries.find((c) => c.name.toLowerCase() === name.toLowerCase());
+                      const intensity = match && countries[0]?.views
+                        ? Math.min(1, match.views / countries[0].views)
+                        : 0;
+                      const fill = match
+                        ? `rgba(124,58,237,${0.25 + intensity * 0.65})`
+                        : '#f1f5f9';
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          onClick={() => match && setSelectedCountry(match.name)}
+                          style={{
+                            default: { fill, stroke: '#e2e8f0', strokeWidth: 0.5, outline: 'none' },
+                            hover: { fill: match ? '#7C3AED' : '#e2e8f0', outline: 'none', cursor: match ? 'pointer' : 'default' },
+                            pressed: { fill: '#6d28d9', outline: 'none' },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ComposableMap>
+            </div>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -438,15 +527,21 @@ const SellerInsights: React.FC = () => {
               />
             </div>
             <div className="space-y-2.5">
+              {countries.length === 0 && (
+                <div className="rounded-2xl bg-white border p-8 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                  <Globe2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  No country data yet.
+                </div>
+              )}
               {countries
                 .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
                 .map((c, i) => {
-                  const max = countries[0].views;
+                  const max = countries[0]?.views || 1;
                   const pct = Math.round((c.views / max) * 100);
                   return (
                     <button
                       key={c.name}
-                      onClick={() => alert(`${c.name} details coming soon`)}
+                      onClick={() => setSelectedCountry(c.name)}
                       className="w-full text-left rounded-2xl bg-white border p-4 active:scale-[0.99] hover:border-slate-200 transition-all"
                       style={{
                         borderColor: '#f1f5f9',
@@ -460,7 +555,7 @@ const SellerInsights: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <p className="text-[14px] font-bold text-slate-900">{c.name}</p>
                           <p className="text-[10.5px] text-slate-500">
-                            {c.views.toLocaleString()} views · {c.orders} orders · ₹{c.revenue.toLocaleString()}
+                            {c.views.toLocaleString()} views · {c.orders} orders · {currencySymbol(c.currency)}{c.revenue.toLocaleString()}
                           </p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -478,6 +573,8 @@ const SellerInsights: React.FC = () => {
                   );
                 })}
             </div>
+              </>
+            )}
           </div>
         )}
       </div>
