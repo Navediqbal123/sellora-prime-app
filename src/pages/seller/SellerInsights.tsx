@@ -5,7 +5,17 @@ import {
   ArrowUpRight, Search, Filter, MapPin, Star, Heart, ShoppingCart,
   XCircle, Radio, ChevronRight, Package, LayoutGrid, Globe2, Activity as ActivityIcon,
 } from 'lucide-react';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
+import {
+  useSellerInsights,
+  countryFlag,
+  currencySymbol,
+  formatTimeAgo,
+  maskPhone,
+  initials,
+  ClickAction,
+} from '@/hooks/useSellerInsights';
 
 const PURPLE = '#7C3AED';
 
@@ -18,6 +28,20 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'activity', label: 'Activity', icon: ActivityIcon },
   { key: 'countries', label: 'Countries', icon: Globe2 },
 ];
+
+const WORLD_TOPO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+const ACTION_META: Record<string, { label: string; icon: any; color: string }> = {
+  view: { label: 'viewed', icon: Eye, color: '#2563eb' },
+  click: { label: 'clicked on', icon: MousePointer, color: '#f59e0b' },
+  wishlist: { label: 'added to wishlist', icon: Heart, color: '#db2777' },
+  order: { label: 'placed an order for', icon: ShoppingCart, color: '#7C3AED' },
+  cancel: { label: 'cancelled order for', icon: XCircle, color: '#dc2626' },
+  review: { label: 'reviewed', icon: Star, color: '#eab308' },
+};
+function actionMeta(a: string) {
+  return ACTION_META[a] || { label: a, icon: ActivityIcon, color: '#6b7280' };
+}
 
 const Spark: React.FC<{ color: string; seed?: number; up?: boolean }> = ({ color, seed = 3, up = true }) => {
   const points = Array.from({ length: 12 }, (_, i) => {
@@ -40,9 +64,11 @@ const Spark: React.FC<{ color: string; seed?: number; up?: boolean }> = ({ color
 const SellerInsights: React.FC = () => {
   const navigate = useNavigate();
   const { data } = useSellerAnalytics();
+  const insights = useSellerInsights();
   const [tab, setTab] = useState<TabKey>('overview');
   const [filter, setFilter] = useState<'week' | 'month' | 'year'>('week');
   const [search, setSearch] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   // Overview cards
   const overview = useMemo(() => ([
@@ -52,33 +78,89 @@ const SellerInsights: React.FC = () => {
     { label: 'Conversion Rate', value: `${data.conversionRate}%`, delta: '+5.6%', color: '#059669', icon: TrendingUp },
   ]), [data]);
 
-  // Sample customer clicks
-  const customers = [
-    { name: 'Rahul Sharma', email: 'rahul@example.com', phone: '+91 98••••4210', city: 'Delhi', country: 'India', product: 'Smart Watch Pro', clicks: 23, fav: 'Smart Watch Pro', time: '2 min ago' },
-    { name: 'Priya Patel', email: 'priya@example.com', phone: '+91 99••••1122', city: 'Mumbai', country: 'India', product: 'Wireless Headphones', clicks: 18, fav: 'Headphones', time: '10 min ago' },
-    { name: 'Amit Verma', email: 'amit@example.com', phone: '', city: 'Lucknow', country: 'India', product: 'Gaming Mouse', clicks: 15, fav: 'Gaming Mouse', time: '15 min ago' },
-    { name: 'Sneha Reddy', email: 'sneha@example.com', phone: '+91 90••••9988', city: 'Hyderabad', country: 'India', product: 'Bluetooth Speaker', clicks: 14, fav: 'Speaker', time: '20 min ago' },
-    { name: 'Vikram Singh', email: 'vikram@example.com', phone: '', city: 'Jaipur', country: 'India', product: 'USB-C Cable', clicks: 12, fav: 'USB Cable', time: '25 min ago' },
-  ];
+  // Real click_logs derived views
+  const activities = useMemo(() => {
+    return insights.logs.slice(0, 60).map((l) => {
+      const meta = actionMeta(String(l.action));
+      const prof = l.user_id ? insights.profiles[l.user_id] : undefined;
+      const prod = l.product_id ? insights.products[l.product_id] : undefined;
+      return {
+        id: l.id,
+        name: prof?.full_name || 'Someone',
+        action: meta.label,
+        product: prod?.title || 'a product',
+        country: l.country || prof?.country || '',
+        time: formatTimeAgo(l.created_at),
+        icon: meta.icon,
+        color: meta.color,
+      };
+    });
+  }, [insights.logs, insights.profiles, insights.products]);
 
-  const activities = [
-    { name: 'Rahul Sharma', action: 'viewed', product: 'Wireless Headphones', time: '2 min ago', icon: Eye, color: '#2563eb' },
-    { name: 'Priya Patel', action: 'clicked on', product: 'Smart Watch Pro', time: '3 min ago', icon: MousePointer, color: '#f59e0b' },
-    { name: 'Amit Verma', action: 'viewed', product: 'Gaming Mouse', time: '4 min ago', icon: Eye, color: '#2563eb' },
-    { name: 'Sneha Reddy', action: 'added to wishlist', product: 'Bluetooth Speaker', time: '5 min ago', icon: Heart, color: '#db2777' },
-    { name: 'Karan Mehta', action: 'placed an order', product: 'Smart Watch Pro', time: '8 min ago', icon: ShoppingCart, color: '#7C3AED' },
-    { name: 'Vikram Singh', action: 'reviewed', product: 'USB-C Cable', time: '10 min ago', icon: Star, color: '#eab308' },
-    { name: 'Neha Patel', action: 'cancelled order', product: 'Smart Watch Pro', time: '12 min ago', icon: XCircle, color: '#dc2626' },
-  ];
+  const customers = useMemo(() => {
+    const byUser = new Map<string, { clicks: number; last: string; profile?: any; country?: string; city?: string }>();
+    insights.logs.forEach((l) => {
+      if (!l.user_id) return;
+      const cur = byUser.get(l.user_id) || { clicks: 0, last: l.created_at };
+      cur.clicks += 1;
+      if (new Date(l.created_at) > new Date(cur.last)) cur.last = l.created_at;
+      cur.country = cur.country || l.country || undefined;
+      cur.city = cur.city || l.city || undefined;
+      cur.profile = insights.profiles[l.user_id];
+      byUser.set(l.user_id, cur);
+    });
+    return Array.from(byUser.entries())
+      .map(([uid, v]) => ({
+        id: uid,
+        name: v.profile?.full_name || 'Anonymous',
+        email: v.profile?.email || '',
+        phone: maskPhone(v.profile?.phone),
+        city: v.city || v.profile?.city || '',
+        country: v.country || v.profile?.country || '',
+        clicks: v.clicks,
+        time: formatTimeAgo(v.last),
+      }))
+      .sort((a, b) => b.clicks - a.clicks);
+  }, [insights.logs, insights.profiles]);
 
-  const countries = [
-    { name: 'India', flag: '🇮🇳', views: 8420, clicks: 980, orders: 210, revenue: 145680 },
-    { name: 'United States', flag: '🇺🇸', views: 1240, clicks: 120, orders: 24, revenue: 32450 },
-    { name: 'United Kingdom', flag: '🇬🇧', views: 780, clicks: 68, orders: 12, revenue: 18450 },
-    { name: 'UAE', flag: '🇦🇪', views: 540, clicks: 44, orders: 8, revenue: 12450 },
-    { name: 'Canada', flag: '🇨🇦', views: 420, clicks: 32, orders: 6, revenue: 8250 },
-    { name: 'Australia', flag: '🇦🇺', views: 380, clicks: 28, orders: 5, revenue: 7420 },
-  ];
+  const countries = useMemo(() => {
+    const map = new Map<string, { views: number; clicks: number; orders: number; revenue: number; currency?: string }>();
+    insights.logs.forEach((l) => {
+      const key = (l.country || 'Unknown').trim();
+      const cur = map.get(key) || { views: 0, clicks: 0, orders: 0, revenue: 0, currency: l.currency_code || undefined };
+      const act = String(l.action);
+      if (act === 'view') cur.views += 1;
+      else if (act === 'click') cur.clicks += 1;
+      else if (act === 'order') {
+        cur.orders += 1;
+        const amt = Number(l.amount ?? l.price ?? insights.products[l.product_id || '']?.price ?? 0);
+        cur.revenue += isFinite(amt) ? amt : 0;
+      }
+      if (!cur.currency && l.currency_code) cur.currency = l.currency_code;
+      map.set(key, cur);
+    });
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, flag: countryFlag(name), ...v }))
+      .sort((a, b) => b.views - a.views);
+  }, [insights.logs, insights.products]);
+
+  const selectedCountryData = useMemo(() => {
+    if (!selectedCountry) return null;
+    const logs = insights.logs.filter((l) => (l.country || 'Unknown') === selectedCountry);
+    const byRegion = new Map<string, { views: number; orders: number }>();
+    logs.forEach((l) => {
+      const key = l.state || l.city || 'Unknown';
+      const cur = byRegion.get(key) || { views: 0, orders: 0 };
+      if (String(l.action) === 'view') cur.views += 1;
+      if (String(l.action) === 'order') cur.orders += 1;
+      byRegion.set(key, cur);
+    });
+    const regions = Array.from(byRegion.entries())
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.views - a.views);
+    const totals = countries.find((c) => c.name === selectedCountry);
+    return { regions, totals };
+  }, [selectedCountry, insights.logs, countries]);
 
   const products = data.products.slice(0, 6);
 
@@ -230,9 +312,9 @@ const SellerInsights: React.FC = () => {
           <div className="space-y-4 animate-fade-in">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { l: 'Total Clicks', v: data.totalClicks.toLocaleString(), c: '#7C3AED' },
-                { l: 'Unique Users', v: '842', c: '#2563eb' },
-                { l: 'Clicks / User', v: '1.4', c: '#059669' },
+                { l: 'Total Clicks', v: insights.logs.filter((l) => String(l.action) === 'click').length.toLocaleString(), c: '#7C3AED' },
+                { l: 'Unique Users', v: customers.length.toLocaleString(), c: '#2563eb' },
+                { l: 'Clicks / User', v: customers.length ? (insights.logs.length / customers.length).toFixed(1) : '0', c: '#059669' },
               ].map((s) => (
                 <div key={s.l} className="rounded-2xl bg-white border p-3" style={{ borderColor: '#f1f5f9' }}>
                   <p className="text-[10px] text-slate-500 font-semibold">{s.l}</p>
@@ -258,11 +340,16 @@ const SellerInsights: React.FC = () => {
             </div>
 
             <div className="space-y-2.5">
-              {customers
+              {customers.length === 0 ? (
+                <div className="rounded-2xl bg-white border p-8 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                  <MousePointer className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  No customer activity yet.
+                </div>
+              ) : customers
                 .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
                 .map((c, i) => (
                   <div
-                    key={c.name}
+                    key={c.id}
                     className="rounded-2xl bg-white border p-3.5 flex items-center gap-3"
                     style={{
                       borderColor: '#f1f5f9',
@@ -275,14 +362,14 @@ const SellerInsights: React.FC = () => {
                       className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg,#a855f7,#7C3AED)' }}
                     >
-                      {c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      {initials(c.name)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[13.5px] font-semibold text-slate-900 truncate">{c.name}</p>
                       <p className="text-[11px] text-slate-500 truncate">{c.email}</p>
                       <div className="flex items-center gap-2 mt-1 text-[10.5px] text-slate-500">
                         <MapPin className="w-3 h-3" />
-                        <span>{c.city}, {c.country}</span>
+                        <span>{[c.city, c.country].filter(Boolean).join(', ') || '—'}</span>
                         {c.phone && <><span>·</span><span>{c.phone}</span></>}
                       </div>
                     </div>
@@ -312,9 +399,15 @@ const SellerInsights: React.FC = () => {
               className="rounded-2xl bg-white border overflow-hidden"
               style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}
             >
+              {activities.length === 0 && (
+                <div className="p-8 text-center text-sm text-slate-500">
+                  <ActivityIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  Waiting for activity…
+                </div>
+              )}
               {activities.map((a, i) => (
                 <div
-                  key={i}
+                  key={a.id}
                   className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0"
                   style={{
                     borderColor: '#f1f5f9',
@@ -331,9 +424,14 @@ const SellerInsights: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] leading-tight text-slate-900">
                       <span className="font-semibold">{a.name}</span>{' '}
-                      <span className="text-slate-500">{a.action}</span>
+                      <span className="text-slate-500">{a.action}</span>{' '}
+                      <span className="text-slate-900 font-medium">{a.product}</span>
                     </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">{a.product}</p>
+                    {a.country && (
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                        {countryFlag(a.country)} {a.country}
+                      </p>
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">{a.time}</span>
                 </div>
@@ -345,6 +443,79 @@ const SellerInsights: React.FC = () => {
         {/* COUNTRIES */}
         {tab === 'countries' && (
           <div className="space-y-3 animate-fade-in">
+            {selectedCountry && selectedCountryData ? (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setSelectedCountry(null)}
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-600 hover:text-slate-900"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> All countries
+                </button>
+                <div className="rounded-2xl bg-white border p-4" style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[32px] leading-none">{countryFlag(selectedCountry)}</span>
+                    <div className="flex-1">
+                      <p className="text-[16px] font-bold text-slate-900">{selectedCountry}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {selectedCountryData.totals?.views.toLocaleString() || 0} views · {selectedCountryData.totals?.orders || 0} orders · {currencySymbol(selectedCountryData.totals?.currency)}{Number(selectedCountryData.totals?.revenue || 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">Top regions</p>
+                <div className="space-y-2">
+                  {selectedCountryData.regions.length === 0 && (
+                    <div className="rounded-2xl bg-white border p-6 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                      No regional data yet.
+                    </div>
+                  )}
+                  {selectedCountryData.regions.map((r, i) => (
+                    <div
+                      key={r.name}
+                      className="rounded-xl bg-white border p-3 flex items-center gap-3"
+                      style={{ borderColor: '#f1f5f9', animation: `fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both`, animationDelay: `${i * 30}ms` }}
+                    >
+                      <MapPin className="w-4 h-4 text-slate-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-900 truncate">{r.name}</p>
+                        <p className="text-[10.5px] text-slate-500">{r.views} views · {r.orders} orders</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+            <div className="rounded-2xl bg-white border p-3" style={{ borderColor: '#f1f5f9', boxShadow: '0 4px 16px -8px rgba(15,23,42,0.06)' }}>
+              <ComposableMap projectionConfig={{ scale: 130 }} width={800} height={360} style={{ width: '100%', height: 'auto' }}>
+                <Geographies geography={WORLD_TOPO_URL}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const name = geo.properties.name as string;
+                      const match = countries.find((c) => c.name.toLowerCase() === name.toLowerCase());
+                      const intensity = match && countries[0]?.views
+                        ? Math.min(1, match.views / countries[0].views)
+                        : 0;
+                      const fill = match
+                        ? `rgba(124,58,237,${0.25 + intensity * 0.65})`
+                        : '#f1f5f9';
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          onClick={() => match && setSelectedCountry(match.name)}
+                          style={{
+                            default: { fill, stroke: '#e2e8f0', strokeWidth: 0.5, outline: 'none' },
+                            hover: { fill: match ? '#7C3AED' : '#e2e8f0', outline: 'none', cursor: match ? 'pointer' : 'default' },
+                            pressed: { fill: '#6d28d9', outline: 'none' },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ComposableMap>
+            </div>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -356,15 +527,21 @@ const SellerInsights: React.FC = () => {
               />
             </div>
             <div className="space-y-2.5">
+              {countries.length === 0 && (
+                <div className="rounded-2xl bg-white border p-8 text-center text-sm text-slate-500" style={{ borderColor: '#f1f5f9' }}>
+                  <Globe2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  No country data yet.
+                </div>
+              )}
               {countries
                 .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
                 .map((c, i) => {
-                  const max = countries[0].views;
+                  const max = countries[0]?.views || 1;
                   const pct = Math.round((c.views / max) * 100);
                   return (
                     <button
                       key={c.name}
-                      onClick={() => alert(`${c.name} details coming soon`)}
+                      onClick={() => setSelectedCountry(c.name)}
                       className="w-full text-left rounded-2xl bg-white border p-4 active:scale-[0.99] hover:border-slate-200 transition-all"
                       style={{
                         borderColor: '#f1f5f9',
@@ -378,7 +555,7 @@ const SellerInsights: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <p className="text-[14px] font-bold text-slate-900">{c.name}</p>
                           <p className="text-[10.5px] text-slate-500">
-                            {c.views.toLocaleString()} views · {c.orders} orders · ₹{c.revenue.toLocaleString()}
+                            {c.views.toLocaleString()} views · {c.orders} orders · {currencySymbol(c.currency)}{c.revenue.toLocaleString()}
                           </p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -396,6 +573,8 @@ const SellerInsights: React.FC = () => {
                   );
                 })}
             </div>
+              </>
+            )}
           </div>
         )}
       </div>
