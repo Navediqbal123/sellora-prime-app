@@ -5,7 +5,17 @@ import {
   ArrowUpRight, Search, Filter, MapPin, Star, Heart, ShoppingCart,
   XCircle, Radio, ChevronRight, Package, LayoutGrid, Globe2, Activity as ActivityIcon,
 } from 'lucide-react';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { useSellerAnalytics } from '@/hooks/useSellerAnalytics';
+import {
+  useSellerInsights,
+  countryFlag,
+  currencySymbol,
+  formatTimeAgo,
+  maskPhone,
+  initials,
+  ClickAction,
+} from '@/hooks/useSellerInsights';
 
 const PURPLE = '#7C3AED';
 
@@ -18,6 +28,20 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'activity', label: 'Activity', icon: ActivityIcon },
   { key: 'countries', label: 'Countries', icon: Globe2 },
 ];
+
+const WORLD_TOPO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+const ACTION_META: Record<string, { label: string; icon: any; color: string }> = {
+  view: { label: 'viewed', icon: Eye, color: '#2563eb' },
+  click: { label: 'clicked on', icon: MousePointer, color: '#f59e0b' },
+  wishlist: { label: 'added to wishlist', icon: Heart, color: '#db2777' },
+  order: { label: 'placed an order for', icon: ShoppingCart, color: '#7C3AED' },
+  cancel: { label: 'cancelled order for', icon: XCircle, color: '#dc2626' },
+  review: { label: 'reviewed', icon: Star, color: '#eab308' },
+};
+function actionMeta(a: string) {
+  return ACTION_META[a] || { label: a, icon: ActivityIcon, color: '#6b7280' };
+}
 
 const Spark: React.FC<{ color: string; seed?: number; up?: boolean }> = ({ color, seed = 3, up = true }) => {
   const points = Array.from({ length: 12 }, (_, i) => {
@@ -40,9 +64,11 @@ const Spark: React.FC<{ color: string; seed?: number; up?: boolean }> = ({ color
 const SellerInsights: React.FC = () => {
   const navigate = useNavigate();
   const { data } = useSellerAnalytics();
+  const insights = useSellerInsights();
   const [tab, setTab] = useState<TabKey>('overview');
   const [filter, setFilter] = useState<'week' | 'month' | 'year'>('week');
   const [search, setSearch] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   // Overview cards
   const overview = useMemo(() => ([
@@ -52,33 +78,89 @@ const SellerInsights: React.FC = () => {
     { label: 'Conversion Rate', value: `${data.conversionRate}%`, delta: '+5.6%', color: '#059669', icon: TrendingUp },
   ]), [data]);
 
-  // Sample customer clicks
-  const customers = [
-    { name: 'Rahul Sharma', email: 'rahul@example.com', phone: '+91 98••••4210', city: 'Delhi', country: 'India', product: 'Smart Watch Pro', clicks: 23, fav: 'Smart Watch Pro', time: '2 min ago' },
-    { name: 'Priya Patel', email: 'priya@example.com', phone: '+91 99••••1122', city: 'Mumbai', country: 'India', product: 'Wireless Headphones', clicks: 18, fav: 'Headphones', time: '10 min ago' },
-    { name: 'Amit Verma', email: 'amit@example.com', phone: '', city: 'Lucknow', country: 'India', product: 'Gaming Mouse', clicks: 15, fav: 'Gaming Mouse', time: '15 min ago' },
-    { name: 'Sneha Reddy', email: 'sneha@example.com', phone: '+91 90••••9988', city: 'Hyderabad', country: 'India', product: 'Bluetooth Speaker', clicks: 14, fav: 'Speaker', time: '20 min ago' },
-    { name: 'Vikram Singh', email: 'vikram@example.com', phone: '', city: 'Jaipur', country: 'India', product: 'USB-C Cable', clicks: 12, fav: 'USB Cable', time: '25 min ago' },
-  ];
+  // Real click_logs derived views
+  const activities = useMemo(() => {
+    return insights.logs.slice(0, 60).map((l) => {
+      const meta = actionMeta(String(l.action));
+      const prof = l.user_id ? insights.profiles[l.user_id] : undefined;
+      const prod = l.product_id ? insights.products[l.product_id] : undefined;
+      return {
+        id: l.id,
+        name: prof?.full_name || 'Someone',
+        action: meta.label,
+        product: prod?.title || 'a product',
+        country: l.country || prof?.country || '',
+        time: formatTimeAgo(l.created_at),
+        icon: meta.icon,
+        color: meta.color,
+      };
+    });
+  }, [insights.logs, insights.profiles, insights.products]);
 
-  const activities = [
-    { name: 'Rahul Sharma', action: 'viewed', product: 'Wireless Headphones', time: '2 min ago', icon: Eye, color: '#2563eb' },
-    { name: 'Priya Patel', action: 'clicked on', product: 'Smart Watch Pro', time: '3 min ago', icon: MousePointer, color: '#f59e0b' },
-    { name: 'Amit Verma', action: 'viewed', product: 'Gaming Mouse', time: '4 min ago', icon: Eye, color: '#2563eb' },
-    { name: 'Sneha Reddy', action: 'added to wishlist', product: 'Bluetooth Speaker', time: '5 min ago', icon: Heart, color: '#db2777' },
-    { name: 'Karan Mehta', action: 'placed an order', product: 'Smart Watch Pro', time: '8 min ago', icon: ShoppingCart, color: '#7C3AED' },
-    { name: 'Vikram Singh', action: 'reviewed', product: 'USB-C Cable', time: '10 min ago', icon: Star, color: '#eab308' },
-    { name: 'Neha Patel', action: 'cancelled order', product: 'Smart Watch Pro', time: '12 min ago', icon: XCircle, color: '#dc2626' },
-  ];
+  const customers = useMemo(() => {
+    const byUser = new Map<string, { clicks: number; last: string; profile?: any; country?: string; city?: string }>();
+    insights.logs.forEach((l) => {
+      if (!l.user_id) return;
+      const cur = byUser.get(l.user_id) || { clicks: 0, last: l.created_at };
+      cur.clicks += 1;
+      if (new Date(l.created_at) > new Date(cur.last)) cur.last = l.created_at;
+      cur.country = cur.country || l.country || undefined;
+      cur.city = cur.city || l.city || undefined;
+      cur.profile = insights.profiles[l.user_id];
+      byUser.set(l.user_id, cur);
+    });
+    return Array.from(byUser.entries())
+      .map(([uid, v]) => ({
+        id: uid,
+        name: v.profile?.full_name || 'Anonymous',
+        email: v.profile?.email || '',
+        phone: maskPhone(v.profile?.phone),
+        city: v.city || v.profile?.city || '',
+        country: v.country || v.profile?.country || '',
+        clicks: v.clicks,
+        time: formatTimeAgo(v.last),
+      }))
+      .sort((a, b) => b.clicks - a.clicks);
+  }, [insights.logs, insights.profiles]);
 
-  const countries = [
-    { name: 'India', flag: '🇮🇳', views: 8420, clicks: 980, orders: 210, revenue: 145680 },
-    { name: 'United States', flag: '🇺🇸', views: 1240, clicks: 120, orders: 24, revenue: 32450 },
-    { name: 'United Kingdom', flag: '🇬🇧', views: 780, clicks: 68, orders: 12, revenue: 18450 },
-    { name: 'UAE', flag: '🇦🇪', views: 540, clicks: 44, orders: 8, revenue: 12450 },
-    { name: 'Canada', flag: '🇨🇦', views: 420, clicks: 32, orders: 6, revenue: 8250 },
-    { name: 'Australia', flag: '🇦🇺', views: 380, clicks: 28, orders: 5, revenue: 7420 },
-  ];
+  const countries = useMemo(() => {
+    const map = new Map<string, { views: number; clicks: number; orders: number; revenue: number; currency?: string }>();
+    insights.logs.forEach((l) => {
+      const key = (l.country || 'Unknown').trim();
+      const cur = map.get(key) || { views: 0, clicks: 0, orders: 0, revenue: 0, currency: l.currency_code || undefined };
+      const act = String(l.action);
+      if (act === 'view') cur.views += 1;
+      else if (act === 'click') cur.clicks += 1;
+      else if (act === 'order') {
+        cur.orders += 1;
+        const amt = Number(l.amount ?? l.price ?? insights.products[l.product_id || '']?.price ?? 0);
+        cur.revenue += isFinite(amt) ? amt : 0;
+      }
+      if (!cur.currency && l.currency_code) cur.currency = l.currency_code;
+      map.set(key, cur);
+    });
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, flag: countryFlag(name), ...v }))
+      .sort((a, b) => b.views - a.views);
+  }, [insights.logs, insights.products]);
+
+  const selectedCountryData = useMemo(() => {
+    if (!selectedCountry) return null;
+    const logs = insights.logs.filter((l) => (l.country || 'Unknown') === selectedCountry);
+    const byRegion = new Map<string, { views: number; orders: number }>();
+    logs.forEach((l) => {
+      const key = l.state || l.city || 'Unknown';
+      const cur = byRegion.get(key) || { views: 0, orders: 0 };
+      if (String(l.action) === 'view') cur.views += 1;
+      if (String(l.action) === 'order') cur.orders += 1;
+      byRegion.set(key, cur);
+    });
+    const regions = Array.from(byRegion.entries())
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.views - a.views);
+    const totals = countries.find((c) => c.name === selectedCountry);
+    return { regions, totals };
+  }, [selectedCountry, insights.logs, countries]);
 
   const products = data.products.slice(0, 6);
 
