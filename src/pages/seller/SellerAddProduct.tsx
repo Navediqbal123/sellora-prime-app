@@ -131,6 +131,7 @@ const SellerAddProduct = () => {
     try {
       const productData = {
         seller_id: sellerId,
+        user_id: user!.id,
         title: form.title,
         description: form.description,
         price: parseFloat(form.price),
