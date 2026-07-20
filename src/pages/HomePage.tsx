@@ -6,7 +6,6 @@ import HomeSearchBar from '@/components/home/HomeSearchBar';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import CategoryIconsRow from '@/components/home/CategoryIconsRow';
 import DiscountProductCard from '@/components/home/DiscountProductCard';
-import FlashDeals from '@/components/home/FlashDeals';
 import BottomNav from '@/components/home/BottomNav';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
@@ -123,11 +122,6 @@ const HomePage = () => {
           </div>
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
-
-        {/* Flash deals */}
-        {!loading && products.length > 0 && (
-          <FlashDeals products={products} onProductClick={handleProductClick} />
-        )}
 
         {/* Product grid */}
         <div className="mb-2 flex items-center justify-between animate-fade-in-up stagger-4">
