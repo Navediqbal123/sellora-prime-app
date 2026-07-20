@@ -1,176 +1,236 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import {
   ArrowLeft,
   ArrowRight,
-  Loader2,
-  CheckCircle,
   Check,
-  Users,
-  LayoutGrid,
+  CheckCircle,
+  Loader2,
   ShieldCheck,
-  TrendingUp,
-  HelpCircle,
-  Moon,
-  Sun,
+  Store,
+  MapPin,
+  Globe,
+  Phone,
+  Mail,
+  User,
+  Building2,
+  Camera,
   UploadCloud,
-  ShoppingBag,
   Lock,
+  Clock,
+  FileCheck,
+  Copy,
+  MessageCircle,
+  ShoppingBag,
+  Truck,
+  Wallet,
+  BadgeCheck,
+  PackageCheck,
   Zap,
   Headphones,
-  Store,
+  RotateCcw,
+  Tag,
+  Star,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-interface FormData {
-  shop_name: string;
-  owner_name: string;
-  business_type: string;
-  legal_business_name: string;
-  gst_tax_id: string;
-  year_established: string;
-  business_description: string;
-  phone_number: string;
-  email: string;
-  address: string;
-  city: string;
-  state: string;
+const PURPLE = '#7C3AED';
+
+type FormState = {
+  // Step 1
+  store_name: string;
+  store_category: string;
+  sub_category: string;
+  brand_name: string;
+  tagline: string;
+  description: string;
+  founded_year: string;
+  theme_color: string;
+  store_slug: string;
+  language: string;
+  currency: string;
+  warranty: boolean;
+  fast_shipping: boolean;
+  cod: boolean;
+  highlights: Record<string, boolean>;
+  logo_name: string;
+  banner_name: string;
+
+  // Step 2
   country: string;
+  state: string;
+  city: string;
+  address: string;
   pincode: string;
-}
+
+  // Step 3
+  full_name: string;
+  role: string;
+  email: string;
+  phone_number: string;
+  whatsapp: string;
+  support_email: string;
+  support_phone: string;
+  business_hours: string;
+  preferred_comm: string;
+  b_country: string;
+  b_state: string;
+  b_city: string;
+  b_zip: string;
+
+  // Step 4
+  id_type: string;
+  id_number: string;
+  id_front_name: string;
+  id_back_name: string;
+  selfie_name: string;
+  business_type: string;
+  business_reg: string;
+  business_logo_name: string;
+  business_website: string;
+  business_email: string;
+  year_established: string;
+};
+
+const steps = [
+  { n: 1, label: 'Store Info' },
+  { n: 2, label: 'Location' },
+  { n: 3, label: 'Contact Info' },
+  { n: 4, label: 'Verification' },
+];
+
+const themeColors = ['#7C3AED', '#2563EB', '#059669', '#EA580C', '#DB2777', '#0EA5E9'];
+
+const highlightList = [
+  { key: 'original', label: 'Original Products', Icon: BadgeCheck },
+  { key: 'secure', label: 'Secure Packaging', Icon: PackageCheck },
+  { key: 'fast', label: 'Fast Delivery', Icon: Truck },
+  { key: 'support', label: 'Customer Support', Icon: Headphones },
+  { key: 'returns', label: 'Easy Returns', Icon: RotateCcw },
+  { key: 'price', label: 'Best Price', Icon: Tag },
+];
+
+const categories = ['Electronics', 'Fashion', 'Home & Kitchen', 'Beauty', 'Grocery', 'Sports', 'Books', 'Other'];
+const businessTypes = ['Individual', 'Proprietorship', 'Partnership', 'Private Limited', 'LLP', 'Other'];
+const idTypes = ['Passport', 'Driving License', 'Aadhaar', 'PAN Card', 'National ID'];
+const currencies = ['INR (₹)', 'USD ($)', 'EUR (€)', 'GBP (£)', 'AED (د.إ)'];
+const languages = ['English', 'Hindi', 'Urdu', 'Arabic', 'Spanish'];
+const years = Array.from({ length: 75 }, (_, i) => `${new Date().getFullYear() - i}`);
 
 const BecomeSellerPage = () => {
-  const { user, refreshRole } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
-  const [darkMode, setDarkMode] = useState(true);
-  const [docFile, setDocFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
-    shop_name: '',
-    owner_name: '',
-    business_type: '',
-    legal_business_name: '',
-    gst_tax_id: '',
-    year_established: '',
-    business_description: '',
-    phone_number: '',
-    email: user?.email || '',
-    address: '',
-    city: '',
-    state: '',
+  const [f, setF] = useState<FormState>({
+    store_name: '',
+    store_category: '',
+    sub_category: '',
+    brand_name: '',
+    tagline: '',
+    description: '',
+    founded_year: '',
+    theme_color: PURPLE,
+    store_slug: '',
+    language: 'English',
+    currency: 'INR (₹)',
+    warranty: true,
+    fast_shipping: true,
+    cod: true,
+    highlights: { original: true, secure: true, fast: true, support: true, returns: true, price: true },
+    logo_name: '',
+    banner_name: '',
+
     country: 'India',
-    pincode: ''
+    state: '',
+    city: '',
+    address: '',
+    pincode: '',
+
+    full_name: '',
+    role: 'Store Owner',
+    email: user?.email || '',
+    phone_number: '',
+    whatsapp: '',
+    support_email: '',
+    support_phone: '',
+    business_hours: 'Mon – Sat, 9:00 AM – 7:00 PM',
+    preferred_comm: 'Email',
+    b_country: 'India',
+    b_state: '',
+    b_city: '',
+    b_zip: '',
+
+    id_type: '',
+    id_number: '',
+    id_front_name: '',
+    id_back_name: '',
+    selfie_name: '',
+    business_type: '',
+    business_reg: '',
+    business_logo_name: '',
+    business_website: '',
+    business_email: '',
+    year_established: '',
   });
 
-  const businessTypes = [
-    'Individual',
-    'Partnership',
-    'Private Limited',
-    'Proprietorship',
-    'LLP',
-    'Other'
-  ];
+  const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((p) => ({ ...p, [k]: v }));
 
-  const steps = [
-    { number: 1, title: 'Business Info' },
-    { number: 2, title: 'Location' },
-    { number: 3, title: 'Contact Info' },
-  ];
+  const slug = useMemo(() => {
+    const base = (f.store_slug || f.store_name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    return base || 'your-store';
+  }, [f.store_slug, f.store_name]);
 
-  const years = Array.from({ length: 75 }, (_, i) => `${new Date().getFullYear() - i}`);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const validateStep = (step: number) => {
-    if (step === 1) {
-      if (!formData.shop_name.trim() || !formData.business_type) {
-        toast({
-          title: "Required Fields",
-          description: "Please fill in all business details",
-          variant: "destructive"
-        });
-        return false;
-      }
-    } else if (step === 2) {
-      if (!formData.city.trim() || !formData.state.trim() || !formData.country.trim() || !formData.pincode.trim()) {
-        toast({
-          title: "Required Fields",
-          description: "Please fill in all location details",
-          variant: "destructive"
-        });
-        return false;
-      }
-      if (!/^\d{6}$/.test(formData.pincode)) {
-        toast({
-          title: "Invalid Pincode",
-          description: "Please enter a valid 6-digit pincode",
-          variant: "destructive"
-        });
-        return false;
-      }
-    } else if (step === 3) {
-      if (!formData.phone_number.trim() || !formData.email.trim() || !formData.address.trim()) {
-        toast({
-          title: "Required Fields",
-          description: "Please fill in all contact details",
-          variant: "destructive"
-        });
-        return false;
-      }
-      if (!/^\d{10}$/.test(formData.phone_number)) {
-        toast({
-          title: "Invalid Phone",
-          description: "Please enter a valid 10-digit phone number",
-          variant: "destructive"
-        });
-        return false;
-      }
-    }
+  // Validation per step
+  const stepValid = (s: number) => {
+    if (s === 1)
+      return !!(f.store_name.trim() && f.store_category && f.sub_category.trim() && f.tagline.trim() && f.description.trim());
+    if (s === 2) return !!(f.country && f.state.trim() && f.city.trim());
+    if (s === 3) return !!(f.full_name.trim() && f.email.trim() && /^\d{7,15}$/.test(f.phone_number));
+    if (s === 4) return !!(f.id_type && f.id_number.trim() && f.business_type);
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setSlideDirection('left');
-      setCurrentStep(prev => Math.min(prev + 1, 3));
+  const next = () => {
+    if (!stepValid(step)) {
+      toast({ title: 'Missing fields', description: 'Please complete all required fields.', variant: 'destructive' });
+      return;
     }
+    setStep((s) => Math.min(s + 1, 4));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const back = () => {
+    if (step === 1) return navigate(-1);
+    setStep((s) => Math.max(s - 1, 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const prevStep = () => {
-    setSlideDirection('right');
-    setCurrentStep(prev => Math.max(prev - 1, 1));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateStep(currentStep)) return;
-    setIsSubmitting(true);
-
+  const submit = async () => {
+    if (!stepValid(4)) {
+      toast({ title: 'Missing fields', description: 'Please complete required verification fields.', variant: 'destructive' });
+      return;
+    }
+    setSubmitting(true);
     try {
-      const { data: existingSeller } = await supabase
+      const { data: existing } = await supabase
         .from('sellers')
         .select('id, status')
         .eq('user_id', user?.id)
         .maybeSingle();
 
-      if (existingSeller) {
+      if (existing) {
         toast({
-          title: "Application Exists",
+          title: 'Application Exists',
           description:
-            existingSeller.status === 'pending'
-              ? "You already have a pending application"
-              : "You already have a seller account",
-          variant: "destructive",
+            existing.status === 'pending' ? 'You already have a pending application.' : 'You already have a seller account.',
+          variant: 'destructive',
         });
         navigate('/seller/review');
         return;
@@ -178,531 +238,808 @@ const BecomeSellerPage = () => {
 
       const { error } = await supabase.from('sellers').insert({
         user_id: user?.id,
-        shop_name: formData.shop_name,
-        owner_name: formData.owner_name || formData.legal_business_name || formData.shop_name,
-        phone: formData.phone_number,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode,
+        shop_name: f.store_name,
+        owner_name: f.full_name || f.store_name,
+        phone: f.phone_number,
+        address: f.address || `${f.city}, ${f.state}`,
+        city: f.city,
+        state: f.state,
+        pincode: f.pincode || f.b_zip,
         status: 'pending',
       });
-
       if (error) throw error;
 
-      setIsSuccess(true);
-
-      toast({
-        title: "Application Submitted! 🎉",
-        description: "Your seller application is now pending admin approval."
-      });
-
-      setTimeout(() => {
-        navigate('/seller/review');
-      }, 2500);
-
-    } catch (error: any) {
-      console.error('Error becoming seller:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit application",
-        variant: "destructive"
-      });
+      setSuccess(true);
+      toast({ title: 'Application Submitted 🎉', description: 'Your seller application is pending admin approval.' });
+      setTimeout(() => navigate('/seller/review'), 2200);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to submit', variant: 'destructive' });
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  if (isSuccess) {
+  if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#0a0613' }}>
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[150px] animate-pulse" style={{ background: 'rgba(124,58,237,0.18)' }} />
-        </div>
-
-        <div className="text-center animate-scale-in relative z-10">
-          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full mb-8 relative" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.4), rgba(124,58,237,0.1))' }}>
-            <CheckCircle className="w-14 h-14" style={{ color: '#a78bfa' }} />
-            <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'rgba(124,58,237,0.25)' }} />
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="text-center animate-scale-in">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.1)' }}>
+            <CheckCircle className="w-14 h-14" style={{ color: PURPLE }} />
           </div>
-          <h1 className="text-4xl font-bold mb-3 text-white">Application Submitted!</h1>
-          <p className="text-xl text-white/70 mb-2">Your seller application is pending review</p>
-          <p className="text-white/40">Redirecting to your application status...</p>
-
-          <div className="flex justify-center gap-2 mt-6">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: '#7C3AED', animationDelay: `${i * 0.15}s` }} />
-            ))}
-          </div>
+          <h1 className="text-3xl font-bold text-[#111] mb-2">Application Submitted!</h1>
+          <p className="text-gray-500">Redirecting to your application status…</p>
         </div>
       </div>
     );
   }
 
-  // ---------- THEME TOKENS ----------
-  const isDark = darkMode;
-  const bg = isDark ? '#0a0613' : '#f5f3ff';
-  const panel = isDark ? '#100823' : '#ffffff';
-  const card = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const border = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(124,58,237,0.15)';
-  const textPri = isDark ? '#ffffff' : '#0a0613';
-  const textMut = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(10,6,19,0.55)';
-  const inputBg = isDark ? 'rgba(255,255,255,0.04)' : '#fafaff';
-  const PURPLE = '#7C3AED';
-  const PURPLE_GLOW = '0 0 0 4px rgba(124,58,237,0.18), 0 8px 28px -8px rgba(124,58,237,0.55)';
-
-  const inputClass =
-    'w-full h-[52px] px-4 rounded-[14px] outline-none transition-all duration-200 text-[15px]';
-  const inputStyle: React.CSSProperties = {
-    background: inputBg,
-    border: `1px solid ${border}`,
-    color: textPri,
-  };
-  const focusOn = (e: React.FocusEvent<HTMLElement>) => {
-    (e.currentTarget as HTMLElement).style.borderColor = PURPLE;
-    (e.currentTarget as HTMLElement).style.boxShadow = PURPLE_GLOW;
-  };
-  const focusOff = (e: React.FocusEvent<HTMLElement>) => {
-    (e.currentTarget as HTMLElement).style.borderColor = border;
-    (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-  };
-
-  const features = [
-    { icon: Users, label: 'Reach Millions', sub: 'Tap into our buyer network' },
-    { icon: LayoutGrid, label: 'Easy Management', sub: 'Powerful seller dashboard' },
-    { icon: ShieldCheck, label: 'Secure & Trusted', sub: 'Bank-grade protection' },
-    { icon: TrendingUp, label: 'Higher Earnings', sub: 'Lowest commission rates' },
-  ];
-
-  const animationClass = slideDirection === 'left' ? 'animate-step-slide-left' : 'animate-step-slide-right';
-
-  // ---------- STEP CONTENT ----------
-  const Step1 = (
-    <div key="step1" className={`space-y-5 ${animationClass}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(124,58,237,0.15)', border: `1px solid ${PURPLE}40` }}>
-            <Store className="w-6 h-6" style={{ color: '#c4b5fd' }} />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold leading-tight" style={{ color: textPri }}>Business Information</h2>
-            <p className="text-xs mt-1" style={{ color: textMut }}>Please provide your business details</p>
-          </div>
-        </div>
-        <span
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{ background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', border: `1px solid ${PURPLE}40` }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: PURPLE, boxShadow: '0 0 8px #7C3AED' }} />
-          Step 1 of 3
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Business Name *</label>
-          <input name="shop_name" value={formData.shop_name} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="e.g. Naved Electronics" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Business Type *</label>
-          <select name="business_type" value={formData.business_type} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            className={`${inputClass} appearance-none cursor-pointer`} style={inputStyle}>
-            <option value="">Select type</option>
-            {businessTypes.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Legal Business Name</label>
-          <input name="legal_business_name" value={formData.legal_business_name} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="As per registration" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>
-            GST / Tax ID <span style={{ color: textMut }}>(optional)</span>
-          </label>
-          <input name="gst_tax_id" value={formData.gst_tax_id} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="22AAAAA0000A1Z5" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Year of Establishment</label>
-          <select name="year_established" value={formData.year_established} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            className={`${inputClass} appearance-none cursor-pointer`} style={inputStyle}>
-            <option value="">Select year</option>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="text-xs font-medium mb-2 flex justify-between" style={{ color: textMut }}>
-          <span>Business Description</span>
-          <span>{formData.business_description.length}/300</span>
-        </label>
-        <textarea name="business_description" value={formData.business_description}
-          onChange={(e) => setFormData(p => ({ ...p, business_description: e.target.value.slice(0, 300) }))}
-          onFocus={focusOn} onBlur={focusOff}
-          placeholder="Tell buyers what makes your business special..."
-          rows={4}
-          className="w-full px-4 py-3 rounded-[14px] outline-none transition-all duration-200 text-[15px] resize-none"
-          style={inputStyle}
-        />
-      </div>
-
-      <div>
-        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>
-          Upload Business Document <span style={{ color: textMut }}>(Optional)</span>
-        </label>
-        <input ref={fileInputRef} type="file" className="hidden"
-          onChange={(e) => setDocFile(e.target.files?.[0] || null)} />
-        <button type="button" onClick={() => fileInputRef.current?.click()}
-          className="w-full rounded-[14px] py-5 px-5 flex items-center gap-4 transition-all duration-200 hover:bg-[rgba(124,58,237,0.06)] text-left"
-          style={{ border: `1.5px dashed ${PURPLE}55`, background: 'rgba(124,58,237,0.04)' }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(124,58,237,0.18)', border: `1px solid ${PURPLE}40` }}>
-            <UploadCloud className="w-7 h-7" style={{ color: '#c4b5fd' }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium" style={{ color: textPri }}>
-              {docFile ? docFile.name : <>Drag &amp; drop file here or </>}
-              {!docFile && <span style={{ color: '#c4b5fd' }}>Browse files</span>}
-            </p>
-          </div>
-          <div className="hidden sm:block text-right shrink-0">
-            <p className="text-xs" style={{ color: textMut }}>PDF, JPG or PNG</p>
-            <p className="text-xs" style={{ color: textMut }}>Max size 5MB</p>
-          </div>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 pt-4">
-        {[
-          { icon: Lock, label: '100% Secure', sub: 'Your data is protected' },
-          { icon: Zap, label: 'Quick Approval', sub: 'Get started in minutes' },
-          { icon: Headphones, label: '24/7 Support', sub: 'We\u2019re here to help' },
-        ].map(b => (
-          <div key={b.label} className="flex items-center gap-2 py-3 px-3 rounded-xl"
-            style={{ background: 'rgba(124,58,237,0.06)', border: `1px solid ${border}` }}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(124,58,237,0.2)' }}>
-              <b.icon className="w-3.5 h-3.5" style={{ color: '#c4b5fd' }} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold leading-tight" style={{ color: textPri }}>{b.label}</p>
-              <p className="text-[10px] truncate" style={{ color: textMut }}>{b.sub}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const Step2 = (
-    <div key="step2" className={`space-y-5 ${animationClass}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold" style={{ color: textPri }}>Location</h2>
-          <p className="text-sm mt-1" style={{ color: textMut }}>Where is your business based?</p>
-        </div>
-        <span className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{ background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', border: `1px solid ${PURPLE}40` }}>
-          Step 2 of 3
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>City *</label>
-          <input name="city" value={formData.city} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="City" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>State *</label>
-          <input name="state" value={formData.state} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="State" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Country *</label>
-          <input name="country" value={formData.country} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="Country" className={inputClass} style={inputStyle} />
-        </div>
-        <div>
-          <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Pincode *</label>
-          <input name="pincode" value={formData.pincode} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-            placeholder="6-digit" className={inputClass} style={inputStyle} />
-        </div>
-      </div>
-    </div>
-  );
-
-  const Step3 = (
-    <div key="step3" className={`space-y-5 ${animationClass}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold" style={{ color: textPri }}>Contact Info</h2>
-          <p className="text-sm mt-1" style={{ color: textMut }}>How can buyers reach you?</p>
-        </div>
-        <span className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{ background: 'rgba(124,58,237,0.15)', color: '#c4b5fd', border: `1px solid ${PURPLE}40` }}>
-          Step 3 of 3
-        </span>
-      </div>
-
-      <div>
-        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Phone Number *</label>
-        <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-          placeholder="10-digit phone" className={inputClass} style={inputStyle} />
-      </div>
-      <div>
-        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Email *</label>
-        <input type="email" name="email" value={formData.email} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-          readOnly={!!user?.email}
-          placeholder="you@email.com" className={inputClass} style={{ ...inputStyle, opacity: user?.email ? 0.7 : 1 }} />
-      </div>
-      <div>
-        <label className="text-xs font-medium mb-2 block" style={{ color: textMut }}>Address *</label>
-        <textarea name="address" value={formData.address} onChange={handleInputChange} onFocus={focusOn} onBlur={focusOff}
-          rows={3} placeholder="Street, building, area..."
-          className="w-full px-4 py-3 rounded-[14px] outline-none transition-all duration-200 text-[15px] resize-none"
-          style={inputStyle} />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen w-full" style={{ background: bg, color: textPri }}>
-      <div className="lg:grid lg:grid-cols-[420px_1fr] min-h-screen">
-        {/* ============ LEFT SIDEBAR ============ */}
-        <aside
-          className="relative overflow-hidden p-8 lg:p-10 flex flex-col"
-          style={{
-            background: 'linear-gradient(180deg, #1a0b3d 0%, #0a0613 100%)',
-            borderRight: `1px solid ${border}`,
-          }}
-        >
-          {/* glow */}
-          <div className="pointer-events-none absolute -top-32 -left-32 w-[400px] h-[400px] rounded-full blur-[120px]"
-            style={{ background: 'rgba(124,58,237,0.35)' }} />
-          <div className="pointer-events-none absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full blur-[120px]"
-            style={{ background: 'rgba(124,58,237,0.2)' }} />
-
-          {/* Logo */}
-          <button onClick={() => navigate('/')} className="relative z-10 flex items-center gap-2 mb-10 w-fit">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${PURPLE}, #a855f7)`, boxShadow: '0 8px 24px -8px rgba(124,58,237,0.7)' }}>
+    <div className="min-h-screen bg-white text-[#111]">
+      {/* Header */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={back}
+            className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: PURPLE }}>
               <ShoppingBag className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">Sellora</span>
-          </button>
-
-          <div className="relative z-10">
-            <h1 className="text-3xl lg:text-[34px] font-bold leading-tight text-white">
-              Join Sellora,<br />
-              Grow your business{' '}
-              <span className="italic font-bold" style={{
-                background: 'linear-gradient(90deg,#a78bfa,#7C3AED)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>limitlessly</span>
-            </h1>
-            <p className="mt-4 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              List your products, manage orders and reach millions of buyers — all from one premium seller console.
-            </p>
+            <span className="text-lg font-bold tracking-tight">Sellora</span>
           </div>
-
-          {/* 3D bag illustration */}
-          <div className="relative z-10 flex justify-center my-8">
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full blur-2xl" style={{ background: 'rgba(124,58,237,0.5)' }} />
-              <div className="relative w-36 h-36 rounded-[32px] flex items-center justify-center transform rotate-[-6deg]"
-                style={{
-                  background: 'linear-gradient(145deg, #a855f7 0%, #7C3AED 50%, #5b21b6 100%)',
-                  boxShadow: '0 30px 60px -20px rgba(124,58,237,0.6), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -8px 20px rgba(0,0,0,0.3)',
-                }}>
-                <ShoppingBag className="w-16 h-16 text-white drop-shadow-lg" strokeWidth={1.75} />
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 rounded-t-full border-2"
-                  style={{ borderColor: '#c4b5fd', borderBottom: 'none' }} />
-              </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200">
+            <ShieldCheck className="w-4 h-4" style={{ color: PURPLE }} />
+            <div className="text-[10px] leading-tight text-right">
+              <div className="font-semibold">100% Secure</div>
+              <div className="text-gray-500">Data is safe</div>
             </div>
           </div>
+        </div>
 
-          {/* Features */}
-          <div className="relative z-10 space-y-3">
-            {features.map(f => (
-              <div key={f.label} className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(124,58,237,0.2)' }}>
-                  <f.icon className="w-4.5 h-4.5" style={{ color: '#c4b5fd' }} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white">{f.label}</p>
-                  <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{f.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Support card */}
-          <div className="relative z-10 mt-6 p-4 rounded-2xl flex items-center gap-3"
-            style={{
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.18), rgba(124,58,237,0.05))',
-              border: `1px solid ${PURPLE}33`,
-            }}>
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: PURPLE }}>
-              <HelpCircle className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white">Need help?</p>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>Contact our seller support</p>
-            </div>
-            <ArrowRight className="w-4 h-4" style={{ color: '#c4b5fd' }} />
-          </div>
-        </aside>
-
-        {/* ============ RIGHT FORM PANEL ============ */}
-        <main className="relative px-5 py-6 lg:px-12 lg:py-10" style={{ background: panel }}>
-          {/* Top bar */}
-          <div className="flex items-center justify-between mb-6">
-            <button onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: textMut }}>
-              <ArrowLeft className="w-4 h-4" /> Back
-            </button>
-
-            <button onClick={() => setDarkMode(d => !d)}
-              className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
-              style={{ background: inputBg, border: `1px solid ${border}`, color: textPri }}
-              aria-label="Toggle theme">
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-          </div>
-
-          <div className="max-w-2xl mx-auto w-full">
-            {/* Title */}
-            <div className="mb-8">
-              <h1 className="text-2xl lg:text-3xl font-bold" style={{ color: textPri }}>Seller Registration</h1>
-              <p className="mt-2 text-sm" style={{ color: textMut }}>
-                Complete the steps below to create your seller account <span className="inline-block">✨</span>
-              </p>
-            </div>
-
-            {/* Stepper */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between relative px-2">
-                {/* connecting line */}
-                <div className="absolute top-5 left-[14%] right-[14%] h-[2px]" style={{ background: border }} />
-                <div className="absolute top-5 left-[14%] h-[2px] transition-all duration-500"
-                  style={{
-                    width: currentStep === 1 ? '0%' : currentStep === 2 ? '36%' : '72%',
-                    background: `linear-gradient(90deg, ${PURPLE}, #a855f7)`,
-                  }} />
-
-                {steps.map((s) => {
-                  const done = currentStep > s.number;
-                  const active = currentStep === s.number;
-                  return (
-                    <div key={s.number} className="relative z-10 flex flex-col items-center gap-2">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300"
-                        style={
-                          active
-                            ? { background: PURPLE, color: '#fff', boxShadow: PURPLE_GLOW }
-                            : done
-                              ? { background: PURPLE, color: '#fff' }
-                              : { background: inputBg, color: textMut, border: `1px solid ${border}` }
-                        }
-                      >
-                        {done ? <Check className="w-4 h-4" /> : s.number}
-                      </div>
-                      <span className="text-[11px] font-medium" style={{ color: active ? textPri : textMut }}>
-                        {s.title}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              {/* Step card */}
-              <div
-                className="rounded-2xl p-6 lg:p-8 overflow-hidden"
-                style={{
-                  background: card,
-                  border: `1px solid ${border}`,
-                  boxShadow: isDark ? '0 20px 60px -20px rgba(0,0,0,0.6)' : '0 20px 60px -30px rgba(124,58,237,0.25)',
-                }}
-              >
-                {currentStep === 1 && Step1}
-                {currentStep === 2 && Step2}
-                {currentStep === 3 && Step3}
-              </div>
-
-              {/* Bottom bar */}
-              <div className="flex items-center justify-between mt-6">
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="px-5 h-12 rounded-xl text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{ background: inputBg, border: `1px solid ${border}`, color: textPri }}
-                >
-                  <ArrowLeft className="w-4 h-4" /> Back
-                </button>
-
-                <div className="flex items-center gap-2">
-                  {steps.map(s => (
-                    <div key={s.number} className="rounded-full transition-all duration-300"
+        {/* Progress */}
+        <div className="max-w-2xl mx-auto px-4 pb-4 pt-1">
+          <div className="flex items-center">
+            {steps.map((s, i) => {
+              const done = step > s.n;
+              const active = step === s.n;
+              return (
+                <React.Fragment key={s.n}>
+                  <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all"
                       style={{
-                        width: currentStep === s.number ? 24 : 8,
-                        height: 8,
-                        background: currentStep >= s.number ? PURPLE : border,
-                      }} />
-                  ))}
-                </div>
-
-                {currentStep < 3 ? (
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="px-6 h-12 rounded-xl text-sm font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02]"
-                    style={{
-                      background: `linear-gradient(135deg, ${PURPLE}, #a855f7)`,
-                      boxShadow: '0 10px 30px -10px rgba(124,58,237,0.7)',
-                    }}
-                  >
-                    Continue <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-6 h-12 rounded-xl text-sm font-semibold text-white flex items-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-70"
-                    style={{
-                      background: `linear-gradient(135deg, ${PURPLE}, #a855f7)`,
-                      boxShadow: '0 10px 30px -10px rgba(124,58,237,0.7)',
-                    }}
-                  >
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Submit <CheckCircle className="w-4 h-4" /></>}
-                  </button>
-                )}
-              </div>
-
-              {/* Footer */}
-              <p className="mt-8 text-center text-xs" style={{ color: textMut }}>
-                By continuing, you agree to Sellora's{' '}
-                <a className="underline underline-offset-2" style={{ color: '#c4b5fd' }} href="#">Terms of Service</a>{' '}
-                and{' '}
-                <a className="underline underline-offset-2" style={{ color: '#c4b5fd' }} href="#">Privacy Policy</a>.
-              </p>
-            </form>
+                        background: done ? PURPLE : active ? PURPLE : '#F3F4F6',
+                        color: done || active ? '#fff' : '#9CA3AF',
+                        boxShadow: active ? '0 0 0 4px rgba(124,58,237,0.15)' : 'none',
+                      }}
+                    >
+                      {done ? <Check className="w-4 h-4" /> : s.n}
+                    </div>
+                    <span
+                      className="text-[10px] font-medium whitespace-nowrap"
+                      style={{ color: active ? PURPLE : done ? '#111' : '#9CA3AF' }}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="flex-1 h-[2px] mx-1 -mt-4 rounded-full overflow-hidden bg-gray-200">
+                      <div
+                        className="h-full transition-all duration-500"
+                        style={{ width: step > s.n ? '100%' : '0%', background: PURPLE }}
+                      />
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
-        </main>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+        <div key={step} className="animate-fade-in">
+          {step === 1 && <Step1 f={f} update={update} slug={slug} />}
+          {step === 2 && <Step2 f={f} update={update} />}
+          {step === 3 && <Step3 f={f} update={update} />}
+          {step === 4 && <Step4 f={f} update={update} />}
+        </div>
+      </div>
+
+      {/* Bottom action bar */}
+      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-30">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            onClick={back}
+            disabled={step === 1}
+            className="h-12 px-5 rounded-xl border border-gray-200 font-semibold text-sm flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 active:scale-95 transition"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          {step < 4 ? (
+            <button
+              onClick={next}
+              disabled={!stepValid(step)}
+              className="flex-1 h-12 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-50"
+              style={{ background: PURPLE, boxShadow: '0 8px 24px -8px rgba(124,58,237,0.6)' }}
+            >
+              Next <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={submit}
+              disabled={submitting || !stepValid(4)}
+              className="flex-1 h-12 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-50"
+              style={{ background: PURPLE, boxShadow: '0 8px 24px -8px rgba(124,58,237,0.6)' }}
+            >
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {submitting ? 'Submitting…' : 'Submit'}
+            </button>
+          )}
+        </div>
+        <p className="text-center text-[10px] text-gray-400 pb-2 flex items-center justify-center gap-1">
+          <Lock className="w-3 h-3" /> Your information is encrypted and protected
+        </p>
       </div>
     </div>
   );
 };
+
+// ---------- Shared UI ----------
+
+const Field: React.FC<{ label: string; required?: boolean; hint?: string; children: React.ReactNode }> = ({
+  label,
+  required,
+  hint,
+  children,
+}) => (
+  <div>
+    <label className="text-[13px] font-semibold text-[#111] mb-1.5 block">
+      {label} {required && <span className="text-red-500">*</span>}
+      {hint && <span className="ml-1 font-normal text-gray-400">({hint})</span>}
+    </label>
+    {children}
+  </div>
+);
+
+const inputCls =
+  'w-full h-12 px-4 rounded-xl border border-gray-200 bg-white text-[15px] text-[#111] placeholder-gray-400 outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/15 transition';
+
+const Card: React.FC<{ title?: string; icon?: React.ReactNode; children: React.ReactNode; className?: string }> = ({
+  title,
+  icon,
+  children,
+  className,
+}) => (
+  <div
+    className={`bg-white rounded-2xl border border-gray-100 p-5 mb-4 ${className || ''}`}
+    style={{ boxShadow: '0 2px 12px -6px rgba(17,17,17,0.08)' }}
+  >
+    {title && (
+      <div className="flex items-center gap-2.5 mb-4">
+        {icon && (
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.1)' }}>
+            {icon}
+          </div>
+        )}
+        <h3 className="text-[15px] font-bold text-[#111]">{title}</h3>
+      </div>
+    )}
+    {children}
+  </div>
+);
+
+const Hero: React.FC<{ title: string; subtitle: string; illustration: React.ReactNode }> = ({ title, subtitle, illustration }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 flex items-center gap-4" style={{ boxShadow: '0 2px 12px -6px rgba(17,17,17,0.08)' }}>
+    <div className="flex-1 min-w-0">
+      <h2 className="text-xl font-bold text-[#111] leading-tight">{title}</h2>
+      <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+    </div>
+    <div className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0" style={{ background: 'rgba(124,58,237,0.08)' }}>
+      {illustration}
+    </div>
+  </div>
+);
+
+const Toggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void; label: string; Icon: any }> = ({
+  checked,
+  onChange,
+  label,
+  Icon,
+}) => (
+  <div className="flex flex-col items-center gap-2 flex-1">
+    <Icon className="w-5 h-5 text-gray-500" />
+    <span className="text-[11px] font-medium text-center text-gray-700">{label}</span>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="w-10 h-6 rounded-full relative transition"
+      style={{ background: checked ? PURPLE : '#E5E7EB' }}
+      aria-pressed={checked}
+    >
+      <span
+        className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+        style={{ left: checked ? '18px' : '2px' }}
+      />
+    </button>
+  </div>
+);
+
+const UploadTile: React.FC<{
+  label: string;
+  name: string;
+  onChange: (name: string) => void;
+  hint?: string;
+  small?: boolean;
+}> = ({ label, name, onChange, hint, small }) => {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <button
+      type="button"
+      onClick={() => ref.current?.click()}
+      className={`w-full ${small ? 'h-28' : 'h-32'} rounded-2xl border-2 border-dashed border-[#7C3AED]/40 bg-[#7C3AED]/5 flex flex-col items-center justify-center gap-1.5 hover:bg-[#7C3AED]/10 transition active:scale-[0.98]`}
+    >
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0]?.name || '')}
+      />
+      {name ? (
+        <>
+          <CheckCircle className="w-6 h-6" style={{ color: PURPLE }} />
+          <span className="text-xs font-medium text-[#111] truncate max-w-[85%]">{name}</span>
+          <span className="text-[10px] text-gray-500">Tap to change</span>
+        </>
+      ) : (
+        <>
+          <UploadCloud className="w-6 h-6" style={{ color: PURPLE }} />
+          <span className="text-xs font-semibold text-[#111]">{label}</span>
+          {hint && <span className="text-[10px] text-gray-500">{hint}</span>}
+        </>
+      )}
+    </button>
+  );
+};
+
+// ---------- Step 1 ----------
+const Step1: React.FC<{ f: FormState; update: any; slug: string }> = ({ f, update, slug }) => (
+  <>
+    <Hero
+      title="Store Info"
+      subtitle="Create your store identity and build trust with buyers."
+      illustration={<Store className="w-10 h-10" style={{ color: PURPLE }} />}
+    />
+
+    <Card title="Store Identity" icon={<Store className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Store Name" required>
+          <input
+            className={inputCls}
+            placeholder="e.g. Naved Electronics"
+            value={f.store_name}
+            onChange={(e) => update('store_name', e.target.value.slice(0, 50))}
+          />
+          <div className="text-[11px] text-gray-400 text-right mt-1">{f.store_name.length} / 50</div>
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Store Logo" required>
+            <UploadTile label="Upload Logo" hint="JPG, PNG · 2MB" name={f.logo_name} onChange={(n) => update('logo_name', n)} small />
+          </Field>
+          <Field label="Store Banner" hint="Optional">
+            <UploadTile label="Upload Banner" hint="JPG, PNG · 5MB" name={f.banner_name} onChange={(n) => update('banner_name', n)} small />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3">
+          <Field label="Store Category" required>
+            <select className={inputCls} value={f.store_category} onChange={(e) => update('store_category', e.target.value)}>
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Sub Category" required>
+            <input
+              className={inputCls}
+              placeholder="e.g. Mobile & Accessories"
+              value={f.sub_category}
+              onChange={(e) => update('sub_category', e.target.value)}
+            />
+          </Field>
+          <Field label="Brand Name" hint="Optional">
+            <input className={inputCls} placeholder="Brand name" value={f.brand_name} onChange={(e) => update('brand_name', e.target.value)} />
+          </Field>
+        </div>
+      </div>
+    </Card>
+
+    <Card title="About Store" icon={<FileCheck className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Short Tagline" required>
+          <input
+            className={inputCls}
+            placeholder="Best Electronics at Lowest Prices"
+            value={f.tagline}
+            onChange={(e) => update('tagline', e.target.value.slice(0, 60))}
+          />
+          <div className="text-[11px] text-gray-400 text-right mt-1">{f.tagline.length} / 60</div>
+        </Field>
+        <Field label="Store Description" required>
+          <textarea
+            rows={4}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-[#111] placeholder-gray-400 outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/15 transition resize-none"
+            placeholder="Tell buyers what makes your business special..."
+            value={f.description}
+            onChange={(e) => update('description', e.target.value.slice(0, 300))}
+          />
+          <div className="text-[11px] text-gray-400 text-right mt-1">{f.description.length} / 300</div>
+        </Field>
+        <Field label="Founded Year" hint="Optional">
+          <select className={inputCls} value={f.founded_year} onChange={(e) => update('founded_year', e.target.value)}>
+            <option value="">Select year</option>
+            {years.map((y) => (
+              <option key={y}>{y}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+    </Card>
+
+    <Card title="Store Appearance" icon={<Tag className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <label className="text-[13px] font-semibold text-[#111] mb-2 block">Theme Color</label>
+      <div className="flex gap-2.5 mb-4">
+        {themeColors.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => update('theme_color', c)}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition"
+            style={{
+              background: c,
+              boxShadow: f.theme_color === c ? `0 0 0 3px #fff, 0 0 0 5px ${c}` : 'none',
+            }}
+          >
+            {f.theme_color === c && <Check className="w-4 h-4 text-white" />}
+          </button>
+        ))}
+      </div>
+    </Card>
+
+    <Card title="Store Visibility" icon={<Globe className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Public Store URL">
+          <div className="flex items-center gap-2 px-4 h-12 rounded-xl border border-gray-200 bg-gray-50">
+            <Lock className="w-4 h-4 text-gray-400" />
+            <span className="text-[13px] text-gray-600 truncate flex-1">sellora.com/store/{slug}</span>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard?.writeText(`sellora.com/store/${slug}`);
+                toast({ title: 'Copied' });
+              }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100"
+            >
+              <Copy className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+        </Field>
+        <Field label="Custom Store Slug" hint="Optional">
+          <input
+            className={inputCls}
+            placeholder="my-store-name"
+            value={f.store_slug}
+            onChange={(e) => update('store_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Language">
+            <select className={inputCls} value={f.language} onChange={(e) => update('language', e.target.value)}>
+              {languages.map((l) => (
+                <option key={l}>{l}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Currency">
+            <select className={inputCls} value={f.currency} onChange={(e) => update('currency', e.target.value)}>
+              {currencies.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      </div>
+    </Card>
+
+    <Card title="Buyer Trust & Policies" icon={<ShieldCheck className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="flex items-start justify-around gap-3">
+        <Toggle checked={f.warranty} onChange={(v) => update('warranty', v)} label="Warranty" Icon={BadgeCheck} />
+        <Toggle checked={f.fast_shipping} onChange={(v) => update('fast_shipping', v)} label="Fast Shipping" Icon={Truck} />
+        <Toggle checked={f.cod} onChange={(v) => update('cod', v)} label="Cash on Delivery" Icon={Wallet} />
+      </div>
+    </Card>
+
+    <Card title="Store Highlights" icon={<Star className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="grid grid-cols-3 gap-2.5">
+        {highlightList.map(({ key, label, Icon }) => {
+          const on = !!f.highlights[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => update('highlights', { ...f.highlights, [key]: !on })}
+              className="rounded-xl border p-2.5 flex flex-col items-center gap-1.5 transition"
+              style={{
+                borderColor: on ? PURPLE : '#E5E7EB',
+                background: on ? 'rgba(124,58,237,0.08)' : '#fff',
+              }}
+            >
+              <Icon className="w-4 h-4" style={{ color: on ? PURPLE : '#6B7280' }} />
+              <span className="text-[10px] font-semibold text-center leading-tight" style={{ color: on ? PURPLE : '#111' }}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </Card>
+
+    <Card title="Live Preview" icon={<Star className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="rounded-xl border border-gray-100 p-4" style={{ background: 'linear-gradient(180deg,#fafafa,#fff)' }}>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
+            style={{ background: f.theme_color }}
+          >
+            {(f.store_name || 'S').charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <p className="font-bold text-[#111] truncate">{f.store_name || 'Your Store Name'}</p>
+              <BadgeCheck className="w-4 h-4" style={{ color: PURPLE }} />
+            </div>
+            <p className="text-xs text-gray-500 truncate">{f.tagline || 'Your tagline here'}</p>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-3 text-[11px] text-gray-500">
+          <span className="inline-flex items-center gap-1"><Truck className="w-3 h-3" /> Fast Shipping</span>
+          <span className="inline-flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Easy Returns</span>
+          <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Secure</span>
+        </div>
+      </div>
+    </Card>
+  </>
+);
+
+// ---------- Step 2 ----------
+const Step2: React.FC<{ f: FormState; update: any }> = ({ f, update }) => (
+  <>
+    <Hero
+      title="Business Location"
+      subtitle="Tell us where your business is based. This helps us serve you better."
+      illustration={<MapPin className="w-10 h-10" style={{ color: PURPLE }} />}
+    />
+
+    <div
+      className="rounded-2xl p-4 mb-4 flex items-start gap-3"
+      style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)' }}
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(124,58,237,0.15)' }}>
+        <Globe className="w-5 h-5" style={{ color: PURPLE }} />
+      </div>
+      <div>
+        <p className="text-sm font-semibold" style={{ color: PURPLE }}>Why we need your location?</p>
+        <p className="text-xs text-gray-600 mt-0.5">
+          It helps us show relevant features, set accurate shipping options and connect you with nearby buyers.
+        </p>
+      </div>
+    </div>
+
+    <Card title="Select Your Business Location" icon={<Globe className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Country" required>
+          <select className={inputCls} value={f.country} onChange={(e) => update('country', e.target.value)}>
+            {['India', 'United States', 'United Kingdom', 'UAE', 'Canada', 'Australia'].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="State / Province" required>
+          <input className={inputCls} placeholder="e.g. Uttar Pradesh" value={f.state} onChange={(e) => update('state', e.target.value)} />
+        </Field>
+        <Field label="City / District" required>
+          <input className={inputCls} placeholder="e.g. Lucknow" value={f.city} onChange={(e) => update('city', e.target.value)} />
+        </Field>
+
+        {f.city && f.state && (
+          <div
+            className="flex items-center gap-3 p-3 rounded-xl"
+            style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)' }}
+          >
+            <MapPin className="w-5 h-5" style={{ color: PURPLE }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold" style={{ color: PURPLE }}>Your Location Preview</p>
+              <p className="text-sm font-medium text-[#111] truncate">
+                {f.city}, {f.state}, {f.country}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+
+    <Card title="Pinpoint on Map" icon={<MapPin className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <p className="text-xs text-gray-500 mb-3">Adjust the pin to mark the exact location of your business.</p>
+      <div
+        className="relative rounded-xl overflow-hidden h-44 mb-3 flex items-center justify-center"
+        style={{
+          background:
+            'repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 12px,#ffffff 12px,#ffffff 24px)',
+          border: '1px solid #E5E7EB',
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{ background: 'radial-gradient(circle at 50% 50%, rgba(124,58,237,0.35), transparent 60%)' }}
+        />
+        <div className="relative flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center animate-pulse" style={{ background: PURPLE }}>
+            <MapPin className="w-5 h-5 text-white" />
+          </div>
+          <div className="w-2 h-2 rounded-full bg-black/30 mt-1" />
+        </div>
+      </div>
+      <Field label="Address">
+        <input
+          className={inputCls}
+          placeholder="Street, area, landmark"
+          value={f.address}
+          onChange={(e) => update('address', e.target.value)}
+        />
+      </Field>
+      <div className="mt-3">
+        <Field label="ZIP / Pincode">
+          <input
+            className={inputCls}
+            placeholder="6-digit"
+            value={f.pincode}
+            onChange={(e) => update('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+          />
+        </Field>
+      </div>
+    </Card>
+
+    <div
+      className="rounded-2xl p-4 flex items-start gap-3"
+      style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}
+    >
+      <ShieldCheck className="w-5 h-5 mt-0.5" style={{ color: '#059669' }} />
+      <div>
+        <p className="text-sm font-semibold" style={{ color: '#059669' }}>We never share your location publicly.</p>
+        <p className="text-xs text-gray-600 mt-0.5">Your information is encrypted and secure.</p>
+      </div>
+    </div>
+  </>
+);
+
+// ---------- Step 3 ----------
+const Step3: React.FC<{ f: FormState; update: any }> = ({ f, update }) => (
+  <>
+    <Hero
+      title="Contact Information"
+      subtitle="Add your contact details so buyers and our team can reach you easily."
+      illustration={<Mail className="w-10 h-10" style={{ color: PURPLE }} />}
+    />
+
+    <Card title="Primary Contact" icon={<User className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <p className="text-xs text-gray-500 -mt-3 mb-4">Person we can reach regarding your store.</p>
+      <div className="space-y-4">
+        <Field label="Full Name" required>
+          <input className={inputCls} placeholder="Your full name" value={f.full_name} onChange={(e) => update('full_name', e.target.value)} />
+        </Field>
+        <Field label="Designation / Role">
+          <select className={inputCls} value={f.role} onChange={(e) => update('role', e.target.value)}>
+            {['Store Owner', 'Co-Founder', 'Manager', 'Employee', 'Other'].map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Email Address" required>
+          <input
+            type="email"
+            className={inputCls}
+            placeholder="you@example.com"
+            value={f.email}
+            onChange={(e) => update('email', e.target.value)}
+          />
+        </Field>
+        <Field label="Phone Number" required>
+          <input
+            className={inputCls}
+            placeholder="10-digit"
+            value={f.phone_number}
+            onChange={(e) => update('phone_number', e.target.value.replace(/\D/g, '').slice(0, 15))}
+          />
+        </Field>
+        <Field label="WhatsApp Number" hint="Optional">
+          <input
+            className={inputCls}
+            placeholder="WhatsApp"
+            value={f.whatsapp}
+            onChange={(e) => update('whatsapp', e.target.value.replace(/\D/g, '').slice(0, 15))}
+          />
+        </Field>
+      </div>
+    </Card>
+
+    <Card title="Business Contact" icon={<Building2 className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <p className="text-xs text-gray-500 -mt-3 mb-4">Visible to buyers.</p>
+      <div className="space-y-4">
+        <Field label="Store Support Email">
+          <input className={inputCls} placeholder="support@yourstore.com" value={f.support_email} onChange={(e) => update('support_email', e.target.value)} />
+        </Field>
+        <Field label="Support Phone Number">
+          <input
+            className={inputCls}
+            placeholder="Support phone"
+            value={f.support_phone}
+            onChange={(e) => update('support_phone', e.target.value.replace(/\D/g, '').slice(0, 15))}
+          />
+        </Field>
+        <Field label="Business Hours">
+          <input className={inputCls} value={f.business_hours} onChange={(e) => update('business_hours', e.target.value)} />
+        </Field>
+        <Field label="Preferred Communication">
+          <select className={inputCls} value={f.preferred_comm} onChange={(e) => update('preferred_comm', e.target.value)}>
+            {['Email', 'Phone', 'WhatsApp', 'SMS'].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+    </Card>
+
+    <Card title="Business Address" icon={<MapPin className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Country">
+          <select className={inputCls} value={f.b_country} onChange={(e) => update('b_country', e.target.value)}>
+            {['India', 'United States', 'United Kingdom', 'UAE', 'Canada', 'Australia'].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="State / Province">
+          <input className={inputCls} placeholder="State" value={f.b_state} onChange={(e) => update('b_state', e.target.value)} />
+        </Field>
+        <Field label="City">
+          <input className={inputCls} placeholder="City" value={f.b_city} onChange={(e) => update('b_city', e.target.value)} />
+        </Field>
+        <Field label="ZIP / Postal Code">
+          <input
+            className={inputCls}
+            placeholder="ZIP"
+            value={f.b_zip}
+            onChange={(e) => update('b_zip', e.target.value.replace(/\D/g, '').slice(0, 8))}
+          />
+        </Field>
+      </div>
+    </Card>
+
+    <div
+      className="rounded-2xl p-4 flex items-start gap-3"
+      style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}
+    >
+      <ShieldCheck className="w-5 h-5 mt-0.5" style={{ color: '#059669' }} />
+      <div>
+        <p className="text-sm font-semibold" style={{ color: '#059669' }}>Your information is safe with us</p>
+        <p className="text-xs text-gray-600 mt-0.5">We never share your contact details with anyone.</p>
+      </div>
+    </div>
+  </>
+);
+
+// ---------- Step 4 ----------
+const Step4: React.FC<{ f: FormState; update: any }> = ({ f, update }) => (
+  <>
+    <Hero
+      title="Identity & Business Verification"
+      subtitle="Verify your identity to start selling securely."
+      illustration={<ShieldCheck className="w-10 h-10" style={{ color: PURPLE }} />}
+    />
+
+    <Card title="Identity Information" icon={<User className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <p className="text-xs text-gray-500 -mt-3 mb-4">Personal identity verification.</p>
+      <div className="space-y-4">
+        <Field label="Government ID Type" required>
+          <select className={inputCls} value={f.id_type} onChange={(e) => update('id_type', e.target.value)}>
+            <option value="">Select ID type</option>
+            {idTypes.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="ID Number" required>
+          <input className={inputCls} placeholder="ID number" value={f.id_number} onChange={(e) => update('id_number', e.target.value)} />
+        </Field>
+        <div>
+          <label className="text-[13px] font-semibold text-[#111] mb-2 block">Upload Government ID</label>
+          <div className="grid grid-cols-2 gap-3">
+            <UploadTile label="Front Side" name={f.id_front_name} onChange={(n) => update('id_front_name', n)} small />
+            <UploadTile label="Back Side" name={f.id_back_name} onChange={(n) => update('id_back_name', n)} small />
+          </div>
+        </div>
+        <div>
+          <label className="text-[13px] font-semibold text-[#111] mb-2 block">Selfie Verification</label>
+          <UploadTile label="Take a clear selfie holding your ID" hint="Face and ID clearly visible" name={f.selfie_name} onChange={(n) => update('selfie_name', n)} />
+        </div>
+      </div>
+    </Card>
+
+    <Card title="Business Information" icon={<Building2 className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Business Type" required>
+          <select className={inputCls} value={f.business_type} onChange={(e) => update('business_type', e.target.value)}>
+            <option value="">Select type</option>
+            {businessTypes.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Business Registration Number" hint="Optional">
+          <input className={inputCls} placeholder="Registration number" value={f.business_reg} onChange={(e) => update('business_reg', e.target.value)} />
+        </Field>
+        <Field label="Business Logo" hint="Optional">
+          <UploadTile label="Tap to Upload" hint="JPG, PNG · 2MB" name={f.business_logo_name} onChange={(n) => update('business_logo_name', n)} small />
+        </Field>
+      </div>
+    </Card>
+
+    <Card title="Additional Information" icon={<Globe className="w-5 h-5" style={{ color: PURPLE }} />}>
+      <div className="space-y-4">
+        <Field label="Business Website" hint="Optional">
+          <input className={inputCls} placeholder="www.yourbusiness.com" value={f.business_website} onChange={(e) => update('business_website', e.target.value)} />
+        </Field>
+        <Field label="Business Email">
+          <input className={inputCls} placeholder="info@yourbusiness.com" value={f.business_email} onChange={(e) => update('business_email', e.target.value)} />
+        </Field>
+        <Field label="Year of Establishment">
+          <select className={inputCls} value={f.year_established} onChange={(e) => update('year_established', e.target.value)}>
+            <option value="">Select year</option>
+            {years.map((y) => (
+              <option key={y}>{y}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+    </Card>
+
+    <div className="grid grid-cols-3 gap-2.5">
+      {[
+        { Icon: Lock, title: 'Documents Encrypted' },
+        { Icon: Clock, title: 'Review in 24–48 hrs' },
+        { Icon: ShieldCheck, title: 'Used only for verification' },
+      ].map(({ Icon, title }) => (
+        <div
+          key={title}
+          className="rounded-xl p-3 flex flex-col items-center gap-1.5 text-center"
+          style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)' }}
+        >
+          <Icon className="w-4 h-4" style={{ color: PURPLE }} />
+          <span className="text-[10px] font-semibold text-[#111] leading-tight">{title}</span>
+        </div>
+      ))}
+    </div>
+  </>
+);
 
 export default BecomeSellerPage;
