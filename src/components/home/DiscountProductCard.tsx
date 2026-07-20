@@ -19,13 +19,11 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
 }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Deterministic pseudo-discount based on product id
-  const { discount, originalPrice, rating } = useMemo(() => {
+  // Deterministic rating based on product id
+  const { rating } = useMemo(() => {
     const seed = (product.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const disc = 15 + (seed % 45); // 15-60%
-    const original = Math.round(product.price / (1 - disc / 100));
     const rate = (3.5 + ((seed % 15) / 10)).toFixed(1); // 3.5 - 4.9
-    return { discount: disc, originalPrice: original, rating: rate };
+    return { rating: rate };
   }, [product.id, product.price]);
 
   return (
@@ -58,12 +56,6 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
           </div>
         )}
 
-        {/* Discount badge */}
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-destructive text-destructive-foreground
-                        text-[10px] font-extrabold tracking-wide shadow-lg">
-          -{discount}%
-        </div>
-
         {/* Wishlist */}
         {onToggleWishlist && (
           <button
@@ -95,12 +87,6 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
         <div className="flex items-baseline gap-1 mt-1">
           <span className="text-sm font-extrabold text-foreground">
             ₹{product.price.toLocaleString()}
-          </span>
-          <span className="text-[10px] text-muted-foreground line-through">
-            ₹{originalPrice.toLocaleString()}
-          </span>
-          <span className="ml-auto text-[10px] font-bold text-sellora-success">
-            -{discount}%
           </span>
         </div>
       </div>
