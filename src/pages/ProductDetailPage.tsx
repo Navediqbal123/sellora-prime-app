@@ -55,11 +55,12 @@ const ProductDetailPage = () => {
 
       const { data, error } = await supabase
         .from('products')
-        .select('*, seller:sellers(*)')
+        .select('*')
         .eq('id', id)
         .maybeSingle();
 
       if (error || !data) {
+        console.error('Product fetch error:', error, 'id:', id);
         toast({ title: 'Error', description: 'Product not found', variant: 'destructive' });
         navigate('/');
         return;
@@ -67,8 +68,13 @@ const ProductDetailPage = () => {
 
       setProduct(data);
 
-      if (data.seller) {
-        setSeller(data.seller as SellerProfile);
+      if (data.seller_id) {
+        const { data: sellerData } = await supabase
+          .from('sellers')
+          .select('*')
+          .eq('id', data.seller_id)
+          .maybeSingle();
+        if (sellerData) setSeller(sellerData as SellerProfile);
       }
 
       // Increment views (fire-and-forget)
