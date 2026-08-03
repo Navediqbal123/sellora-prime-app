@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
   ClipboardList,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Clock,
   Loader2,
   ShoppingBag,
+  ScanLine,
 } from 'lucide-react';
 
 interface OrderRow {
@@ -57,6 +59,8 @@ const SellerOrders = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -133,6 +137,29 @@ const SellerOrders = () => {
     fetchOrders();
   }, [user]);
 
+  const verifyCode = async () => {
+    const code = codeInput.trim();
+    if (!code) {
+      toast({ title: 'Enter a code', description: 'Please enter the customer pickup code', variant: 'destructive' });
+      return;
+    }
+    setVerifying(true);
+    try {
+      const match = orders.find(
+        (o) => (o.pickup_code || '').trim() === code && o.status !== 'completed' && o.status !== 'cancelled',
+      );
+      if (!match) {
+        toast({ title: 'Invalid code', description: 'No pending order found with this pickup code', variant: 'destructive' });
+        return;
+      }
+      await updateStatus(match.id, 'completed');
+      setCodeInput('');
+      toast({ title: 'Verified ✅', description: `Order for ${match.product?.title || 'product'} marked completed` });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const updateStatus = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     try {
@@ -181,6 +208,31 @@ const SellerOrders = () => {
         </h1>
         <p className="text-muted-foreground mt-1">
           {orders.length} order{orders.length !== 1 ? 's' : ''} total
+        </p>
+      </div>
+
+      {/* Pickup code verification */}
+      <div className="card-premium p-4 md:p-5 animate-fade-in-up">
+        <div className="flex items-center gap-2 mb-3">
+          <ScanLine className="w-4 h-4 text-primary" />
+          <h2 className="font-semibold text-foreground">Verify Pickup Code</h2>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Input
+            value={codeInput}
+            onChange={(e) => setCodeInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') verifyCode(); }}
+            placeholder="Enter customer's pickup code"
+            inputMode="numeric"
+            maxLength={10}
+            className="flex-1 font-mono tracking-widest"
+          />
+          <Button onClick={verifyCode} disabled={verifying} className="sm:w-36">
+            {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-1.5" /> Verify</>}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Enter the code shown in the customer's app to mark the order as completed.
         </p>
       </div>
 
