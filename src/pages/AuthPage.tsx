@@ -1,291 +1,398 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Loader2, ShoppingBag, Sparkles, User, Mail, Lock } from 'lucide-react';
+import {
+  Eye, EyeOff, Loader2, ShoppingBag, User, Mail, Lock, Phone,
+  Check, ArrowRight, ShieldCheck, BadgeCheck, Headphones, UserPlus, ChevronDown,
+} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 type AuthMode = 'login' | 'signup';
+
+const COUNTRIES = [
+  { flag: '🇮🇳', code: '+91', name: 'India' },
+  { flag: '🇺🇸', code: '+1', name: 'United States' },
+  { flag: '🇬🇧', code: '+44', name: 'United Kingdom' },
+  { flag: '🇦🇪', code: '+971', name: 'UAE' },
+  { flag: '🇨🇦', code: '+1', name: 'Canada' },
+  { flag: '🇦🇺', code: '+61', name: 'Australia' },
+  { flag: '🇸🇦', code: '+966', name: 'Saudi Arabia' },
+  { flag: '🇸🇬', code: '+65', name: 'Singapore' },
+  { flag: '🇩🇪', code: '+49', name: 'Germany' },
+  { flag: '🇫🇷', code: '+33', name: 'France' },
+];
+
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 0 1-2.4 3.6v3h3.8c2.2-2 3.7-5 3.7-8.8Z" />
+    <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.8-2.9l-3.8-3a7.2 7.2 0 0 1-10.7-3.8H1.4v3.1A12 12 0 0 0 12 24Z" />
+    <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l3.9-3.1Z" />
+    <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l3.9 3.1A7.2 7.2 0 0 1 12 4.8Z" />
+  </svg>
+);
+
+const emailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+
+const Field: React.FC<{
+  icon: React.ReactNode;
+  label?: string;
+  valid?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}> = ({ icon, label, valid, error, children }) => (
+  <div>
+    <div
+      className={`flex items-start gap-3 rounded-2xl border bg-white px-4 py-3 transition-all duration-200
+        ${error ? 'border-red-300 ring-2 ring-red-100' : 'border-black/10 focus-within:border-[#6C3BFF] focus-within:ring-2 focus-within:ring-[#6C3BFF]/15'}
+        shadow-[0_1px_2px_rgba(17,17,17,0.04)]`}
+    >
+      <span className="mt-1.5 text-[#111]/60">{icon}</span>
+      <div className="flex-1 min-w-0">
+        {label && <p className="text-[13px] font-semibold text-[#111]">{label}</p>}
+        {children}
+      </div>
+      {valid && !error && (
+        <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 animate-scale-in">
+          <Check className="h-3 w-3 text-white" strokeWidth={3} />
+        </span>
+      )}
+    </div>
+    {error && <p className="mt-1.5 pl-1 text-xs font-medium text-red-500">{error}</p>}
+  </div>
+);
+
+const inputCls =
+  'w-full bg-transparent text-[15px] text-[#111] placeholder:text-[#111]/35 outline-none';
 
 const AuthPage = ({ mode = 'login' }: { mode?: AuthMode }) => {
   const [isLogin, setIsLogin] = useState(mode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState(COUNTRIES[0]);
+  const [agree, setAgree] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [shake, setShake] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     setIsLogin(mode === 'login');
+    setErrors({});
   }, [mode]);
 
-  const triggerShake = () => {
-    setShake(true);
-    setTimeout(() => setShake(false), 500);
+  const valid = useMemo(
+    () => ({
+      fullName: fullName.trim().length >= 2,
+      email: emailValid(email),
+      phone: phone.replace(/\D/g, '').length >= 7,
+      password: password.length >= 6,
+      confirm: confirm.length >= 6 && confirm === password,
+    }),
+    [fullName, email, phone, password, confirm]
+  );
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!email.trim()) e.email = 'Email is required';
+    else if (!valid.email) e.email = 'Enter a valid email address';
+    if (!password) e.password = 'Password is required';
+    else if (!valid.password) e.password = 'Password must be at least 6 characters';
+    if (!isLogin) {
+      if (!fullName.trim()) e.fullName = 'Full name is required';
+      if (!phone.trim()) e.phone = 'Phone number is required';
+      else if (!valid.phone) e.phone = 'Enter a valid phone number';
+      if (!confirm) e.confirm = 'Please confirm your password';
+      else if (confirm !== password) e.confirm = 'Passwords do not match';
+      if (!agree) e.agree = 'Please accept the Terms & Privacy Policy';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/` },
+    });
+    if (error) {
+      setGoogleLoading(false);
+      toast({ title: 'Google Sign-In failed', description: error.message, variant: 'destructive' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email.trim() || !password.trim()) {
-      triggerShake();
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!isLogin && !fullName.trim()) {
-      triggerShake();
-      toast({
-        title: "Error",
-        description: "Please enter your full name",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      triggerShake();
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!validate()) return;
     setIsLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          triggerShake();
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive"
-          });
+          toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
         } else {
-          setSuccess(true);
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully logged in"
-          });
-          setTimeout(() => navigate('/'), 500);
+          toast({ title: 'Welcome back!', description: 'You have successfully signed in' });
+          navigate('/', { replace: true });
         }
       } else {
-        const { error } = await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, fullName, `${country.code} ${phone}`);
         if (error) {
-          triggerShake();
-          if (error.message.includes('already registered')) {
-            toast({
-              title: "Account Exists",
-              description: "This email is already registered. Please login instead.",
-              variant: "destructive"
-            });
-          } else {
-            toast({
-              title: "Signup Failed",
-              description: error.message,
-              variant: "destructive"
-            });
-          }
-        } else {
-          setSuccess(true);
           toast({
-            title: "Account Created! 🎉",
-            description: "Welcome to Sellora!"
+            title: error.message.includes('already registered') ? 'Account exists' : 'Signup failed',
+            description: error.message,
+            variant: 'destructive',
           });
-          setTimeout(() => navigate('/'), 500);
+        } else {
+          toast({ title: 'Account created 🎉', description: 'Please sign in to continue' });
+          navigate('/login', { replace: true });
         }
       }
-    } catch (error) {
-      triggerShake();
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
+    } catch {
+      toast({ title: 'Error', description: 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Primary glow */}
-        <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] bg-primary/30 rounded-full blur-[120px] animate-pulse-glow" />
-        {/* Accent glow */}
-        <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
-        {/* Center glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] animate-float" />
-        
-        {/* Floating particles */}
-        <div className="absolute top-20 left-20 w-2 h-2 bg-primary/50 rounded-full animate-float" style={{ animationDelay: '0.5s' }} />
-        <div className="absolute top-40 right-32 w-3 h-3 bg-accent/50 rounded-full animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-32 left-1/4 w-2 h-2 bg-primary/40 rounded-full animate-float" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute bottom-20 right-1/4 w-4 h-4 bg-accent/30 rounded-full animate-float" style={{ animationDelay: '2s' }} />
-      </div>
-
-      <div className={`w-full max-w-md transition-all duration-500 ${success ? 'scale-95 opacity-0' : 'animate-scale-in'}`}>
-        {/* Logo */}
-        <div className="text-center mb-8 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 mb-6 relative group">
-            <ShoppingBag className="w-10 h-10 text-primary transition-transform group-hover:scale-110" />
-            <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-accent animate-pulse" />
+    <div className="min-h-svh w-full bg-white px-5 py-8">
+      <div key={isLogin ? 'login' : 'signup'} className="mx-auto w-full max-w-md animate-fade-in-up">
+        {isLogin ? (
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-[68px] w-[68px] items-center justify-center rounded-[22px] bg-gradient-to-br from-[#7C4DFF] to-[#6C3BFF] shadow-[0_10px_30px_rgba(108,59,255,0.35)]">
+              <ShoppingBag className="h-8 w-8 text-white" strokeWidth={2.2} />
+            </div>
+            <h1 className="text-[34px] font-extrabold tracking-tight text-[#111]">Sellora</h1>
+            <p className="mt-1 text-[15px] text-[#111]/55">Your Premium Marketplace</p>
           </div>
-          <h1 className="text-4xl font-bold text-gradient mb-2">Sellora</h1>
-          <p className="text-muted-foreground">Your Premium Marketplace</p>
-        </div>
+        ) : (
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-[104px] w-[104px] items-center justify-center rounded-full bg-[#6C3BFF]/10">
+              <UserPlus className="h-11 w-11 text-[#6C3BFF]" strokeWidth={2} />
+            </div>
+            <h1 className="text-[30px] font-extrabold tracking-tight text-[#111]">Create Account</h1>
+            <p className="mt-1 text-[15px] text-[#111]/55">Let's get you started with Sellora</p>
+          </div>
+        )}
 
-        {/* Auth Card - Glassmorphism */}
-        <div className={`relative p-8 rounded-2xl animate-fade-in-up stagger-1 
-                        bg-gradient-to-br from-card/80 to-card/40 
-                        backdrop-blur-xl border border-white/10
-                        shadow-[0_8px_32px_rgba(0,0,0,0.4)]
-                        ${shake ? 'animate-shake' : ''}`}>
-          {/* Card glow effect */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-          
-          <h2 className="text-2xl font-semibold text-foreground mb-8 text-center relative">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-primary to-accent rounded-full" />
-          </h2>
+        {isLogin && (
+          <div className="mt-7 flex items-center justify-between gap-4 rounded-3xl bg-[#6C3BFF]/[0.07] px-5 py-6">
+            <div>
+              <h2 className="text-[21px] font-bold text-[#111]">Welcome Back</h2>
+              <p className="mt-1 text-[13px] text-[#111]/55">Sign in to continue to your account</p>
+            </div>
+            <ShoppingBag className="h-14 w-14 shrink-0 text-[#6C3BFF]" strokeWidth={1.6} />
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 relative">
-            {/* Full Name Input - Only for Signup */}
-            {!isLogin && (
-              <div className="relative animate-fade-in-up group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
-                  <User className="w-5 h-5" />
+        <form onSubmit={handleSubmit} className="mt-6 space-y-3.5" noValidate>
+          {!isLogin && (
+            <Field icon={<User className="h-5 w-5" />} label="Full Name" valid={valid.fullName} error={errors.fullName}>
+              <input
+                className={inputCls}
+                placeholder="Enter your full name"
+                value={fullName}
+                autoComplete="name"
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </Field>
+          )}
+
+          <Field
+            icon={<Mail className="h-5 w-5" />}
+            label={isLogin ? undefined : 'Email Address'}
+            valid={valid.email}
+            error={errors.email}
+          >
+            <input
+              className={inputCls}
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Field>
+
+          {!isLogin && (
+            <Field icon={<Phone className="h-5 w-5" />} label="Phone Number" valid={valid.phone} error={errors.phone}>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="relative flex items-center gap-1 rounded-xl bg-[#111]/[0.04] px-2.5 py-1.5">
+                  <span className="text-base leading-none">{country.flag}</span>
+                  <span className="text-[13px] font-semibold text-[#111]">{country.code}</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-[#111]/50" />
+                  <select
+                    aria-label="Country code"
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    value={country.name}
+                    onChange={(e) =>
+                      setCountry(COUNTRIES.find((c) => c.name === e.target.value) || COUNTRIES[0])
+                    }
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.name} value={c.name}>{`${c.flag} ${c.name} (${c.code})`}</option>
+                    ))}
+                  </select>
                 </div>
                 <input
-                  type="text"
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
-                  className="w-full h-[52px] pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
-                             placeholder:text-muted-foreground/50
-                             transition-all duration-160 ease-out
-                             hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                  autoComplete="name"
+                  className={inputCls}
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="Enter your phone number"
+                  value={phone}
+                  autoComplete="tel"
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
-            )}
+            </Field>
+          )}
 
-            {/* Email Input */}
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
-                <Mail className="w-5 h-5" />
-              </div>
+          <Field
+            icon={<Lock className="h-5 w-5" />}
+            label={isLogin ? undefined : 'Password'}
+            valid={!isLogin && valid.password}
+            error={errors.password}
+          >
+            <div className="flex items-center gap-2">
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="w-full h-[52px] pl-12 pr-4 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
-                           placeholder:text-muted-foreground/50
-                           transition-all duration-160 ease-out
-                           hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                autoComplete="email"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 transition-colors duration-160 group-focus-within:text-primary">
-                <Lock className="w-5 h-5" />
-              </div>
-              <input
+                className={inputCls}
                 type={showPassword ? 'text' : 'password'}
-                id="password"
+                placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full h-[52px] pl-12 pr-14 bg-secondary/50 border border-border/50 rounded-[14px] text-foreground text-base
-                           placeholder:text-muted-foreground/50
-                           transition-all duration-160 ease-out
-                           hover:border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
+                onChange={(e) => setPassword(e.target.value)}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-120 z-10"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              <button type="button" onClick={() => setShowPassword((s) => !s)} className="text-[#6C3BFF]/80">
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+          </Field>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full h-[52px] text-lg font-semibold relative overflow-hidden group rounded-[14px] btn-ripple
-                         bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary
-                         animate-glow-idle hover:shadow-[0_6px_30px_rgba(139,92,246,0.5)]
-                         transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${success ? 'bg-accent' : ''}`}
-            >
-              {/* Button glow animation */}
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
-                              translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-              
-              {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <span className="relative flex items-center justify-center gap-2">
-                  {isLogin ? 'Sign In' : 'Create Account'}
-                  <Sparkles className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-280" />
-                </span>
-              )}
-            </Button>
-          </form>
+          {!isLogin && (
+            <Field icon={<Lock className="h-5 w-5" />} label="Confirm Password" valid={valid.confirm} error={errors.confirm}>
+              <div className="flex items-center gap-2">
+                <input
+                  className={inputCls}
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={confirm}
+                  autoComplete="new-password"
+                  onChange={(e) => setConfirm(e.target.value)}
+                />
+                <button type="button" onClick={() => setShowConfirm((s) => !s)} className="text-[#6C3BFF]/80">
+                  {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </Field>
+          )}
 
-          {/* Toggle Auth Mode */}
-          <div className="mt-8 text-center relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+          {isLogin ? (
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-[13px] font-semibold text-[#6C3BFF]">
+                Forgot Password?
+              </Link>
             </div>
-            <span className="relative bg-card px-4 text-sm text-muted-foreground">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-            </span>
-          </div>
-          
-          <button
-            onClick={() => {
-              const nextMode = isLogin ? 'signup' : 'login';
-              navigate(nextMode === 'login' ? '/login' : '/signup');
-              setIsLogin(nextMode === 'login');
-            }}
-            className="w-full mt-4 py-3 px-4 rounded-xl border border-white/10 
-                       text-foreground font-medium
-                       bg-secondary/30 hover:bg-secondary/50
-                       transition-all duration-300 hover:border-primary/50
-                       group"
-          >
-            <span className="group-hover:text-primary transition-colors">
-              {isLogin ? 'Create New Account' : 'Sign In Instead'}
-            </span>
-          </button>
-        </div>
+          ) : (
+            <div>
+              <label className="flex items-start gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAgree((a) => !a)}
+                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                    agree ? 'border-[#111] bg-[#111]' : 'border-black/25 bg-white'
+                  }`}
+                  aria-pressed={agree}
+                >
+                  {agree && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+                </button>
+                <span className="text-[13px] leading-relaxed text-[#111]">
+                  I agree to Sellora's <span className="font-semibold text-[#6C3BFF]">Terms of Service</span> and{' '}
+                  <span className="font-semibold text-[#6C3BFF]">Privacy Policy</span>
+                </span>
+              </label>
+              {errors.agree && <p className="mt-1.5 pl-8 text-xs font-medium text-red-500">{errors.agree}</p>}
+            </div>
+          )}
 
-        {/* Footer */}
-        <p className="text-center text-muted-foreground/60 text-sm mt-8 animate-fade-in stagger-2">
-          By continuing, you agree to Sellora's Terms of Service
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 flex h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[#111] text-[16px] font-bold text-white
+                       shadow-[0_10px_24px_rgba(17,17,17,0.18)] transition-transform duration-150 active:scale-[0.985] disabled:opacity-70"
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                {isLogin ? 'Sign In' : 'Create Account'}
+                <ArrowRight className="h-5 w-5" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {isLogin && (
+          <>
+            <div className="my-6 flex items-center gap-3">
+              <span className="h-px flex-1 bg-black/10" />
+              <span className="text-[13px] text-[#111]/50">or continue with</span>
+              <span className="h-px flex-1 bg-black/10" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogle}
+              disabled={googleLoading}
+              className="flex h-[54px] w-full items-center justify-center gap-3 rounded-2xl border border-black/10 bg-white
+                         text-[15px] font-semibold text-[#111] shadow-[0_1px_2px_rgba(17,17,17,0.05)]
+                         transition-transform duration-150 active:scale-[0.985] disabled:opacity-70"
+            >
+              {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
+              Continue with Google
+            </button>
+          </>
+        )}
+
+        <p className="mt-6 text-center text-[14px] text-[#111]/60">
+          {isLogin ? "Don't have an account? " : 'Already have an account? '}
+          <Link to={isLogin ? '/signup' : '/login'} className="font-bold text-[#6C3BFF]">
+            {isLogin ? 'Sign Up' : 'Sign In'}
+          </Link>
         </p>
+
+        {isLogin && (
+          <>
+            <div className="mt-7 grid grid-cols-3 gap-3 rounded-3xl bg-[#111]/[0.03] px-4 py-6 text-center">
+              {[
+                { icon: ShieldCheck, title: 'Secure & Safe', sub: 'Your data is 100% protected' },
+                { icon: BadgeCheck, title: 'Premium Quality', sub: 'Top products from trusted sellers' },
+                { icon: Headphones, title: '24/7 Support', sub: "We're here to help you anytime" },
+              ].map(({ icon: Icon, title, sub }) => (
+                <div key={title}>
+                  <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[#6C3BFF]/10">
+                    <Icon className="h-5 w-5 text-[#6C3BFF]" />
+                  </div>
+                  <p className="text-[12.5px] font-bold text-[#111]">{title}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-[#111]/50">{sub}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-6 text-center text-[12.5px] leading-relaxed text-[#111]/50">
+              By continuing, you agree to Sellora's
+              <br />
+              <span className="font-semibold text-[#6C3BFF]">Terms of Service</span> and{' '}
+              <span className="font-semibold text-[#6C3BFF]">Privacy Policy</span>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
