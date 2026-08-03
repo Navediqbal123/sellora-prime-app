@@ -46,9 +46,9 @@ const ProfilePage = () => {
   const email = profile?.email || user?.email || '';
   const avatarUrl = profile?.avatar_url || (user?.user_metadata as any)?.avatar_url;
 
-  useEffect(() => {
+  const loadData = React.useCallback(async () => {
     if (!user?.id) return;
-    (async () => {
+    {
       setLoading(true);
       const [profileRes, ordersCountRes, wishlistRes, reviewsRes, ordersListRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
@@ -84,8 +84,25 @@ const ProfilePage = () => {
         cancelled: list.filter((o) => o.status === 'cancelled').length,
       });
       setLoading(false);
-    })();
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    loadData();
+
+    const channel = supabase
+      .channel(`profile-orders-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `buyer_id=eq.${user.id}` },
+        () => loadData(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, loadData]);
 
   const handleLogout = async () => {
     try {
