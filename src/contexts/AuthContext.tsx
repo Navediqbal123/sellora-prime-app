@@ -191,7 +191,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: data.user.id,
         full_name: fullName || '',
         email,
-        ...(phone ? { phone } : {}),
         updated_at: new Date().toISOString(),
       });
 
