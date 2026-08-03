@@ -12,6 +12,8 @@ import SellerLayout from "@/layouts/SellerLayout";
 // Pages
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import HomePage from "./pages/HomePage";
 import BecomeSellerPage from "./pages/BecomeSellerPage";
 import SellerReviewPage from "./pages/SellerReviewPage";
@@ -83,6 +85,16 @@ const AppRoutes = () => {
 
         {/* Backwards-compat */}
         <Route path="/auth" element={<Navigate to="/login" replace />} />
+
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicOnlyRoute>
+              <ForgotPasswordPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       {/* Protected routes (GLOBAL sidebar layout) */}
