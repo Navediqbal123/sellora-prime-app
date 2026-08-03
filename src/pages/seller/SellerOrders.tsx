@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
   ClipboardList,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Clock,
   Loader2,
   ShoppingBag,
+  ScanLine,
 } from 'lucide-react';
 
 interface OrderRow {
@@ -57,6 +59,8 @@ const SellerOrders = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const fetchOrders = async () => {
     if (!user) return;
