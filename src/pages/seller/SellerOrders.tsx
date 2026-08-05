@@ -145,16 +145,54 @@ const SellerOrders = () => {
     }
     setVerifying(true);
     try {
-      const match = orders.find(
-        (o) => (o.pickup_code || '').trim() === code && o.status !== 'completed' && o.status !== 'cancelled',
-      );
-      if (!match) {
-        toast({ title: 'Invalid code', description: 'No pending order found with this pickup code', variant: 'destructive' });
+      // Resolve seller id so we only verify our own orders
+      const { data: seller } = await supabase
+        .from('sellers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (!seller) {
+        toast({ title: 'Error', description: 'Seller profile not found', variant: 'destructive' });
         return;
       }
-      await updateStatus(match.id, 'completed');
+
+      // Find matching order directly in Supabase by pickup_code
+      const { data: matches, error: findError } = await supabase
+        .from('orders')
+        .select('id, status, product_id, pickup_code')
+        .eq('seller_id', seller.id)
+        .eq('pickup_code', code)
+        .in('status', ['pending', 'ready'])
+        .limit(1);
+
+      if (findError) throw findError;
+
+      const match = matches?.[0];
+      if (!match) {
+        toast({
+          title: 'Invalid code',
+          description: 'No pending order found with this pickup code',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('id', match.id);
+
+      if (updateError) throw updateError;
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === match.id ? { ...o, status: 'completed' } : o)),
+      );
       setCodeInput('');
-      toast({ title: 'Verified ✅', description: `Order for ${match.product?.title || 'product'} marked completed` });
+      toast({ title: 'Verified ✅', description: 'Order marked as completed' });
+      fetchOrders();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Verification failed', variant: 'destructive' });
     } finally {
       setVerifying(false);
     }
