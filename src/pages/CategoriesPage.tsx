@@ -20,6 +20,19 @@ const categories = [
 ];
 
 const CategoriesPage: React.FC = () => {
+  return <CategoriesPageInner />;
+};
+
+const EmptyBlock: React.FC<{ icon: React.ComponentType<{ className?: string }> }> = ({ icon: Icon }) => (
+  <div className="flex flex-col items-center justify-center py-10 gap-3">
+    <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center">
+      <Icon className="w-8 h-8 text-muted-foreground/50" />
+    </div>
+    <p className="text-sm" style={{ color: '#666666' }}>No products available yet</p>
+  </div>
+);
+
+const CategoriesPageInner: React.FC = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const initial = params.get('cat') || categories[0].id;
