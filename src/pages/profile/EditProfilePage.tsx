@@ -24,7 +24,7 @@ import {
   Save,
   ShieldAlert,
 } from 'lucide-react';
-import { Card, CARD_SHADOW, EditShell, INK, MENU, MUTED, MenuCard, PurpleButton, PURPLE } from './edit/_ui';
+import { Card, CARD_SHADOW, EditShell, INK, MUTED, MenuCard, PurpleButton, PURPLE } from './edit/_ui';
 
 const items = [
   { icon: User, title: 'Personal Information', subtitle: 'Your basic information', to: '/profile/edit/personal' },
