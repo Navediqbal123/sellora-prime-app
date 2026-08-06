@@ -27,6 +27,20 @@ import WishlistPage from "./pages/WishlistPage";
 import OrdersPage from "./pages/OrdersPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import EditProfilePage from "./pages/profile/EditProfilePage";
+import PersonalInfoPage from "./pages/profile/edit/PersonalInfoPage";
+import ContactInfoPage from "./pages/profile/edit/ContactInfoPage";
+import ChangePhonePage from "./pages/profile/edit/ChangePhonePage";
+import VerifyOtpPage from "./pages/profile/edit/VerifyOtpPage";
+import PhoneUpdatedPage from "./pages/profile/edit/PhoneUpdatedPage";
+import SecurityPage from "./pages/profile/edit/SecurityPage";
+import UsernamePage from "./pages/profile/edit/UsernamePage";
+import ProfileBioPage from "./pages/profile/edit/ProfileBioPage";
+import ProfileThemePage from "./pages/profile/edit/ProfileThemePage";
+import PrivacySettingsPage from "./pages/profile/edit/PrivacySettingsPage";
+import ShippingAddressPage from "./pages/profile/edit/ShippingAddressPage";
+import PaymentPreferencesPage from "./pages/profile/edit/PaymentPreferencesPage";
+import VerificationStatusPage from "./pages/profile/edit/VerificationStatusPage";
+import DeleteAccountPage from "./pages/profile/edit/DeleteAccountPage";
 import AddressesPage from "./pages/profile/AddressesPage";
 import PaymentMethodsPage from "./pages/profile/PaymentMethodsPage";
 import CouponsPage from "./pages/profile/CouponsPage";
@@ -111,6 +125,20 @@ const AppRoutes = () => {
         <Route path="seller/:id" element={<SellerProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="profile/edit" element={<EditProfilePage />} />
+        <Route path="profile/edit/personal" element={<PersonalInfoPage />} />
+        <Route path="profile/edit/contact" element={<ContactInfoPage />} />
+        <Route path="profile/edit/phone" element={<ChangePhonePage />} />
+        <Route path="profile/edit/phone/otp" element={<VerifyOtpPage />} />
+        <Route path="profile/edit/phone/success" element={<PhoneUpdatedPage />} />
+        <Route path="profile/edit/security" element={<SecurityPage />} />
+        <Route path="profile/edit/username" element={<UsernamePage />} />
+        <Route path="profile/edit/bio" element={<ProfileBioPage />} />
+        <Route path="profile/edit/theme" element={<ProfileThemePage />} />
+        <Route path="profile/edit/privacy" element={<PrivacySettingsPage />} />
+        <Route path="profile/edit/shipping" element={<ShippingAddressPage />} />
+        <Route path="profile/edit/payment" element={<PaymentPreferencesPage />} />
+        <Route path="profile/edit/verification" element={<VerificationStatusPage />} />
+        <Route path="profile/edit/delete" element={<DeleteAccountPage />} />
         <Route path="profile/addresses" element={<AddressesPage />} />
         <Route path="profile/payment-methods" element={<PaymentMethodsPage />} />
         <Route path="profile/coupons" element={<CouponsPage />} />
