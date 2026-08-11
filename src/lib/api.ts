@@ -136,3 +136,9 @@ export const adminApi = {
     body: JSON.stringify({ order_id: orderId }),
   }),
 };
+
+// Account API endpoints (current logged-in user only)
+export const accountApi = {
+  // Server performs auth.admin.deleteUser() for the authenticated caller
+  deleteMyAccount: () => apiRequest('/account/delete', { method: 'POST' }),
+};

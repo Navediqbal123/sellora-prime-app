@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, PauseCircle, Trash2 } from 'lucide-react';
-import { Card, EditShell, INK, MUTED, Radio } from './_ui';
+import { AlertTriangle, Loader2, PauseCircle, Trash2 } from 'lucide-react';
+import { EditShell, INK, MUTED, Radio } from './_ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { accountApi } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 const DeleteAccountPage: React.FC = () => {
@@ -14,17 +15,22 @@ const DeleteAccountPage: React.FC = () => {
 
   const submit = async () => {
     if (!user?.id) return;
-    if (!window.confirm(choice === 'delete' ? 'Permanently delete your account?' : 'Deactivate your account?')) return;
+    const confirmed = window.confirm(
+      choice === 'delete'
+        ? 'Permanently delete your account? This cannot be undone.'
+        : 'Deactivate your account? You can contact support to reactivate it.',
+    );
+    if (!confirmed) return;
     setBusy(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { account_status: choice === 'delete' ? 'deletion_requested' : 'deactivated' },
-      });
-      if (error) throw error;
-      toast({
-        title: choice === 'delete' ? 'Deletion requested' : 'Account deactivated',
-        description: 'You will now be signed out.',
-      });
+      if (choice === 'delete') {
+        await accountApi.deleteMyAccount();
+        toast({ title: 'Account deleted', description: 'Your account and data have been removed.' });
+      } else {
+        const { error } = await supabase.from('profiles').update({ is_active: false }).eq('id', user.id);
+        if (error) throw error;
+        toast({ title: 'Account deactivated', description: 'You will now be signed out.' });
+      }
       await signOut();
       navigate('/login', { replace: true });
     } catch (e: any) {
@@ -92,16 +98,17 @@ const DeleteAccountPage: React.FC = () => {
       >
         <AlertTriangle size={17} strokeWidth={2.1} style={{ color: '#DC2626' }} className="mt-0.5 flex-shrink-0" />
         <p className="text-[12.5px] font-medium" style={{ color: '#B91C1C' }}>
-          All your data will be permanently deleted and cannot be recovered.
+          Deleting your account permanently removes your profile, orders and listings. This cannot be recovered.
         </p>
       </div>
 
       <button
         onClick={submit}
         disabled={busy}
-        className="w-full h-[54px] rounded-[18px] text-[15.5px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+        className="w-full h-[54px] rounded-[18px] text-[15.5px] font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
         style={{ backgroundColor: '#DC2626', boxShadow: '0 12px 28px -12px rgba(220,38,38,0.6)' }}
       >
+        {busy && <Loader2 size={17} className="animate-spin" />}
         Continue
       </button>
     </EditShell>
