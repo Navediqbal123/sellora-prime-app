@@ -41,6 +41,8 @@ import ShippingAddressPage from "./pages/profile/edit/ShippingAddressPage";
 import PaymentPreferencesPage from "./pages/profile/edit/PaymentPreferencesPage";
 import VerificationStatusPage from "./pages/profile/edit/VerificationStatusPage";
 import DeleteAccountPage from "./pages/profile/edit/DeleteAccountPage";
+import ChangePasswordPage from "./pages/profile/edit/ChangePasswordPage";
+import KycVerificationPage from "./pages/profile/edit/KycVerificationPage";
 import AddressesPage from "./pages/profile/AddressesPage";
 import PaymentMethodsPage from "./pages/profile/PaymentMethodsPage";
 import CouponsPage from "./pages/profile/CouponsPage";
@@ -131,6 +133,8 @@ const AppRoutes = () => {
         <Route path="profile/edit/phone/otp" element={<VerifyOtpPage />} />
         <Route path="profile/edit/phone/success" element={<PhoneUpdatedPage />} />
         <Route path="profile/edit/security" element={<SecurityPage />} />
+        <Route path="profile/edit/password" element={<ChangePasswordPage />} />
+        <Route path="profile/edit/kyc" element={<KycVerificationPage />} />
         <Route path="profile/edit/username" element={<UsernamePage />} />
         <Route path="profile/edit/bio" element={<ProfileBioPage />} />
         <Route path="profile/edit/theme" element={<ProfileThemePage />} />

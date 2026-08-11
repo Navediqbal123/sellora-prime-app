@@ -1,15 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import { EditShell, INK, MUTED, NumericKeypad, PURPLE, PurpleButton, CARD_SHADOW } from './_ui';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { useProfileRow } from './useProfileRow';
 
 const VerifyOtpPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const phone = (location.state as any)?.phone || 'your new number';
+  const { user, update } = useProfileRow();
+  const state = (location.state || {}) as { phone?: string; email?: string };
+  const phone = state.phone || 'your new number';
+  const email = state.email || user?.email || '';
   const [digits, setDigits] = useState<string[]>(Array(6).fill(''));
   const [seconds, setSeconds] = useState(25);
+  const [busy, setBusy] = useState(false);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
@@ -61,12 +67,38 @@ const VerifyOtpPage: React.FC = () => {
     }
   };
 
-  const verify = () => {
+  const resend = async () => {
+    if (!email) return;
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      if (error) throw error;
+      setSeconds(25);
+      toast({ title: 'OTP resent', description: `A new code was emailed to ${email}.` });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.message || 'Try again.', variant: 'destructive' });
+    }
+  };
+
+  const verify = async () => {
     if (digits.some((d) => !d)) {
       toast({ title: 'Incomplete code', description: 'Enter all 6 digits.', variant: 'destructive' });
       return;
     }
-    navigate('/profile/edit/phone/success', { state: { phone }, replace: true });
+    if (!email) {
+      toast({ title: 'Missing email', description: 'Start the phone change again.', variant: 'destructive' });
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: digits.join(''), type: 'email' });
+      if (error) throw error;
+      await update({ phone_verified: true });
+      navigate('/profile/edit/phone/success', { state: { phone }, replace: true });
+    } catch (e: any) {
+      toast({ title: 'Invalid code', description: e?.message || 'Check the code and try again.', variant: 'destructive' });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -82,9 +114,11 @@ const VerifyOtpPage: React.FC = () => {
           Verify OTP
         </h2>
         <p className="text-[13px] text-center mt-1" style={{ color: MUTED }}>
-          Enter the 6-digit verification code sent to
+          Enter the 6-digit code we emailed to
           <br />
-          <span className="font-semibold" style={{ color: INK }}>{phone}</span>
+          <span className="font-semibold" style={{ color: INK }}>{email}</span>
+          <br />
+          to verify <span className="font-semibold" style={{ color: INK }}>{phone}</span>
         </p>
       </div>
 
@@ -114,13 +148,16 @@ const VerifyOtpPage: React.FC = () => {
         {seconds > 0 ? (
           `Resend OTP in 00:${String(seconds).padStart(2, '0')}`
         ) : (
-          <button className="font-semibold" style={{ color: PURPLE }} onClick={() => setSeconds(25)}>
+          <button className="font-semibold" style={{ color: PURPLE }} onClick={resend}>
             Resend OTP
           </button>
         )}
       </p>
 
-      <PurpleButton onClick={verify}>Verify</PurpleButton>
+      <PurpleButton onClick={verify} disabled={busy}>
+        {busy && <Loader2 size={17} className="animate-spin" />}
+        Verify
+      </PurpleButton>
 
       <div className="pt-2">
         <NumericKeypad onKey={(k) => k !== '.' && push(k)} onBackspace={back} />

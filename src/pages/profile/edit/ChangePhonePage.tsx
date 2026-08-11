@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, ShieldCheck, ChevronDown } from 'lucide-react';
-import { Card, EditShell, INK, MUTED, NumericKeypad, PURPLE, PurpleButton } from './_ui';
+import { Smartphone, ShieldCheck, ChevronDown, Loader2 } from 'lucide-react';
+import { Card, EditShell, INK, MUTED, NumericKeypad, PURPLE, PurpleButton, VerifiedPill } from './_ui';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { useProfileRow } from './useProfileRow';
 
 const COUNTRIES = [
   { code: '+91', flag: '🇮🇳' },
@@ -13,16 +15,49 @@ const COUNTRIES = [
 
 const ChangePhonePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, profile, update } = useProfileRow();
   const [country, setCountry] = useState(COUNTRIES[0]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [phone, setPhone] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const send = () => {
+  useEffect(() => {
+    const existing = profile?.phone_number || '';
+    const match = COUNTRIES.find((c) => existing.startsWith(c.code));
+    if (match) {
+      setCountry(match);
+      setPhone(existing.slice(match.code.length).replace(/\D/g, '').slice(0, 10));
+    } else if (existing) {
+      setPhone(existing.replace(/\D/g, '').slice(-10));
+    }
+  }, [profile?.phone_number]);
+
+  const send = async () => {
     if (phone.replace(/\D/g, '').length < 10) {
       toast({ title: 'Invalid number', description: 'Enter a valid 10-digit phone number.', variant: 'destructive' });
       return;
     }
-    navigate('/profile/edit/phone/otp', { state: { phone: `${country.code} ${phone}` } });
+    if (!user?.email) {
+      toast({ title: 'Not signed in', description: 'Please sign in again.', variant: 'destructive' });
+      return;
+    }
+    const full = `${country.code}${phone}`;
+    setBusy(true);
+    try {
+      const ok = await update({ phone_number: full, phone_verified: false });
+      if (!ok) return;
+      const { error } = await supabase.auth.signInWithOtp({
+        email: user.email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) throw error;
+      toast({ title: 'OTP sent', description: `We emailed a 6-digit code to ${user.email}.` });
+      navigate('/profile/edit/phone/otp', { state: { phone: full, email: user.email } });
+    } catch (e: any) {
+      toast({ title: 'Could not send OTP', description: e?.message || 'Try again.', variant: 'destructive' });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -44,14 +79,17 @@ const ChangePhonePage: React.FC = () => {
           Enter New Phone Number
         </h2>
         <p className="text-[13px] text-center mt-1 max-w-[280px]" style={{ color: MUTED }}>
-          We will send an OTP to verify your new phone number.
+          We will email you a verification code to confirm this change.
         </p>
       </div>
 
       <Card className="px-4 py-3.5">
-        <label className="text-[11.5px] font-medium" style={{ color: MUTED }}>
-          New Phone Number
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-[11.5px] font-medium" style={{ color: MUTED }}>
+            New Phone Number
+          </label>
+          {profile?.phone_verified && <VerifiedPill />}
+        </div>
         <div className="flex items-center gap-3 mt-1.5">
           <div className="relative">
             <button
@@ -96,7 +134,10 @@ const ChangePhonePage: React.FC = () => {
         </div>
       </Card>
 
-      <PurpleButton onClick={send}>Send OTP</PurpleButton>
+      <PurpleButton onClick={send} disabled={busy}>
+        {busy && <Loader2 size={17} className="animate-spin" />}
+        Send OTP
+      </PurpleButton>
 
       <div className="pt-2">
         <NumericKeypad
