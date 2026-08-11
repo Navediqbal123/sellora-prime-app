@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BadgeCheck, ChevronRight, Fingerprint, Mail, Phone, Store } from 'lucide-react';
 import { Card, EditShell, INK, MUTED, VerifiedPill } from './_ui';
-import { useMeta } from './useMeta';
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
+import { useProfileRow } from './useProfileRow';
 
 const VerificationStatusPage: React.FC = () => {
-  const { user, meta } = useMeta();
+  const navigate = useNavigate();
+  const { user, profile } = useProfileRow();
   const [sellerVerified, setSellerVerified] = useState(false);
 
   useEffect(() => {
@@ -17,11 +18,19 @@ const VerificationStatusPage: React.FC = () => {
     })();
   }, [user?.id]);
 
+  const kyc = (profile?.kyc_status || 'pending').toLowerCase();
+
   const rows = [
-    { icon: Mail, title: 'Email Verification', done: !!(user as any)?.email_confirmed_at },
-    { icon: Phone, title: 'Phone Verification', done: !!meta.phone_verified },
-    { icon: Fingerprint, title: 'Identity Verification (KYC)', done: !!meta.kyc_verified },
-    { icon: Store, title: 'Seller Verification', done: sellerVerified },
+    { icon: Mail, title: 'Email Verification', done: !!(user as any)?.email_confirmed_at, pending: 'Pending' },
+    { icon: Phone, title: 'Phone Verification', done: !!profile?.phone_verified, pending: 'Pending', to: '/profile/edit/phone' },
+    {
+      icon: Fingerprint,
+      title: 'Identity Verification (KYC)',
+      done: kyc === 'verified',
+      pending: kyc === 'submitted' ? 'Under review' : kyc === 'rejected' ? 'Rejected' : 'Pending',
+      to: '/profile/edit/kyc',
+    },
+    { icon: Store, title: 'Seller Verification', done: sellerVerified, pending: 'Pending' },
   ];
 
   return (
@@ -40,9 +49,10 @@ const VerificationStatusPage: React.FC = () => {
 
       <Card className="overflow-hidden">
         {rows.map((r, i) => (
-          <div
+          <button
             key={r.title}
-            className="flex items-center gap-3.5 px-4 py-4"
+            onClick={() => r.to && navigate(r.to)}
+            className="w-full flex items-center gap-3.5 px-4 py-4 text-left active:bg-black/[0.03]"
             style={{ borderBottom: i !== rows.length - 1 ? '1px solid #F1F1F4' : 'none' }}
           >
             <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#F5F5F7' }}>
@@ -56,18 +66,24 @@ const VerificationStatusPage: React.FC = () => {
             ) : (
               <span
                 className="px-2.5 h-7 inline-flex items-center rounded-full text-[11.5px] font-semibold"
-                style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}
+                style={
+                  r.pending === 'Under review'
+                    ? { backgroundColor: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE' }
+                    : r.pending === 'Rejected'
+                    ? { backgroundColor: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }
+                    : { backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }
+                }
               >
-                Pending
+                {r.pending}
               </span>
             )}
-          </div>
+          </button>
         ))}
       </Card>
 
       <Card>
         <button
-          onClick={() => toast({ title: 'KYC Details', description: 'Your KYC information will appear here.' })}
+          onClick={() => navigate('/profile/edit/kyc')}
           className="w-full flex items-center justify-between px-4 py-4 text-left active:bg-black/[0.03]"
         >
           <div>
@@ -75,7 +91,7 @@ const VerificationStatusPage: React.FC = () => {
               KYC Details
             </p>
             <p className="text-[12.5px] mt-0.5" style={{ color: MUTED }}>
-              View your KYC information
+              {profile?.kyc_document_url ? 'View or replace your document' : 'Upload your identity document'}
             </p>
           </div>
           <ChevronRight size={17} style={{ color: '#9CA3AF' }} />
