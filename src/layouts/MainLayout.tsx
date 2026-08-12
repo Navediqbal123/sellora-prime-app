@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ShoppingBag, ShoppingCart } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -17,25 +17,20 @@ const MainLayout = () => {
     <SidebarProvider defaultOpen>
       <div className="min-h-svh w-full bg-background">
         {!hideHeader && (
-        <header className="sticky top-0 z-40 h-16 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
-          <div className="flex h-full items-center gap-2.5 px-3">
-            <SidebarTrigger className="hover-scale h-9 w-9" />
-            <span className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-[hsl(280,80%,50%)] flex items-center justify-center shadow-[0_6px_18px_-4px_hsl(var(--primary)/0.75)]">
-              <ShoppingBag className="w-5 h-5 text-white" strokeWidth={2.5} />
-              <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/25" />
+        <header className="sticky top-0 z-40 h-16 w-full bg-white/90 backdrop-blur-xl" style={{ borderBottom: '1px solid #F1F1F5' }}>
+          <div className="flex h-full items-center gap-2.5 px-4">
+            <SidebarTrigger className="h-9 w-9 text-[#111111]" />
+            <span
+              className="w-9 h-9 rounded-[12px] flex items-center justify-center"
+              style={{ backgroundColor: '#6D28D9', boxShadow: '0 8px 18px -8px rgba(109,40,217,0.6)' }}
+            >
+              <ShoppingBag className="w-[19px] h-[19px] text-white" strokeWidth={2} />
             </span>
-            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-foreground via-primary to-[hsl(280,80%,65%)] bg-clip-text text-transparent leading-none">
+            <span className="text-[22px] font-bold tracking-tight leading-none" style={{ color: '#111111' }}>
               Sellora
             </span>
             <div className="flex-1" />
             <NotificationBell />
-            <button
-              aria-label="Cart"
-              onClick={() => navigate('/orders')}
-              className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            >
-              <ShoppingCart className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
-            </button>
           </div>
         </header>
         )}
