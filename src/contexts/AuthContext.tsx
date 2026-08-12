@@ -18,6 +18,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Insert a "New Login Detected" notification when the user has login alerts enabled.
+const maybeCreateLoginAlert = async (userId: string) => {
+  try {
+    const guardKey = `login_alert_sent:${userId}`;
+    if (sessionStorage.getItem(guardKey)) return;
+    sessionStorage.setItem(guardKey, '1');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('login_alerts')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile?.login_alerts === false) return;
+
+    const when = new Date().toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      type: 'info',
+      title: 'New Login Detected 🔐',
+      message: `Your account was accessed on ${when}. If this wasn't you, please change your password immediately.`,
+    });
+  } catch {
+    // non-blocking
+  }
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -147,9 +181,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => {
           fetchUserRole(session.user.id);
         }, 0);
+        if (event === 'SIGNED_IN') {
+          setTimeout(() => {
+            maybeCreateLoginAlert(session.user.id);
+          }, 0);
+        }
       } else {
         setRole('user');
         setIsActive(true);
+        try {
+          Object.keys(sessionStorage)
+            .filter((k) => k.startsWith('login_alert_sent:'))
+            .forEach((k) => sessionStorage.removeItem(k));
+        } catch {
+          // ignore
+        }
       }
 
       setLoading(false);
