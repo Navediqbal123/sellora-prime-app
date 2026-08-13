@@ -9,6 +9,7 @@ import DiscountProductCard from '@/components/home/DiscountProductCard';
 import BottomNav from '@/components/home/BottomNav';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
+import BenefitStrip from '@/components/home/BenefitStrip';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
