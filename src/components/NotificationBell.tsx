@@ -52,11 +52,15 @@ const NotificationBell: React.FC = () => {
     <button
       onClick={() => navigate('/profile/notifications')}
       aria-label="Notifications"
-      className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-card to-secondary/60 border border-border/60 flex items-center justify-center hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      className="relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90"
+      style={{ backgroundColor: '#F7F7F8', border: '1px solid #EDEDF1' }}
     >
-      <Bell className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
+      <Bell size={20} strokeWidth={1.9} style={{ color: '#111111' }} />
       {unread > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_8px_hsl(var(--destructive))]">
+        <span
+          className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
+          style={{ backgroundColor: '#7C3AED', border: '2px solid #FFFFFF' }}
+        >
           {unread > 9 ? '9+' : unread}
         </span>
       )}

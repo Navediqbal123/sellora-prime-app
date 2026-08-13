@@ -1,50 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Sparkles, Zap, Gift } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import heroProducts from '@/assets/hero-products.png';
 
 interface Slide {
-  badge: string;
-  badgeIcon: React.ElementType;
+  label: string;
   title: string;
   highlight: string;
   highlightSuffix: string;
   subtitle: string;
   cta: string;
-  gradient: string;
+  bg: string;
 }
 
 const slides: Slide[] = [
   {
-    badge: 'Limited Time',
-    badgeIcon: Sparkles,
+    label: 'Limited Time Offer',
     title: 'Summer Sale',
     highlight: '50%',
     highlightSuffix: 'Off',
     subtitle: 'On top brands. Hurry, deals end soon!',
     cta: 'Shop Now',
-    gradient:
-      'radial-gradient(circle at 20% 20%,hsl(var(--primary)/0.45),transparent 55%),radial-gradient(circle at 85% 80%,hsl(var(--accent)/0.35),transparent 50%),linear-gradient(135deg,hsl(262 60% 18%),hsl(262 45% 10%))',
+    bg: 'linear-gradient(120deg,#F5F0FF 0%,#F8F5FF 55%,#FDFBFF 100%)',
   },
   {
-    badge: 'Flash Deals',
-    badgeIcon: Zap,
-    title: 'Mega Discounts',
+    label: 'Flash Deals',
+    title: 'Mega Savings',
     highlight: '70%',
     highlightSuffix: 'Off',
     subtitle: 'Electronics, fashion & more. Today only!',
     cta: 'Grab Deals',
-    gradient:
-      'radial-gradient(circle at 25% 25%,hsl(20 90% 55%/0.5),transparent 55%),radial-gradient(circle at 80% 80%,hsl(340 80% 50%/0.4),transparent 50%),linear-gradient(135deg,hsl(340 60% 18%),hsl(20 50% 12%))',
+    bg: 'linear-gradient(120deg,#FFF3F0 0%,#FFF7F4 55%,#FFFCFB 100%)',
   },
   {
-    badge: 'New Arrivals',
-    badgeIcon: Gift,
+    label: 'New Arrivals',
     title: 'Fresh Drops',
     highlight: '100+',
     highlightSuffix: 'New',
     subtitle: 'Discover the latest from local sellers.',
     cta: 'Explore',
-    gradient:
-      'radial-gradient(circle at 25% 25%,hsl(180 80% 45%/0.45),transparent 55%),radial-gradient(circle at 80% 80%,hsl(220 80% 50%/0.4),transparent 50%),linear-gradient(135deg,hsl(200 60% 18%),hsl(220 50% 12%))',
+    bg: 'linear-gradient(120deg,#EEF6FF 0%,#F4F9FF 55%,#FBFDFF 100%)',
   },
 ];
 
@@ -55,7 +49,7 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
   useEffect(() => {
     const id = setInterval(() => {
       if (!pausedRef.current) setIndex((i) => (i + 1) % slides.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(id);
   }, []);
 
@@ -67,64 +61,64 @@ const HeroCarousel: React.FC<{ onShop?: () => void }> = ({ onShop }) => {
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="overflow-hidden rounded-2xl h-[170px] md:h-[200px]">
+      <div
+        className="overflow-hidden rounded-[20px]"
+        style={{ border: '1px solid #EFEAFB', boxShadow: '0 1px 2px rgba(15,15,25,0.03), 0 14px 30px -22px rgba(109,40,217,0.25)' }}
+      >
         <div
-          className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
-          {slides.map((s, i) => {
-            const BadgeIcon = s.badgeIcon;
-            return (
-              <div
-                key={i}
-                onClick={onShop}
-                className="relative shrink-0 w-full h-full cursor-pointer group border border-primary/30 rounded-2xl
-                           p-4 md:p-5 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]
-                           hover:shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.6)] transition-shadow duration-500"
-                style={{ background: s.gradient }}
-              >
-                <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/30 blur-3xl animate-float" />
-                <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-accent/20 blur-3xl" />
-
-                <div className="relative flex flex-col justify-between h-full">
-                  <div className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
-                    <BadgeIcon className="w-3 h-3 text-sellora-gold" />
-                    <span className="text-[10px] font-semibold text-white tracking-wider uppercase">{s.badge}</span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h2 className="text-lg md:text-xl font-extrabold text-white leading-tight">
-                      {s.title}{' '}
-                      <span className="text-gradient-gold">{s.highlight}</span>{' '}
-                      <span className="text-white/90">{s.highlightSuffix}</span>
-                    </h2>
-                    <p className="text-[11px] md:text-xs text-white/70 mt-1 line-clamp-1">{s.subtitle}</p>
-                  </div>
-
-                  <button
-                    className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-background text-xs font-semibold
-                               hover:bg-white/90 transition-all duration-300 group-hover:gap-2 shadow-lg"
-                  >
-                    {s.cta}
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+          {slides.map((s, i) => (
+            <div
+              key={i}
+              onClick={onShop}
+              className="relative shrink-0 w-full h-[186px] md:h-[210px] cursor-pointer overflow-hidden"
+              style={{ background: s.bg }}
+            >
+              <img
+                src={heroProducts}
+                alt="Featured products: suitcase, headphones and sneaker"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                className="absolute right-[-6px] bottom-0 h-[86%] w-auto object-contain pointer-events-none select-none"
+              />
+              <div className="relative h-full flex flex-col justify-center gap-1.5 pl-4 pr-[46%] md:pl-6">
+                <div className="inline-flex self-start items-center gap-1">
+                  <Sparkles size={12} strokeWidth={2.2} style={{ color: '#7C3AED' }} />
+                  <span className="text-[10px] font-bold tracking-[0.09em] uppercase" style={{ color: '#7C3AED' }}>
+                    {s.label}
+                  </span>
                 </div>
+                <h2 className="text-[21px] md:text-[26px] font-bold leading-[1.12] tracking-tight" style={{ color: '#111111' }}>
+                  {s.title}
+                  <br />
+                  Up to <span style={{ color: '#7C3AED' }}>{s.highlight}</span> {s.highlightSuffix}
+                </h2>
+                <p className="text-[11.5px] leading-snug" style={{ color: '#6B7280' }}>{s.subtitle}</p>
+                <button
+                  className="mt-1 self-start inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12.5px] font-semibold text-white transition-transform active:scale-95"
+                  style={{ backgroundColor: '#111111' }}
+                >
+                  {s.cta}
+                  <ArrowRight size={14} strokeWidth={2.2} />
+                </button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Dots */}
       <div className="flex items-center justify-center gap-1.5 mt-2.5">
         {slides.map((_, i) => (
           <button
             key={i}
             aria-label={`Go to slide ${i + 1}`}
             onClick={() => setIndex(i)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === index ? 'w-6 bg-primary shadow-[0_0_8px_hsl(var(--primary))]' : 'w-1.5 bg-foreground/25 hover:bg-foreground/40'
-            }`}
+            className="h-1.5 rounded-full transition-all duration-300"
+            style={{
+              width: i === index ? 20 : 6,
+              backgroundColor: i === index ? '#7C3AED' : '#E0E1E6',
+            }}
           />
         ))}
       </div>
