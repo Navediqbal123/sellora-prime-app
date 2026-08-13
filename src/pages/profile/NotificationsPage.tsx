@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Bell, Package, Tag, MessageCircle, Info, Check, CheckCheck } from 'lucide-react';
-import { SubPageShell, EmptyCard } from './_shared';
+import { ArrowLeft, Bell, Package, Tag, MessageCircle, Info, CheckCheck } from 'lucide-react';
+
+const INK = '#111111';
+const MUTED = '#6B7280';
+const PURPLE = '#7C3AED';
 
 interface Notification {
   id: string;
@@ -34,11 +38,12 @@ const timeAgo = (iso: string) => {
 
 const NotificationsPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    if (!user?.id) return;
+    if (!user?.id) { setLoading(false); return; }
     const { data } = await supabase
       .from('notifications')
       .select('*')
@@ -59,100 +64,100 @@ const NotificationsPage: React.FC = () => {
 
   const markAllRead = async () => {
     if (!user?.id) return;
-    const unreadIds = items.filter((n) => !n.is_read).map((n) => n.id);
-    if (unreadIds.length === 0) return;
+    if (items.every((n) => n.is_read)) return;
     setItems((prev) => prev.map((x) => ({ ...x, is_read: true })));
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
+    await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
   };
 
   const unreadCount = items.filter((n) => !n.is_read).length;
 
   return (
-    <SubPageShell
-      title="Notifications"
-      right={
-        unreadCount > 0 ? (
+    <div className="min-h-screen" style={{ backgroundColor: '#FFFFFF' }}>
+      <div className="max-w-2xl mx-auto px-5 pt-5 pb-16">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-2">
           <button
-            onClick={markAllRead}
-            className="text-xs font-medium text-primary hover:underline flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+            onClick={() => navigate(-1)}
+            aria-label="Back"
+            className="w-10 h-10 -ml-1.5 rounded-full flex items-center justify-center transition-transform active:scale-90"
           >
-            <CheckCheck className="w-3.5 h-3.5" /> Mark all as read
+            <ArrowLeft size={22} strokeWidth={2} style={{ color: INK }} />
           </button>
-        ) : null
-      }
-    >
-      {loading ? (
-        <EmptyCard text="Loading..." />
-      ) : items.length === 0 ? (
-        <EmptyCard text="No notifications yet." />
-      ) : (
-        <>
-        <div className="space-y-3">
-          {items.map((n, i) => {
-            const Icon = iconFor(n.type);
-            return (
-              <div
-                key={n.id}
-                className="relative overflow-hidden rounded-2xl p-4 border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(124,58,237,0.35)] opacity-0 animate-[fadeUp_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]"
-                style={{
-                  animationDelay: `${i * 70}ms`,
-                  background: n.is_read
-                    ? 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--secondary)/0.4) 100%)'
-                    : 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary)/0.08) 100%)',
-                  borderColor: n.is_read
-                    ? 'hsl(var(--border)/0.6)'
-                    : 'hsl(var(--primary)/0.35)',
-                }}
-              >
-                {!n.is_read && (
-                  <span
-                    className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"
-                    style={{ boxShadow: '0 0 10px 2px rgba(52,211,153,0.7), 0 0 20px 4px rgba(52,211,153,0.35)' }}
-                  />
-                )}
-
-                <div className="flex gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      !n.is_read ? 'bg-primary/15' : 'bg-secondary'
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 ${!n.is_read ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0 pr-6">
-                    <p className="text-sm font-bold text-foreground leading-snug">
-                      {n.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      {n.message}
-                    </p>
-                    <div className="flex items-center justify-between gap-2 mt-3">
-                      {!n.is_read ? (
-                        <button
-                          onClick={() => markRead(n.id)}
-                          className="text-[11px] font-medium text-primary hover:text-primary/80 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
-                        >
-                          <Check className="w-3 h-3" /> Mark as read
-                        </button>
-                      ) : <span />}
-                      <span className="text-[10px] text-muted-foreground ml-auto">
-                        {timeAgo(n.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          <h1 className="flex-1 text-center text-[20px] font-bold tracking-tight" style={{ color: INK }}>
+            Notifications
+          </h1>
+          <div className="w-10 flex justify-end">
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} aria-label="Mark all as read" className="w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+                <CheckCheck size={19} strokeWidth={1.9} style={{ color: PURPLE }} />
+              </button>
+            )}
+          </div>
         </div>
-        <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }`}</style>
-        </>
-      )}
-    </SubPageShell>
+
+        {loading ? null : items.length === 0 ? (
+          /* Premium empty state */
+          <div className="flex flex-col items-center justify-center text-center pt-24 animate-fade-in-up">
+            <div
+              className="relative w-[168px] h-[168px] rounded-full flex items-center justify-center"
+              style={{ backgroundColor: '#F5F0FF' }}
+            >
+              <Bell size={68} strokeWidth={1.3} style={{ color: '#A78BFA' }} />
+              <span
+                className="absolute top-[42px] right-[46px] w-4 h-4 rounded-full"
+                style={{ backgroundColor: PURPLE, border: '3px solid #F5F0FF' }}
+              />
+            </div>
+            <h2 className="mt-8 text-[22px] font-bold tracking-tight" style={{ color: INK }}>
+              You're all caught up!
+            </h2>
+            <p className="mt-2 text-[14.5px] leading-relaxed max-w-[260px]" style={{ color: MUTED }}>
+              When something new arrives, you'll see it here.
+            </p>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-8 h-[52px] w-[190px] rounded-[18px] text-[15px] font-semibold text-white transition-transform active:scale-95"
+              style={{ backgroundColor: PURPLE, boxShadow: '0 14px 30px -14px rgba(124,58,237,0.7)' }}
+            >
+              Explore Products
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 mt-4">
+            {items.map((n) => {
+              const Icon = iconFor(n.type);
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => markRead(n.id)}
+                  className="w-full text-left relative rounded-[18px] p-4 flex gap-3 transition-transform active:scale-[0.99]"
+                  style={{
+                    backgroundColor: n.is_read ? '#FFFFFF' : '#FAF7FF',
+                    border: `1px solid ${n.is_read ? '#E5E7EB' : '#E4D8FB'}`,
+                    boxShadow: '0 1px 2px rgba(15,15,25,0.03)',
+                  }}
+                >
+                  <div
+                    className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: n.is_read ? '#F7F7F8' : '#F0E9FE' }}
+                  >
+                    <Icon size={19} strokeWidth={1.9} style={{ color: n.is_read ? INK : PURPLE }} />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="text-[14px] font-semibold leading-snug" style={{ color: INK }}>{n.title}</p>
+                    <p className="text-[12.5px] mt-1 leading-relaxed" style={{ color: MUTED }}>{n.message}</p>
+                    <p className="text-[11px] mt-2" style={{ color: '#9CA3AF' }}>{timeAgo(n.created_at)}</p>
+                  </div>
+                  {!n.is_read && (
+                    <span className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PURPLE }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
