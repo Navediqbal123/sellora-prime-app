@@ -104,35 +104,43 @@ const HomePage = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen pb-24 md:pb-8">
-      <div className="container mx-auto px-3 pt-1.5 pb-4 max-w-6xl">
+    <div className="min-h-screen pb-28 md:pb-8" style={{ backgroundColor: '#FFFFFF' }}>
+      <div className="container mx-auto px-4 pt-2 pb-4 max-w-6xl">
         {/* Search */}
-        <div className="mb-3 animate-fade-in-up">
+        <div className="mb-4 animate-fade-in-up">
           <HomeSearchBar value={searchQuery} onChange={setSearchQuery} />
         </div>
 
         {/* Hero carousel */}
-        <div className="mb-3 animate-fade-in-up stagger-2">
+        <div className="mb-5 animate-fade-in-up stagger-2">
           <HeroCarousel onShop={() => setSelectedCategory('all')} />
         </div>
 
         {/* Categories */}
-        <div className="mb-3 animate-fade-in-up stagger-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <h2 className="text-sm font-bold text-foreground">Categories</h2>
+        <div className="mb-4 animate-fade-in-up stagger-3">
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-[16px] font-bold tracking-tight" style={{ color: '#111111' }}>Shop by Category</h2>
+            <button onClick={() => navigate('/categories')} className="text-[12.5px] font-semibold" style={{ color: '#7C3AED' }}>
+              View All
+            </button>
           </div>
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
 
-        {/* Product grid */}
-        <div className="mb-2 flex items-center justify-between animate-fade-in-up stagger-4">
-          <h2 className="text-sm font-bold text-foreground">
-            {selectedCategory === 'all' ? 'Recommended for you' : selectedCategory}
-          </h2>
-          <span className="text-[11px] text-muted-foreground">{sortedProducts.length} items</span>
+        {/* Benefits */}
+        <div className="mb-5 animate-fade-in-up stagger-3">
+          <BenefitStrip />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+        {/* Product grid */}
+        <div className="mb-2.5 flex items-center justify-between animate-fade-in-up stagger-4">
+          <h2 className="text-[16px] font-bold tracking-tight" style={{ color: '#111111' }}>
+            {selectedCategory === 'all' ? 'Recommended for you' : selectedCategory}
+          </h2>
+          <span className="text-[12px]" style={{ color: '#6B7280' }}>{sortedProducts.length} items</span>
+        </div>
+
+        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {loading ? (
             <SkeletonGrid count={8} />
           ) : sortedProducts.length > 0 ? (
