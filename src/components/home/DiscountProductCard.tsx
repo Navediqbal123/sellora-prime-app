@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Heart, Star, Package, MapPin } from 'lucide-react';
+import { Heart, Star, Package } from 'lucide-react';
 import { Product } from '@/lib/supabase';
 
 interface DiscountProductCardProps {
@@ -19,24 +19,23 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
 }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Deterministic rating based on product id
-  const { rating } = useMemo(() => {
+  const { rating, reviews } = useMemo(() => {
     const seed = (product.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const rate = (3.5 + ((seed % 15) / 10)).toFixed(1); // 3.5 - 4.9
-    return { rating: rate };
-  }, [product.id, product.price]);
+    return { rating: (3.9 + ((seed % 10) / 10)).toFixed(1), reviews: 40 + (seed % 400) };
+  }, [product.id]);
 
   return (
     <div
       onClick={onClick}
-      style={{ animationDelay: `${delay}s` }}
-      className="group relative overflow-hidden rounded-2xl cursor-pointer animate-fade-in-up
-                 bg-card border border-border/50
-                 transition-all duration-500 hover:-translate-y-1 hover:border-primary/40
-                 hover:shadow-[0_12px_30px_-10px_hsl(var(--primary)/0.5)]"
+      style={{
+        animationDelay: `${delay}s`,
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 1px 2px rgba(15,15,25,0.03)',
+      }}
+      className="group relative overflow-hidden rounded-[16px] cursor-pointer animate-fade-in-up transition-transform duration-300 active:scale-[0.98]"
     >
-      {/* Image */}
-      <div className="relative aspect-square bg-secondary overflow-hidden">
+      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: '#FAFAFC' }}>
         {product.image_url ? (
           <>
             {!imgLoaded && <div className="absolute inset-0 skeleton" />}
@@ -45,50 +44,49 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
               alt={product.title}
               loading="lazy"
               onLoad={() => setImgLoaded(true)}
-              className={`w-full h-full object-cover transition-all duration-700
-                ${imgLoaded ? 'opacity-100' : 'opacity-0'}
-                group-hover:scale-110`}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <Package className="w-10 h-10 text-muted-foreground/40" />
+          <div className="w-full h-full flex items-center justify-center">
+            <Package size={28} strokeWidth={1.6} style={{ color: '#C7C9D1' }} />
           </div>
         )}
 
-        {/* Wishlist */}
         {onToggleWishlist && (
           <button
             onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}
             aria-label="Toggle wishlist"
-            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/70 backdrop-blur-md
-                       border border-border/50 flex items-center justify-center
-                       transition-all duration-300 hover:scale-110 active:scale-95"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-90"
+            style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF1' }}
           >
-            <Heart className={`w-4 h-4 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
+            <Heart
+              size={16}
+              strokeWidth={1.9}
+              style={{ color: isWishlisted ? '#DC2626' : '#111111', fill: isWishlisted ? '#DC2626' : 'transparent' }}
+            />
           </button>
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-2">
-        <h3 className="text-xs font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+      <div className="p-2.5">
+        <h3 className="text-[12.5px] font-semibold leading-snug line-clamp-1" style={{ color: '#111111' }}>
           {product.title}
         </h3>
 
-        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
-          <Star className="w-2.5 h-2.5 fill-sellora-gold text-sellora-gold" />
-          <span className="font-medium text-foreground">{rating}</span>
-          <span className="mx-1 opacity-50">•</span>
-          <MapPin className="w-2.5 h-2.5" />
-          <span className="truncate">{product.city || '—'}</span>
+        <div className="flex items-center gap-1 mt-1">
+          <Star size={11} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
+          <span className="text-[11px] font-semibold" style={{ color: '#111111' }}>{rating}</span>
+          <span className="text-[11px]" style={{ color: '#6B7280' }}>({reviews})</span>
         </div>
 
-        <div className="flex items-baseline gap-1 mt-1">
-          <span className="text-sm font-extrabold text-foreground">
+        <div className="flex items-baseline gap-1.5 mt-1">
+          <span className="text-[14px] font-bold" style={{ color: '#111111' }}>
             ₹{product.price.toLocaleString()}
           </span>
         </div>
+
+        <p className="text-[10.5px] font-semibold mt-0.5" style={{ color: '#16A34A' }}>Free Delivery</p>
       </div>
     </div>
   );
