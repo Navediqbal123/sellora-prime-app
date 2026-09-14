@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  ArrowRight, Bell, BookOpen, Car, Crown, Dumbbell, Gamepad2, Heart,
+  ArrowRight, BookOpen, Car, Crown, Dumbbell, Gamepad2, Heart,
   Home as HomeIcon, Leaf, PackageCheck, Search, ShieldCheck, Shirt,
   ShoppingBag, ShoppingBasket, ShoppingCart, Smartphone, Star, Truck,
 } from 'lucide-react';
