@@ -176,12 +176,15 @@ const CategoriesPage: React.FC = () => {
               <span className="mt-1 block truncate text-[9px] font-medium text-muted-foreground">Shop More, Live Better</span>
             </span>
           </button>
-          <div className="flex shrink-0 items-center gap-0.5 sm:order-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/orders')} aria-label="Orders" className="relative h-10 w-10 rounded-full">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-            <NotificationBell />
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/categories')}
+            aria-label="Explore categories"
+            className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground shadow-category-button hover:bg-primary/90 sm:order-3"
+          >
+            <Compass className="h-5 w-5" />
+          </Button>
           <label className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-full bg-secondary px-4 focus-within:ring-2 focus-within:ring-primary/20 sm:order-2 sm:col-auto sm:flex-1">
             <Search className="h-5 w-5 shrink-0 text-foreground" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" placeholder="Search products, brands..." />
