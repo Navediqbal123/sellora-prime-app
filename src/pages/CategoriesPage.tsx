@@ -269,6 +269,47 @@ const CategoriesPage: React.FC = () => {
           </main>
         </div>
       </div>
+      <Sheet open={exploreOpen} onOpenChange={setExploreOpen}>
+        <SheetContent
+          side="bottom"
+          className="categories-light max-h-[85svh] overflow-y-auto rounded-t-[26px] border-border bg-card px-4 pb-8 pt-5"
+        >
+          <SheetHeader className="mb-4 text-left">
+            <SheetTitle className="text-[22px] font-extrabold text-foreground">Explore Categories</SheetTitle>
+            <SheetDescription className="text-[12px] text-muted-foreground">
+              Pick a category to browse products
+            </SheetDescription>
+          </SheetHeader>
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const active = category.id === selected;
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => {
+                    setSelected(category.id);
+                    setExploreOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  aria-pressed={active}
+                  className={`flex min-w-0 flex-col items-center gap-2 rounded-[18px] border p-3 transition-all duration-200 active:scale-95 ${
+                    active
+                      ? 'border-primary bg-accent text-primary shadow-category-ring'
+                      : 'border-border bg-card text-foreground hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-category-card-hover'
+                  }`}
+                >
+                  <span className={`flex h-11 w-11 items-center justify-center rounded-full ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="w-full break-words text-center text-[10px] font-semibold leading-tight sm:text-xs">{category.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
       <BottomNav />
     </div>
   );
