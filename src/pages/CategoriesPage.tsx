@@ -10,6 +10,7 @@ import { useWishlist } from '@/hooks/useWishlist';
 import BottomNav from '@/components/home/BottomNav';
 import NotificationBell from '@/components/NotificationBell';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import heroImage from '@/assets/categories-tech-hero.jpg';
 
 const categories = [
