@@ -181,8 +181,10 @@ const CategoriesPage: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/categories')}
-            aria-label="Explore categories"
+            onClick={() => setExploreOpen(true)}
+            aria-label="Explore all categories"
+            aria-haspopup="dialog"
+            aria-expanded={exploreOpen}
             className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground shadow-category-button hover:bg-primary/90 sm:order-3"
           >
             <Compass className="h-5 w-5" />
