@@ -135,6 +135,7 @@ const CategoriesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   useEffect(() => {
     setParams({ cat: selected }, { replace: true });
