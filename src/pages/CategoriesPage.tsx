@@ -195,9 +195,9 @@ const CategoriesPage: React.FC = () => {
           </label>
         </header>
 
-        <div className="grid grid-cols-[66px_minmax(0,1fr)] items-start gap-2.5 sm:grid-cols-[86px_minmax(0,1fr)] sm:gap-5">
+        <div className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-2.5 sm:grid-cols-[104px_minmax(0,1fr)] sm:gap-5">
           <aside className="w-full min-w-0">
-            <nav aria-label="Product categories" className="sticky top-2 max-h-[calc(100svh-96px)] space-y-1 overflow-y-auto overflow-x-hidden pb-24 scrollbar-hide">
+            <nav aria-label="Product categories" className="sticky top-2 max-h-[calc(100svh-96px)] space-y-1.5 overflow-y-auto overflow-x-hidden pb-24 scrollbar-hide">
               {categories.map((category) => {
                 const Icon = category.icon;
                 const active = category.id === selected;
@@ -207,11 +207,11 @@ const CategoriesPage: React.FC = () => {
                     type="button"
                     variant="ghost"
                     onClick={() => setSelected(category.id)}
-                    className={`relative h-auto min-h-[70px] w-full min-w-0 flex-col gap-1 whitespace-normal rounded-[16px] px-0.5 py-2 text-center transition-all ${active ? 'bg-accent text-primary' : 'text-foreground hover:bg-secondary'}`}
+                    className={`relative h-auto min-h-[86px] w-full min-w-0 flex-col gap-1.5 whitespace-normal rounded-[16px] px-1 py-2.5 text-center transition-all ${active ? 'bg-accent text-primary' : 'text-foreground hover:bg-secondary'}`}
                   >
-                    {active && <span className="absolute -left-2.5 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
-                    <Icon className="h-[22px] w-[22px] shrink-0" strokeWidth={2} />
-                    <span className="block w-full break-words text-[9px] font-semibold leading-[1.12] sm:text-[11px]">{category.label}</span>
+                    {active && <span className="absolute -left-2.5 top-1/2 h-9 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
+                    <Icon className="h-[28px] w-[28px] shrink-0" strokeWidth={2} />
+                    <span className="block w-full break-words text-[11px] font-semibold leading-[1.12] sm:text-[14px]">{category.label}</span>
                   </Button>
                 );
               })}
