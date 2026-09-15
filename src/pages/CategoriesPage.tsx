@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, Car, Crown, Dumbbell, Gamepad2, Heart,
+  ArrowRight, BookOpen, Car, Compass, Crown, Dumbbell, Gamepad2, Heart,
   Home as HomeIcon, Leaf, PackageCheck, Search, ShieldCheck, Shirt,
   ShoppingBag, ShoppingBasket, ShoppingCart, Smartphone, Star, Truck,
 } from 'lucide-react';
@@ -220,7 +220,6 @@ const CategoriesPage: React.FC = () => {
                 <h1 className="truncate text-[25px] font-extrabold leading-tight text-foreground sm:text-[32px]">Categories</h1>
                 <p className="truncate text-[10px] text-muted-foreground sm:text-sm">Explore by category and find what you love</p>
               </div>
-              <Button variant="outline" className="h-9 shrink-0 rounded-full border-border bg-card px-2.5 text-[9px] shadow-sm sm:px-5 sm:text-xs">All Categories <ArrowRight className="h-3.5 w-3.5" /></Button>
             </div>
 
             <section className="relative mb-4 aspect-[1.62/1] min-h-[170px] w-full overflow-hidden rounded-[20px] bg-accent shadow-category-hero sm:aspect-[2.15/1] sm:min-h-[250px] sm:rounded-[24px]">
@@ -263,18 +262,6 @@ const CategoriesPage: React.FC = () => {
               <ProductGrid products={bestSellers} loading={loading} badges={sellerBadges} sellerGrid isWishlisted={isWishlisted} toggleWishlist={toggleWishlist} openProduct={openProduct} />
             </section>
 
-            <section className="grid grid-cols-3 divide-x divide-border rounded-[16px] bg-accent px-1 py-3 sm:rounded-[20px] sm:px-2 sm:py-4">
-              {[
-                { icon: Truck, title: 'Free Delivery', sub: 'Above ₹499' },
-                { icon: ShieldCheck, title: 'Secure Payments', sub: 'Safe & Trusted' },
-                { icon: PackageCheck, title: 'Easy Returns', sub: 'Hassle Free' },
-              ].map(({ icon: Icon, title, sub }) => (
-                <div key={title} className="flex min-w-0 flex-col items-center justify-center gap-1 px-1 text-center sm:flex-row sm:gap-2 sm:text-left">
-                  <Icon className="h-5 w-5 shrink-0 text-primary sm:h-8 sm:w-8" />
-                  <div className="min-w-0"><p className="truncate text-[8px] font-bold text-foreground sm:text-sm">{title}</p><p className="truncate text-[7px] text-muted-foreground sm:text-[10px]">{sub}</p></div>
-                </div>
-              ))}
-            </section>
           </main>
         </div>
       </div>
