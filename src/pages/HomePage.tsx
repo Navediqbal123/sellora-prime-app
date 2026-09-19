@@ -88,6 +88,10 @@ const HomePage = () => {
     return [...nearby, ...others];
   }, [products, userCity]);
 
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const ratingMap = useProductRatings(productIds);
+
+
   const handleProductClick = async (productId: string) => {
     await supabase.from('click_logs').insert({ product_id: productId });
     await supabase.rpc('increment_product_views', { product_id: productId });
