@@ -127,10 +127,6 @@ const HomePage = () => {
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
 
-        {/* Benefits */}
-        <div className="mb-5 animate-fade-in-up stagger-3">
-          <BenefitStrip />
-        </div>
 
         {/* Product grid */}
         <div className="mb-2.5 flex items-center justify-between animate-fade-in-up stagger-4">
