@@ -152,6 +152,8 @@ const HomePage = () => {
                 isWishlisted={isWishlisted?.(product.id)}
                 onToggleWishlist={() => handleToggleWishlist(product.id)}
                 delay={Math.min(i * 0.04, 0.4)}
+                rating={ratingMap[product.id]?.average || 0}
+                reviewCount={ratingMap[product.id]?.count || 0}
               />
             ))
           ) : (
