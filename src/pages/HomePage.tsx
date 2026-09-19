@@ -9,10 +9,10 @@ import DiscountProductCard from '@/components/home/DiscountProductCard';
 import BottomNav from '@/components/home/BottomNav';
 import EmptyState from '@/components/home/EmptyState';
 import SkeletonGrid from '@/components/home/SkeletonGrid';
-import BenefitStrip from '@/components/home/BenefitStrip';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import { toast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useProductRatings } from '@/hooks/useProductRatings';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -88,6 +88,10 @@ const HomePage = () => {
     return [...nearby, ...others];
   }, [products, userCity]);
 
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const ratingMap = useProductRatings(productIds);
+
+
   const handleProductClick = async (productId: string) => {
     await supabase.from('click_logs').insert({ product_id: productId });
     await supabase.rpc('increment_product_views', { product_id: productId });
@@ -127,10 +131,6 @@ const HomePage = () => {
           <CategoryIconsRow selected={selectedCategory} onSelect={setSelectedCategory} />
         </div>
 
-        {/* Benefits */}
-        <div className="mb-5 animate-fade-in-up stagger-3">
-          <BenefitStrip />
-        </div>
 
         {/* Product grid */}
         <div className="mb-2.5 flex items-center justify-between animate-fade-in-up stagger-4">
@@ -152,6 +152,8 @@ const HomePage = () => {
                 isWishlisted={isWishlisted?.(product.id)}
                 onToggleWishlist={() => handleToggleWishlist(product.id)}
                 delay={Math.min(i * 0.04, 0.4)}
+                rating={ratingMap[product.id]?.average || 0}
+                reviewCount={ratingMap[product.id]?.count || 0}
               />
             ))
           ) : (

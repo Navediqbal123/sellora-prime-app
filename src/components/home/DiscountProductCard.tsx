@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Heart, Star, Package } from 'lucide-react';
 import { Product } from '@/lib/supabase';
 
@@ -8,6 +8,8 @@ interface DiscountProductCardProps {
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
   delay?: number;
+  rating?: number;
+  reviewCount?: number;
 }
 
 const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
@@ -16,13 +18,11 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
   isWishlisted = false,
   onToggleWishlist,
   delay = 0,
+  rating = 0,
+  reviewCount = 0,
 }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
-
-  const { rating, reviews } = useMemo(() => {
-    const seed = (product.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return { rating: (3.9 + ((seed % 10) / 10)).toFixed(1), reviews: 40 + (seed % 400) };
-  }, [product.id]);
+  const hasReviews = reviewCount > 0;
 
   return (
     <div
@@ -75,9 +75,15 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
         </h3>
 
         <div className="flex items-center gap-1 mt-1">
-          <Star size={11} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
-          <span className="text-[11px] font-semibold" style={{ color: '#111111' }}>{rating}</span>
-          <span className="text-[11px]" style={{ color: '#6B7280' }}>({reviews})</span>
+          <Star size={11} style={{ color: hasReviews ? '#F59E0B' : '#D1D5DB', fill: hasReviews ? '#F59E0B' : '#D1D5DB' }} />
+          {hasReviews ? (
+            <>
+              <span className="text-[11px] font-semibold" style={{ color: '#111111' }}>{rating.toFixed(1)}</span>
+              <span className="text-[11px]" style={{ color: '#6B7280' }}>({reviewCount})</span>
+            </>
+          ) : (
+            <span className="text-[11px]" style={{ color: '#6B7280' }}>No reviews</span>
+          )}
         </div>
 
         <div className="flex items-baseline gap-1.5 mt-1">

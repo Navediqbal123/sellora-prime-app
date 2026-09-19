@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase, Product } from '@/lib/supabase';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useProductRatings, RatingMap } from '@/hooks/useProductRatings';
 import BottomNav from '@/components/home/BottomNav';
 import NotificationBell from '@/components/NotificationBell';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,6 @@ const categories = [
   { id: 'Books', label: 'Books & Stationery', icon: BookOpen },
 ];
 
-const ratings = ['4.5', '4.4', '4.6', '4.7', '4.6', '4.4'];
 const dealBadges = ['30% OFF', 'Best Seller', '20% OFF'];
 const sellerBadges = ['Trending', 'Popular', '25% OFF'];
 
@@ -35,13 +35,16 @@ interface ProductCardProps {
   badge?: string;
   badgeTone?: 'deal' | 'success' | 'primary';
   wished: boolean;
+  rating: number;
+  reviewCount: number;
   onWishlist: () => void;
   onOpen: () => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  product, index, badge, badgeTone = 'deal', wished, onWishlist, onOpen,
+  product, index, badge, badgeTone = 'deal', wished, rating, reviewCount, onWishlist, onOpen,
 }) => {
+  const hasReviews = reviewCount > 0;
   const price = Number(product.price);
   const oldPrice = Math.round(price * (1.2 + (index % 3) * 0.05));
   const badgeClass = badgeTone === 'success'
@@ -77,9 +80,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <h3 className="truncate text-[10px] font-bold leading-tight text-foreground sm:text-sm">{product.title}</h3>
           <p className="mt-1 truncate text-[8px] leading-tight text-muted-foreground sm:text-xs">{product.category}</p>
           <div className="mt-1.5 flex min-w-0 items-center gap-0.5 text-[8px] font-semibold text-foreground sm:text-[11px]">
-            <Star className="h-3 w-3 shrink-0 fill-sellora-warning text-sellora-warning sm:h-3.5 sm:w-3.5" />
-            <span>{ratings[index % ratings.length]}</span>
-            <span className="truncate font-normal text-muted-foreground">({Math.max(product.views || 0, 1)})</span>
+            <Star className={`h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5 ${hasReviews ? 'fill-sellora-warning text-sellora-warning' : 'fill-muted-foreground/30 text-muted-foreground/30'}`} />
+            {hasReviews ? (
+              <>
+                <span>{rating.toFixed(1)}</span>
+                <span className="truncate font-normal text-muted-foreground">({reviewCount})</span>
+              </>
+            ) : (
+              <span className="truncate font-normal text-muted-foreground">No reviews</span>
+            )}
           </div>
         </button>
         <div className="mt-1.5 flex min-w-0 items-end justify-between gap-1">
@@ -104,7 +113,8 @@ const ProductGrid: React.FC<{
   isWishlisted: (id: string) => boolean;
   toggleWishlist: (id: string) => void;
   openProduct: (id: string) => void;
-}> = ({ products, loading, badges, sellerGrid = false, isWishlisted, toggleWishlist, openProduct }) => {
+  ratingMap: RatingMap;
+}> = ({ products, loading, badges, sellerGrid = false, isWishlisted, toggleWishlist, openProduct, ratingMap }) => {
   if (loading) {
     return <div className="grid grid-cols-3 gap-1.5 sm:gap-3">{[1, 2, 3].map((item) => <div key={item} className="aspect-[.58] animate-pulse rounded-[15px] bg-card" />)}</div>;
   }
@@ -119,6 +129,8 @@ const ProductGrid: React.FC<{
           badge={badges[index]}
           badgeTone={sellerGrid ? (index === 0 ? 'success' : index === 1 ? 'primary' : 'deal') : 'deal'}
           wished={isWishlisted(product.id)}
+          rating={ratingMap[product.id]?.average || 0}
+          reviewCount={ratingMap[product.id]?.count || 0}
           onWishlist={() => toggleWishlist(product.id)}
           onOpen={() => openProduct(product.id)}
         />
@@ -164,6 +176,7 @@ const CategoriesPage: React.FC = () => {
   const deals = visibleProducts.slice(0, 3);
   const bestSellers = [...visibleProducts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
   const openProduct = (id: string) => navigate(`/product/${id}`);
+  const ratingMap = useProductRatings(useMemo(() => products.map((p) => p.id), [products]));
 
   return (
     <div className="categories-light min-h-screen w-full max-w-full overflow-x-hidden bg-background pb-28 text-foreground md:pb-10">
@@ -258,12 +271,12 @@ const CategoriesPage: React.FC = () => {
                 <div className="min-w-0"><h2 className="truncate text-[17px] font-extrabold text-foreground sm:text-2xl">Today's Deals <span aria-hidden="true">🔥</span></h2><p className="truncate text-[8px] text-muted-foreground sm:text-sm">Limited time offers. Don't miss out!</p></div>
                 <Button variant="outline" className="h-8 shrink-0 rounded-full border-border bg-card px-2 text-[8px] text-primary shadow-sm sm:h-9 sm:px-3 sm:text-xs">View All <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
               </div>
-              <ProductGrid products={deals} loading={loading} badges={dealBadges} isWishlisted={isWishlisted} toggleWishlist={toggleWishlist} openProduct={openProduct} />
+              <ProductGrid products={deals} loading={loading} badges={dealBadges} isWishlisted={isWishlisted} toggleWishlist={toggleWishlist} openProduct={openProduct} ratingMap={ratingMap} />
             </section>
 
             <section className="mb-4">
               <div className="mb-2.5 flex items-center justify-between gap-1"><h2 className="flex min-w-0 items-center gap-1 truncate text-[17px] font-extrabold text-foreground sm:text-2xl"><Crown className="h-5 w-5 shrink-0 fill-sellora-warning text-sellora-warning sm:h-6 sm:w-6" /> Best Sellers</h2><Button variant="ghost" className="h-8 shrink-0 px-1 text-[9px] text-muted-foreground sm:text-xs">See All <ArrowRight className="h-3.5 w-3.5" /></Button></div>
-              <ProductGrid products={bestSellers} loading={loading} badges={sellerBadges} sellerGrid isWishlisted={isWishlisted} toggleWishlist={toggleWishlist} openProduct={openProduct} />
+              <ProductGrid products={bestSellers} loading={loading} badges={sellerBadges} sellerGrid isWishlisted={isWishlisted} toggleWishlist={toggleWishlist} openProduct={openProduct} ratingMap={ratingMap} />
             </section>
 
           </main>
