@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Heart, Star, Package } from 'lucide-react';
 import { Product } from '@/lib/supabase';
 
@@ -8,6 +8,8 @@ interface DiscountProductCardProps {
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
   delay?: number;
+  rating?: number;
+  reviewCount?: number;
 }
 
 const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
@@ -16,13 +18,11 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
   isWishlisted = false,
   onToggleWishlist,
   delay = 0,
+  rating = 0,
+  reviewCount = 0,
 }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
-
-  const { rating, reviews } = useMemo(() => {
-    const seed = (product.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return { rating: (3.9 + ((seed % 10) / 10)).toFixed(1), reviews: 40 + (seed % 400) };
-  }, [product.id]);
+  const hasReviews = reviewCount > 0;
 
   return (
     <div
