@@ -12,7 +12,11 @@ const items = [
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
 ];
 
-const BottomNav: React.FC = () => {
+interface BottomNavProps {
+  variant?: 'default' | 'clay';
+}
+
+const BottomNav: React.FC<BottomNavProps> = ({ variant = 'default' }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,13 +26,13 @@ const BottomNav: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden pointer-events-none pb-[calc(env(safe-area-inset-bottom)+12px)] px-4">
+    <div className={`fixed bottom-0 left-0 right-0 z-40 md:hidden pointer-events-none pb-[calc(env(safe-area-inset-bottom)+12px)] px-4 ${variant === 'clay' ? 'profile-clay-nav-wrap' : ''}`}>
       <nav
-        className="pointer-events-auto mx-auto max-w-md rounded-[28px] bg-white border border-black/5"
-        style={{
+        className={`pointer-events-auto mx-auto max-w-md rounded-[28px] ${variant === 'clay' ? 'profile-clay-nav' : 'bg-white border border-black/5'}`}
+        style={variant === 'default' ? {
           boxShadow:
             '0 20px 40px -12px rgba(15, 15, 25, 0.18), 0 8px 16px -8px rgba(15, 15, 25, 0.08)',
-        }}
+        } : undefined}
         aria-label="Primary"
       >
         <div className="flex items-center justify-around h-[68px] px-2">
@@ -39,21 +43,23 @@ const BottomNav: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => navigate(item.path)}
-                className="relative flex flex-col items-center justify-center gap-1 flex-1 h-full outline-none focus-visible:ring-0 transition-transform active:scale-[0.94]"
+                className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full outline-none focus-visible:ring-0 transition-transform active:scale-[0.94] ${variant === 'clay' ? 'profile-clay-nav__item' : ''}`}
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
               >
+                <span className={variant === 'clay' ? `profile-clay-nav__icon${active ? ' is-active' : ''}` : ''}>
                 <Icon
                   className="w-[24px] h-[24px] transition-colors duration-300"
                   strokeWidth={2}
-                  style={{ color: active ? PURPLE : '#111214' }}
+                  style={variant === 'default' ? { color: active ? PURPLE : '#111214' } : undefined}
                 />
+                </span>
                 <span
                   className="text-[11px] leading-none tracking-tight transition-colors duration-300"
-                  style={{
+                  style={variant === 'default' ? {
                     color: active ? PURPLE : '#4B5563',
                     fontWeight: active ? 600 : 500,
-                  }}
+                  } : undefined}
                 >
                   {item.label}
                 </span>
