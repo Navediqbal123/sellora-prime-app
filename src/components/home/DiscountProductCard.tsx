@@ -75,9 +75,15 @@ const DiscountProductCard: React.FC<DiscountProductCardProps> = ({
         </h3>
 
         <div className="flex items-center gap-1 mt-1">
-          <Star size={11} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
-          <span className="text-[11px] font-semibold" style={{ color: '#111111' }}>{rating}</span>
-          <span className="text-[11px]" style={{ color: '#6B7280' }}>({reviews})</span>
+          <Star size={11} style={{ color: hasReviews ? '#F59E0B' : '#D1D5DB', fill: hasReviews ? '#F59E0B' : '#D1D5DB' }} />
+          {hasReviews ? (
+            <>
+              <span className="text-[11px] font-semibold" style={{ color: '#111111' }}>{rating.toFixed(1)}</span>
+              <span className="text-[11px]" style={{ color: '#6B7280' }}>({reviewCount})</span>
+            </>
+          ) : (
+            <span className="text-[11px]" style={{ color: '#6B7280' }}>No reviews</span>
+          )}
         </div>
 
         <div className="flex items-baseline gap-1.5 mt-1">
