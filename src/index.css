@@ -270,7 +270,7 @@
 }
 .profile-clay__edit svg { width: .78rem; height: .78rem; color: hsl(var(--profile-muted)); }
 .profile-clay__mascot { position: absolute; z-index: 1; right: -.2rem; bottom: -1.5rem; width: 10.8rem; height: 10.8rem; object-fit: contain; filter: drop-shadow(0 9px 10px hsl(251 49% 41% / .2)); }
-.profile-clay__slogan { position: absolute; z-index: 3; right: 7.8rem; top: 3.1rem; color: hsl(var(--profile-purple)); font-size: .66rem; font-weight: 800; line-height: .92; font-style: italic; transform: rotate(-8deg); text-align: center; }
+.profile-clay__slogan { position: absolute; z-index: 3; right: 7.6rem; top: 1.05rem; color: hsl(var(--profile-purple)); font-size: .66rem; font-weight: 800; line-height: .92; font-style: italic; transform: rotate(-8deg); text-align: center; }
 
 .profile-clay__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin-top: .8rem; }
 .profile-clay__stat {
@@ -345,7 +345,7 @@
   .profile-clay__hero { min-height: 9.1rem; padding-right: 8.4rem; }
   .profile-clay__avatar { width: 5.25rem; height: 5.25rem; }
   .profile-clay__mascot { right: -.65rem; width: 9.7rem; height: 9.7rem; }
-  .profile-clay__slogan { right: 6.55rem; top: 3rem; font-size: .57rem; }
+  .profile-clay__slogan { right: 6.4rem; top: .9rem; font-size: .57rem; }
   .profile-clay__name { font-size: 1rem; }
   .profile-clay__stats { gap: .45rem; }
   .profile-clay__stat { height: 6.75rem; border-radius: 1.15rem; }

@@ -40,7 +40,7 @@ const MainLayout = () => {
             <AppSidebar />
           </div>
 
-          <SidebarInset className="flex-1">
+          <SidebarInset className="flex-1 min-w-0">
             <main className="min-h-full animate-fade-in">
               <Outlet />
             </main>
