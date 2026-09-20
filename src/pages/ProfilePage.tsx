@@ -223,7 +223,7 @@ const ProfilePage = () => {
               key={item.label}
               type="button"
               variant="ghost"
-              className={`profile-clay__menu-item${item.highlight ? ' profile-clay__menu-item--highlight' : ''}${item.danger ? ' profile-clay__menu-item--danger' : ''}`}
+              className={`profile-clay__menu-item${'highlight' in item && item.highlight ? ' profile-clay__menu-item--highlight' : ''}${'danger' in item && item.danger ? ' profile-clay__menu-item--danger' : ''}`}
               onClick={item.onClick}
             >
               <ClayIcon icon={item.icon} tone={item.tone} />
