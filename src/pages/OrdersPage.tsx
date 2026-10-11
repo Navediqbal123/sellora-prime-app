@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import BottomNav from '@/components/home/BottomNav';
-import { ShoppingBag, MapPin, Copy, Check } from 'lucide-react';
+import { ShoppingBag, MapPin, Copy, Check, ArrowLeft, Search, SlidersHorizontal, Package, ChevronRight, Eye, ShoppingCart, Star, Hourglass, Truck, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import deliveryArt from '@/assets/orders-clay-delivery.png';
 import { toast } from '@/hooks/use-toast';
 
 interface OrderRow {
@@ -15,15 +17,19 @@ interface OrderRow {
   shop_name?: string | null;
   shop_address?: string | null;
   created_at: string;
+  order_number?: string;
+  quantity?: number;
+  category?: string;
   product?: { title: string; image_url?: string; price: number };
 }
 
-const statusStyles: Record<string, string> = {
-  pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  ready: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  completed: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  cancelled: 'bg-destructive/15 text-destructive border-destructive/30',
-};
+const filters = [
+  { value: 'all', label: 'All', icon: ShoppingBag },
+  { value: 'pending', label: 'Pending', icon: Hourglass },
+  { value: 'delivered', label: 'Delivered', icon: Truck },
+  { value: 'completed', label: 'Completed', icon: Check },
+  { value: 'cancelled', label: 'Cancelled', icon: XCircle },
+];
 
 const OrdersPage: React.FC = () => {
   const { user } = useAuth();
@@ -31,6 +37,11 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [filter, setFilter] = useState('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [oldestFirst, setOldestFirst] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -56,6 +67,7 @@ const OrdersPage: React.FC = () => {
   const fetchOrders = async () => {
     if (!user) return;
     setLoading(true);
+    setErrorMessage('');
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -77,6 +89,7 @@ const OrdersPage: React.FC = () => {
       }
       setOrders((data || []).map((o: any) => ({ ...o, product: productMap[o.product_id] })));
     } catch (e: any) {
+      setErrorMessage(e.message || 'Failed to load orders');
       console.error('Orders fetch error', e);
       toast({ title: 'Error', description: e.message || 'Failed to load orders', variant: 'destructive' });
     } finally {
@@ -91,103 +104,55 @@ const OrdersPage: React.FC = () => {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  const visibleOrders = orders.filter((order) =>
+    (filter === 'all' || order.status === filter) &&
+    `${order.product?.title || ''} ${order.order_number || order.id} ${order.shop_name || ''}`.toLowerCase().includes(search.toLowerCase())
+  );
+  if (oldestFirst) visibleOrders.reverse();
+
   return (
-    <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: '#FFFFFF', color: '#111111' }}>
-      <div className="container mx-auto px-4 pt-5 max-w-3xl">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: '#111111' }}>
-            <ShoppingBag className="w-5 h-5 text-primary" /> My Orders
-          </h1>
-          <p className="text-xs text-muted-foreground">{orders.length} reservations</p>
+    <div className="orders-clay">
+      <div className="orders-clay__content">
+        <header className="orders-clay__header">
+          <Button variant="ghost" className="orders-clay__tool" aria-label="Back" onClick={() => navigate('/')}><ArrowLeft /></Button>
+          <span className="orders-clay__icon orders-clay__icon--purple"><ShoppingBag /></span>
+          <div className="orders-clay__heading"><h1>My Orders</h1><p>{orders.length} {orders.length === 1 ? 'order' : 'orders'}</p></div>
+          <Button variant="ghost" className="orders-clay__tool" aria-label="Search orders" aria-expanded={searchOpen} onClick={() => setSearchOpen(!searchOpen)}><Search /></Button>
+          <Button variant="ghost" className="orders-clay__tool" aria-label={oldestFirst ? 'Sort newest first' : 'Sort oldest first'} title={oldestFirst ? 'Oldest first' : 'Newest first'} aria-pressed={oldestFirst} onClick={() => setOldestFirst(!oldestFirst)}><SlidersHorizontal /></Button>
+        </header>
+        {searchOpen && <input className="orders-clay__search" aria-label="Search your orders" placeholder="Search your orders" value={search} onChange={(event) => setSearch(event.target.value)} autoFocus />}
+        <div className="orders-clay__filters" aria-label="Order status filters">
+          {filters.map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" className={`orders-clay__filter ${filter === value ? 'is-active' : ''}`} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value !== 'all' && <Icon />}<span>{label} ({value === 'all' ? orders.length : orders.filter(o => o.status === value).length})</span></Button>)}
+          {orders.some(o => o.status === 'ready') && <Button variant="ghost" className={`orders-clay__filter ${filter === 'ready' ? 'is-active' : ''}`} aria-pressed={filter === 'ready'} onClick={() => setFilter('ready')}><Truck />Ready ({orders.filter(o => o.status === 'ready').length})</Button>}
         </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-card border border-border/60 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <ShoppingBag className="w-10 h-10 text-primary" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground mb-1">No orders yet</h2>
-            <p className="text-sm text-muted-foreground mb-6">Reserve a product and your pickup code will appear here.</p>
-            <button
-              onClick={() => navigate('/')}
-              className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition"
-            >
-              Browse products
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((o) => (
-              <button
-                key={o.id}
-                onClick={() => navigate(`/product/${o.product_id}`)}
-                className="w-full text-left bg-card border border-border/60 rounded-2xl p-3 hover:border-primary/40 transition-all duration-300"
-              >
-                <div className="flex gap-3">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0">
-                    {o.product?.image_url ? (
-                      <img src={o.product.image_url} alt={o.product?.title || 'Product'} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="w-6 h-6 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-foreground line-clamp-1">
-                        {o.product?.title || 'Product'}
-                      </h3>
-                      <span
-                        className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border ${
-                          statusStyles[o.status] || 'bg-muted text-muted-foreground border-border'
-                        }`}
-                      >
-                        {o.status}
-                      </span>
-                    </div>
-                    {o.product?.price !== undefined && (
-                      <p className="text-sm font-bold text-primary mt-0.5">₹{o.product.price}</p>
-                    )}
-                    {o.shop_name && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1 truncate">
-                        <MapPin className="w-3 h-3 shrink-0" /> {o.shop_name}
-                      </p>
-                    )}
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </p>
-                  </div>
-                </div>
-
-                {o.pickup_code && o.status !== 'completed' && o.status !== 'cancelled' && (
-                  <div
-                    onClick={(e) => { e.stopPropagation(); copyCode(o.pickup_code!); }}
-                    className="mt-3 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/30 cursor-pointer"
-                  >
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Pickup Code</p>
-                      <p className="text-lg font-bold text-primary tracking-widest">{o.pickup_code}</p>
-                    </div>
-                    {copied === o.pickup_code ? (
-                      <Check className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-4 h-4 text-primary" />
-                    )}
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        {loading ? <div className="orders-clay__list" aria-label="Loading orders">{[1, 2, 3].map(i => <div className="orders-clay__card orders-clay__skeleton animate-pulse" key={i} />)}</div>
+          : errorMessage ? <section className="orders-clay__state" role="alert"><span className="orders-clay__icon"><XCircle /></span><h2>Unable to load orders</h2><p>{errorMessage}</p><Button className="orders-clay__action orders-clay__action--primary" onClick={fetchOrders}>Try again</Button></section>
+          : visibleOrders.length === 0 ? <section className="orders-clay__state"><span className="orders-clay__icon orders-clay__icon--purple"><ShoppingBag /></span><h2>{orders.length === 0 ? 'No orders yet' : 'No matching orders'}</h2><p>{orders.length === 0 ? 'Reserve a product and your pickup code will appear here.' : 'There are no orders matching your selection.'}</p><Button className="orders-clay__action orders-clay__action--primary" onClick={() => orders.length === 0 ? navigate('/') : (setFilter('all'), setSearch(''))}>{orders.length === 0 ? 'Browse products' : 'Show all orders'}</Button></section>
+          : <div className="orders-clay__list">{visibleOrders.map(o => {
+            const StatusIcon = o.status === 'completed' || o.status === 'delivered' ? Check : o.status === 'cancelled' ? XCircle : o.status === 'ready' ? Truck : Hourglass;
+            const openProduct = () => navigate(`/product/${o.product_id}`);
+            return <article key={o.id} className="orders-clay__card">
+              <div className="orders-clay__order-heading">
+                <span className="orders-clay__icon orders-clay__icon--package"><Package /></span>
+                <div className="orders-clay__order-id"><h2 title={o.order_number || o.id}>Order #{o.order_number || o.id}</h2><time dateTime={o.created_at}>{new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</time></div>
+                <span className={`orders-clay__status orders-clay__status--${o.status}`}><StatusIcon />{o.status}</span>
+              </div>
+              <div className="orders-clay__product">
+                <Button variant="ghost" className="orders-clay__photo" aria-label={`View ${o.product?.title || 'product'}`} onClick={openProduct}>{o.product?.image_url ? <img src={o.product.image_url} alt={o.product.title} /> : <Package />}</Button>
+                <div className="orders-clay__product-info"><h3>{o.product?.title || 'Product'}</h3>{o.category && <p>{o.category}</p>}<div className="orders-clay__price-row">{o.product?.price !== undefined && <strong>₹{o.product.price.toLocaleString('en-IN')}</strong>}{o.quantity != null && <span className="orders-clay__quantity">Qty: {o.quantity}</span>}</div>{o.shop_name && <p className="orders-clay__location"><MapPin />{o.shop_name}</p>}{o.shop_address && <p className="orders-clay__address">{o.shop_address}</p>}</div>
+                <Button variant="ghost" className="orders-clay__tool orders-clay__details" aria-label="View order details" onClick={openProduct}><ChevronRight /></Button>
+              </div>
+              {o.pickup_code && o.status !== 'completed' && o.status !== 'cancelled' && <div className="orders-clay__pickup">
+                <span className="orders-clay__pickup-art" aria-hidden="true"><Package /></span>
+                <div className="orders-clay__pickup-info"><h3>Pickup code</h3><div className="orders-clay__digits" aria-label={`Pickup code ${o.pickup_code}`}>{Array.from(o.pickup_code).map((digit, index) => <span key={index}>{digit}</span>)}</div><p>Show this code at the store during pickup</p></div>
+                <Button variant="ghost" className="orders-clay__tool" aria-label="Copy pickup code" onClick={() => { if (o.pickup_code) copyCode(o.pickup_code); }}>{copied === o.pickup_code ? <Check /> : <Copy />}</Button>
+              </div>}
+              <div className="orders-clay__actions">{o.status === 'completed' && <Button variant="ghost" className="orders-clay__action" onClick={openProduct}><ShoppingCart />Buy Again</Button>}<Button variant="ghost" className="orders-clay__action" onClick={openProduct}><Eye />View Details</Button>{o.status === 'completed' && <Button variant="ghost" className="orders-clay__action orders-clay__action--primary" onClick={openProduct}><Star />Write Review</Button>}</div>
+            </article>;
+          })}</div>}
+        <div className="orders-clay__decoration" aria-hidden="true"><img src={deliveryArt} alt="" width={1152} height={576} loading="lazy" /></div>
       </div>
-      <BottomNav />
+      <BottomNav variant="clay" />
     </div>
   );
 };
