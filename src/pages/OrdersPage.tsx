@@ -5,7 +5,8 @@ import { supabase } from '@/lib/supabase';
 import BottomNav from '@/components/home/BottomNav';
 import { ShoppingBag, MapPin, Copy, Check, ArrowLeft, Search, SlidersHorizontal, Package, ChevronRight, Eye, ShoppingCart, Star, Hourglass, Truck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import deliveryArt from '@/assets/orders-clay-delivery.png';
+import deliveryArt from '@/assets/orders-delivery-scene.png';
+import parcelArt from '@/assets/orders-pickup-parcel.png';
 import { toast } from '@/hooks/use-toast';
 
 interface OrderRow {
@@ -122,7 +123,7 @@ const OrdersPage: React.FC = () => {
         </header>
         {searchOpen && <input className="orders-clay__search" aria-label="Search your orders" placeholder="Search your orders" value={search} onChange={(event) => setSearch(event.target.value)} autoFocus />}
         <div className="orders-clay__filters" aria-label="Order status filters">
-          {filters.map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" className={`orders-clay__filter ${filter === value ? 'is-active' : ''}`} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value !== 'all' && <Icon />}<span>{label} ({value === 'all' ? orders.length : orders.filter(o => o.status === value).length})</span></Button>)}
+          {filters.map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" className={`orders-clay__filter orders-clay__filter--${value} ${filter === value ? 'is-active' : ''}`} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value !== 'all' && <Icon />}<span>{label} ({value === 'all' ? orders.length : orders.filter(o => o.status === value).length})</span></Button>)}
           {orders.some(o => o.status === 'ready') && <Button variant="ghost" className={`orders-clay__filter ${filter === 'ready' ? 'is-active' : ''}`} aria-pressed={filter === 'ready'} onClick={() => setFilter('ready')}><Truck />Ready ({orders.filter(o => o.status === 'ready').length})</Button>}
         </div>
         {loading ? <div className="orders-clay__list" aria-label="Loading orders">{[1, 2, 3].map(i => <div className="orders-clay__card orders-clay__skeleton animate-pulse" key={i} />)}</div>
@@ -133,7 +134,7 @@ const OrdersPage: React.FC = () => {
             const openProduct = () => navigate(`/product/${o.product_id}`);
             return <article key={o.id} className="orders-clay__card">
               <div className="orders-clay__order-heading">
-                <span className="orders-clay__icon orders-clay__icon--package"><Package /></span>
+                <span className="orders-clay__icon orders-clay__icon--package"><img src={parcelArt} alt="" width={816} height={816} /></span>
                 <div className="orders-clay__order-id"><h2 title={o.order_number || o.id}>Order #{o.order_number || o.id}</h2><time dateTime={o.created_at}>{new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(o.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</time></div>
                 <span className={`orders-clay__status orders-clay__status--${o.status}`}><StatusIcon />{o.status}</span>
               </div>
@@ -143,7 +144,7 @@ const OrdersPage: React.FC = () => {
                 <Button variant="ghost" className="orders-clay__tool orders-clay__details" aria-label="View order details" onClick={openProduct}><ChevronRight /></Button>
               </div>
               {o.pickup_code && o.status !== 'completed' && o.status !== 'cancelled' && <div className="orders-clay__pickup">
-                <span className="orders-clay__pickup-art" aria-hidden="true"><Package /></span>
+                <span className="orders-clay__pickup-art" aria-hidden="true"><img src={parcelArt} alt="" width={816} height={816} /></span>
                 <div className="orders-clay__pickup-info"><h3>Pickup code</h3><div className="orders-clay__digits" aria-label={`Pickup code ${o.pickup_code}`}>{Array.from(o.pickup_code).map((digit, index) => <span key={index}>{digit}</span>)}</div><p>Show this code at the store during pickup</p></div>
                 <Button variant="ghost" className="orders-clay__tool" aria-label="Copy pickup code" onClick={() => { if (o.pickup_code) copyCode(o.pickup_code); }}>{copied === o.pickup_code ? <Check /> : <Copy />}</Button>
               </div>}
