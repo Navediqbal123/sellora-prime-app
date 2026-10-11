@@ -1,0 +1,1 @@
+- Keep the Orders clay theme scoped to `.orders-clay` and reuse the existing clay bottom-navigation variant so unrelated pages retain their appearance.
