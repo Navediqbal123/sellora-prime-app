@@ -160,7 +160,7 @@
   --orders-surface: linear-gradient(145deg, hsl(var(--orders-white)), hsl(var(--background)));
   --orders-elevation: inset 2px 2px 4px hsl(var(--orders-white)), inset -3px -4px 7px hsl(var(--orders-shadow) / .16), 0 8px 15px hsl(var(--orders-shadow) / .23);
   min-height: 100svh; color: hsl(var(--foreground));
-  background: linear-gradient(155deg, hsl(var(--background)), hsl(var(--orders-lavender) / .6));
+  background: linear-gradient(155deg, hsl(var(--background)), hsl(var(--orders-lavender)));
   font-family: "Figtree", "Inter", system-ui, sans-serif;
   padding: 22px 12px calc(118px + env(safe-area-inset-bottom));
 }
