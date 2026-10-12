@@ -157,6 +157,7 @@
   --orders-white: 0 0% 100%; --orders-lavender: 252 100% 94%;
   --orders-shadow: 250 42% 55%; --orders-green: 144 78% 32%;
   --orders-orange: 29 95% 46%; --orders-red: 355 78% 46%; --orders-blue: 210 80% 42%;
+  --orders-purple-highlight: 274 100% 76%; --orders-gold: 42 100% 66%;
   --orders-surface: linear-gradient(145deg, hsl(var(--orders-white)), hsl(var(--background)));
   --orders-elevation: inset 2px 3px 4px hsl(var(--orders-white)), inset -3px -5px 8px hsl(var(--orders-shadow) / .19), 0 7px 9px hsl(var(--orders-shadow) / .18), 0 12px 22px -6px hsl(var(--orders-shadow) / .27);
   min-height: 100svh; color: hsl(var(--foreground));
@@ -167,7 +168,7 @@
 .orders-clay__content { max-width: 720px; margin: auto; min-width: 0; }
 .orders-clay__header { display: flex; align-items: center; gap: 9px; margin-bottom: 19px; }
 .orders-clay__heading { flex: 1; min-width: 0; }
-.orders-clay__heading h1 { font-size: 27px; font-weight: 850; line-height: 1.12; letter-spacing: 0; }
+.orders-clay__heading h1 { font-size: 25px; font-weight: 850; line-height: 1.12; letter-spacing: 0; }
 .orders-clay__heading p { color: hsl(var(--muted-foreground)); margin-top: 4px; font-size: 13px; }
 .orders-clay__tool { flex: none; width: 44px; height: 46px; padding: 0; border-radius: 17px; color: hsl(var(--foreground)); background: var(--orders-surface); border: 1px solid hsl(var(--orders-white)); box-shadow: var(--orders-elevation); }
 .orders-clay__tool svg { width: 23px; height: 23px; stroke-width: 3; filter: drop-shadow(0 2px 1px hsl(var(--orders-shadow) / .35)); }
@@ -182,19 +183,21 @@
 .orders-clay__filters { display: grid; grid-template-columns: .72fr repeat(4, 1fr); gap: 5px; margin-bottom: 16px; }
 .orders-clay__filter { min-width: 0; height: 34px; padding: 0 3px; gap: 3px; font-size: 9px; font-weight: 750; color: hsl(var(--foreground)); border: 1px solid hsl(var(--orders-white)); border-radius: 13px; background: var(--orders-surface); box-shadow: var(--orders-elevation); }
 .orders-clay__filter span { white-space: normal; line-height: 1.15; }
-.orders-clay__filter--pending svg { color: hsl(var(--orders-orange)); }
-.orders-clay__filter--delivered svg { color: hsl(var(--orders-blue)); }
-.orders-clay__filter--completed svg { color: hsl(var(--orders-green)); }
-.orders-clay__filter--cancelled svg { color: hsl(var(--orders-red)); }
+.orders-clay__filter--pending { --filter-color: var(--orders-orange); }
+.orders-clay__filter--delivered { --filter-color: var(--orders-blue); }
+.orders-clay__filter--completed { --filter-color: var(--orders-green); }
+.orders-clay__filter--cancelled { --filter-color: var(--orders-red); }
 .orders-clay__filter--completed svg, .orders-clay__filter--cancelled svg { border-radius: 50%; padding: 2px; color: hsl(var(--orders-white)); background: hsl(var(--orders-green)); box-shadow: inset 1px 1px 2px hsl(var(--orders-white) / .7), 0 2px 3px hsl(var(--orders-shadow) / .3); }
 .orders-clay__filter--cancelled svg { background: hsl(var(--orders-red)); }
-.orders-clay__filter svg { width: 14px; height: 14px; color: hsl(var(--primary)); stroke-width: 3; filter: drop-shadow(0 2px 1px hsl(var(--orders-shadow) / .3)); }
-.orders-clay__filter.is-active, .orders-clay__action--primary { color: hsl(var(--primary-foreground)); background: linear-gradient(165deg, hsl(274 100% 76%), hsl(var(--primary)) 65%, hsl(var(--profile-purple-dark))); box-shadow: inset 2px 2px 3px hsl(var(--orders-white) / .6), inset -2px -3px 5px hsl(var(--profile-purple-dark) / .6), 0 6px 12px hsl(var(--primary) / .35); }
+.orders-clay__filter svg { flex: none; width: 14px; height: 14px; color: hsl(var(--filter-color, var(--primary))); stroke-width: 3; filter: drop-shadow(0 2px 1px hsl(var(--orders-shadow) / .3)); }
+.orders-clay__filter--completed svg, .orders-clay__filter--cancelled svg { color: hsl(var(--orders-white)); }
+.orders-clay__filter.is-active { color: hsl(var(--primary-foreground)); background: linear-gradient(165deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)) 65%, hsl(var(--profile-purple-dark))); box-shadow: inset 2px 2px 3px hsl(var(--orders-white) / .6), inset -2px -3px 5px hsl(var(--profile-purple-dark) / .6), 0 6px 12px hsl(var(--primary) / .35); }
+.orders-clay__filter.is-active svg { color: hsl(var(--primary-foreground)); }
 .orders-clay__list { display: grid; gap: 15px; }
 .orders-clay__card { min-width: 0; padding: 10px; border-radius: 17px; border: 1px solid hsl(var(--orders-white)); background: var(--orders-surface); box-shadow: inset 2px 2px 4px hsl(var(--orders-white)), inset -2px -3px 6px hsl(var(--orders-lavender)), 0 10px 20px -3px hsl(var(--orders-shadow) / .3); }
 .orders-clay__order-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .orders-clay__order-id { flex: 1; min-width: 0; }
-.orders-clay__order-id h2 { font-weight: 850; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.orders-clay__order-id h2 { font-weight: 850; font-size: 13px; overflow-wrap: anywhere; line-height: 1.25; }
 .orders-clay__order-id time { display: block; font-size: 10px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
 .orders-clay__status { --status-color: var(--orders-blue); display: inline-flex; align-items: center; flex: none; gap: 5px; padding: 8px 10px; border-radius: 14px; color: hsl(var(--status-color)); background: linear-gradient(160deg, hsl(var(--orders-white)), hsl(var(--status-color) / .28)); box-shadow: inset 2px 2px 3px hsl(var(--orders-white)), inset -2px -2px 4px hsl(var(--status-color) / .25), 0 5px 9px hsl(var(--status-color) / .2); font-size: 10px; font-weight: 850; text-transform: uppercase; }
 .orders-clay__status svg { width: 20px; height: 20px; stroke-width: 3; filter: drop-shadow(0 2px 1px hsl(var(--status-color) / .3)); }
@@ -218,8 +221,9 @@
 .orders-clay__details { width: 35px; height: 38px; border-radius: 50%; }
 .orders-clay__actions { display: flex; gap: 8px; margin-top: 12px; }
 .orders-clay__action { flex: 1; min-width: 0; padding: 0 7px; height: 39px; border-radius: 15px; font-size: 11px; font-weight: 800; gap: 5px; color: hsl(var(--primary)); background: linear-gradient(165deg, hsl(var(--orders-white)), hsl(var(--orders-lavender))); border: 1px solid hsl(var(--orders-white)); box-shadow: var(--orders-elevation); }
-.orders-clay__action--primary { color: hsl(var(--primary-foreground)); background: linear-gradient(165deg, hsl(274 100% 76%), hsl(var(--primary))); }
-.orders-clay__action--primary svg { fill: hsl(42 100% 66%); color: hsl(42 100% 66%); }
+.orders-clay__action svg { flex: none; width: 18px; height: 18px; stroke-width: 2.8; filter: drop-shadow(0 2px 1px hsl(var(--orders-shadow) / .3)); }
+.orders-clay__action--primary { color: hsl(var(--primary-foreground)); background: linear-gradient(165deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)) 65%, hsl(var(--profile-purple-dark))); box-shadow: inset 2px 2px 3px hsl(var(--orders-white) / .6), inset -2px -3px 5px hsl(var(--profile-purple-dark) / .6), 0 6px 12px hsl(var(--primary) / .35); }
+.orders-clay__action--primary svg { fill: hsl(var(--orders-gold)); color: hsl(var(--orders-gold)); }
 .orders-clay__pickup { display: flex; align-items: center; gap: 9px; padding: 10px 8px; margin-top: 11px; border-radius: 17px; border: 1px solid hsl(var(--orders-white) / .8); background: linear-gradient(145deg, hsl(var(--background)), hsl(var(--orders-lavender))); box-shadow: inset 2px 2px 5px hsl(var(--orders-shadow) / .12), inset -3px -3px 5px hsl(var(--orders-white)), 0 3px 8px hsl(var(--orders-shadow) / .1); }
 .orders-clay__pickup-art { flex: none; color: hsl(var(--orders-orange)); filter: drop-shadow(0 5px 3px hsl(var(--orders-shadow) / .3)); }
 .orders-clay__pickup-art svg { width: 57px; height: 57px; fill: hsl(var(--orders-orange) / .22); stroke-width: 2.5; }
@@ -227,7 +231,7 @@
 .orders-clay__pickup-info { flex: 1; min-width: 0; }
 .orders-clay__pickup-info h3 { font-size: 11px; text-transform: uppercase; color: hsl(var(--muted-foreground)); font-weight: 800; margin-bottom: 5px; }
 .orders-clay__digits { display: flex; flex-wrap: wrap; gap: 5px; }
-.orders-clay__digits span { display: grid; place-items: center; min-width: 27px; height: 32px; border-radius: 7px; border: 1px solid hsl(var(--orders-white) / .35); font-size: 21px; font-weight: 750; color: hsl(var(--primary-foreground)); background: linear-gradient(155deg, hsl(272 100% 77%), hsl(var(--primary)), hsl(var(--profile-purple-dark))); box-shadow: inset 1px 2px 2px hsl(var(--orders-white) / .6), inset -2px -3px 3px hsl(var(--profile-purple-dark)), 0 5px 7px hsl(var(--primary) / .32); }
+.orders-clay__digits span { display: grid; place-items: center; min-width: 27px; height: 32px; border-radius: 7px; border: 1px solid hsl(var(--orders-white) / .35); font-size: 21px; font-weight: 750; color: hsl(var(--primary-foreground)); background: linear-gradient(155deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)), hsl(var(--profile-purple-dark))); box-shadow: inset 1px 2px 2px hsl(var(--orders-white) / .6), inset -2px -3px 3px hsl(var(--profile-purple-dark)), 0 5px 7px hsl(var(--primary) / .32); }
 .orders-clay__pickup-info p { font-size: 10px; line-height: 1.3; color: hsl(var(--muted-foreground)); margin-top: 8px; }
 .orders-clay__state { text-align: center; padding: 35px 18px; border-radius: 22px; background: var(--orders-surface); box-shadow: var(--orders-elevation); }
 .orders-clay__state > .orders-clay__icon { margin: 0 auto 15px; width: 65px; height: 65px; }
@@ -236,17 +240,16 @@
 .orders-clay__state .orders-clay__action { padding: 0 20px; }
 .orders-clay__skeleton { height: 235px; }
 .orders-clay__decoration { margin: 12px auto 0; max-width: 440px; filter: drop-shadow(0 7px 8px hsl(var(--orders-shadow) / .14)); }
-.orders-clay__decoration img { display: block; width: 100%; height: auto; object-fit: contain; }
+.orders-clay__decoration img { display: block; width: 100%; height: auto; object-fit: contain; mix-blend-mode: multiply; }
 .orders-clay .profile-clay-nav__icon svg { fill: hsl(var(--primary) / .14); }
 .orders-clay .profile-clay-nav__icon.is-active svg { fill: hsl(var(--primary-foreground) / .25); }
 .orders-clay .profile-clay-nav { height: 76px; border-radius: 25px; }
-.orders-clay .profile-clay-nav__icon { width: 30px; height: 32px; border: none; background: transparent; box-shadow: none; overflow: visible; }
-.orders-clay .profile-clay-nav__icon::before { display: none; }
+.orders-clay .profile-clay-nav__icon { width: 34px; height: 34px; border-radius: 12px; border: 1px solid hsl(var(--orders-white)); background: var(--orders-surface); box-shadow: inset 2px 2px 3px hsl(var(--orders-white)), inset -2px -3px 4px hsl(var(--orders-shadow) / .2), 0 4px 6px hsl(var(--orders-shadow) / .2); overflow: hidden; }
 .orders-clay .profile-clay-nav__icon svg { width: 24px; height: 24px; stroke-width: 2.7; filter: drop-shadow(0 2px 0 hsl(var(--orders-white))) drop-shadow(0 3px 2px hsl(var(--orders-shadow) / .3)); }
 .orders-clay .profile-clay-nav__item[aria-label="Home"] .profile-clay-nav__icon { color: hsl(var(--orders-orange)); }
 .orders-clay .profile-clay-nav__item[aria-label="Home"] svg { fill: hsl(var(--orders-orange) / .5); }
 .orders-clay .profile-clay-nav__item[aria-current="page"] { transform: translateY(-3px); background: linear-gradient(145deg, hsl(var(--orders-lavender)), hsl(var(--primary) / .16)); box-shadow: var(--orders-elevation); }
-.orders-clay .profile-clay-nav__icon.is-active { color: hsl(var(--primary)); transform: translateY(-1px); }
+.orders-clay .profile-clay-nav__icon.is-active { color: hsl(var(--primary)); background: linear-gradient(145deg, hsl(var(--orders-lavender)), hsl(var(--primary) / .3)); box-shadow: inset 2px 2px 3px hsl(var(--orders-white) / .8), inset -2px -3px 4px hsl(var(--primary) / .25), 0 5px 8px hsl(var(--primary) / .3); transform: translateY(-1px); }
 .orders-clay .profile-clay-nav__icon.is-active svg { fill: hsl(var(--primary) / .2); filter: drop-shadow(0 2px 0 hsl(var(--profile-purple-dark) / .5)) drop-shadow(0 3px 4px hsl(var(--primary) / .4)); }
 .orders-clay .profile-clay-nav__item[aria-current="page"]::after { bottom: -4px; width: 36px; height: 4px; }
 .orders-clay__tool:hover, .orders-clay__action:hover, .orders-clay__filter:hover { filter: brightness(1.025); }
@@ -261,6 +264,7 @@
   .orders-clay__product { gap: 9px; }
   .orders-clay__photo { width: 78px; height: 90px; }
   .orders-clay__action { font-size: 10px; gap: 4px; padding: 0 5px; }
+  .orders-clay__action svg { width: 16px; height: 16px; }
   .orders-clay__pickup-art svg { width: 42px; height: 42px; }
   .orders-clay__pickup-art img { width: 57px; height: 64px; }
   .orders-clay__pickup { gap: 7px; }
