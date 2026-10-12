@@ -163,7 +163,7 @@
   min-height: 100svh; color: hsl(var(--foreground));
   background: linear-gradient(155deg, hsl(var(--background)), hsl(var(--orders-lavender)));
   font-family: "Figtree", "Inter", system-ui, sans-serif;
-  padding: 22px 12px calc(118px + env(safe-area-inset-bottom));
+  padding: 22px 12px calc(152px + env(safe-area-inset-bottom));
 }
 .orders-clay__content { max-width: 720px; margin: auto; min-width: 0; }
 .orders-clay__header { display: flex; align-items: center; gap: 9px; margin-bottom: 19px; }
@@ -195,7 +195,7 @@
 .orders-clay__filter.is-active svg { color: hsl(var(--primary-foreground)); }
 .orders-clay__list { display: grid; gap: 15px; }
 .orders-clay__card { min-width: 0; padding: 10px; border-radius: 17px; border: 1px solid hsl(var(--orders-white)); background: var(--orders-surface); box-shadow: inset 2px 2px 4px hsl(var(--orders-white)), inset -2px -3px 6px hsl(var(--orders-lavender)), 0 10px 20px -3px hsl(var(--orders-shadow) / .3); }
-.orders-clay__order-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.orders-clay__order-heading { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
 .orders-clay__order-id { flex: 1; min-width: 0; }
 .orders-clay__order-id h2 { font-weight: 850; font-size: 13px; overflow-wrap: anywhere; line-height: 1.25; }
 .orders-clay__order-id time { display: block; font-size: 10px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
@@ -219,19 +219,21 @@
 .orders-clay__location svg { width: 13px; height: 13px; flex: none; }
 .orders-clay__address { overflow-wrap: anywhere; }
 .orders-clay__details { width: 35px; height: 38px; border-radius: 50%; }
-.orders-clay__actions { display: flex; gap: 8px; margin-top: 12px; }
+.orders-clay__actions { display: flex; gap: 8px; margin-top: 10px; padding-bottom: 3px; scroll-margin-bottom: calc(128px + env(safe-area-inset-bottom)); }
 .orders-clay__action { flex: 1; min-width: 0; padding: 0 7px; height: 39px; border-radius: 15px; font-size: 11px; font-weight: 800; gap: 5px; color: hsl(var(--primary)); background: linear-gradient(165deg, hsl(var(--orders-white)), hsl(var(--orders-lavender))); border: 1px solid hsl(var(--orders-white)); box-shadow: var(--orders-elevation); }
 .orders-clay__action svg { flex: none; width: 18px; height: 18px; stroke-width: 2.8; filter: drop-shadow(0 2px 1px hsl(var(--orders-shadow) / .3)); }
 .orders-clay__action--primary { color: hsl(var(--primary-foreground)); background: linear-gradient(165deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)) 65%, hsl(var(--profile-purple-dark))); box-shadow: inset 2px 2px 3px hsl(var(--orders-white) / .6), inset -2px -3px 5px hsl(var(--profile-purple-dark) / .6), 0 6px 12px hsl(var(--primary) / .35); }
 .orders-clay__action--primary svg { fill: hsl(var(--orders-gold)); color: hsl(var(--orders-gold)); }
-.orders-clay__pickup { display: flex; align-items: center; gap: 9px; padding: 10px 8px; margin-top: 11px; border-radius: 17px; border: 1px solid hsl(var(--orders-white) / .8); background: linear-gradient(145deg, hsl(var(--background)), hsl(var(--orders-lavender))); box-shadow: inset 2px 2px 5px hsl(var(--orders-shadow) / .12), inset -3px -3px 5px hsl(var(--orders-white)), 0 3px 8px hsl(var(--orders-shadow) / .1); }
+.orders-clay__pickup { display: flex; align-items: center; gap: 6px; padding: 10px 6px; margin-top: 10px; border-radius: 17px; border: 1px solid hsl(var(--orders-white) / .8); background: linear-gradient(145deg, hsl(var(--background)), hsl(var(--orders-lavender))); box-shadow: inset 2px 2px 5px hsl(var(--orders-shadow) / .12), inset -3px -3px 5px hsl(var(--orders-white)), 0 3px 8px hsl(var(--orders-shadow) / .1); }
+.orders-clay__pickup > .orders-clay__tool { width: 32px; height: 38px; border-radius: 12px; }
+.orders-clay__pickup > .orders-clay__tool svg { width: 20px; height: 20px; }
 .orders-clay__pickup-art { flex: none; color: hsl(var(--orders-orange)); filter: drop-shadow(0 5px 3px hsl(var(--orders-shadow) / .3)); }
 .orders-clay__pickup-art svg { width: 57px; height: 57px; fill: hsl(var(--orders-orange) / .22); stroke-width: 2.5; }
-.orders-clay__pickup-art img { width: 70px; height: 74px; object-fit: contain; transform: rotate(-5deg); }
+.orders-clay__pickup-art img { width: 48px; height: 64px; object-fit: contain; transform: rotate(-5deg); }
 .orders-clay__pickup-info { flex: 1; min-width: 0; }
 .orders-clay__pickup-info h3 { font-size: 11px; text-transform: uppercase; color: hsl(var(--muted-foreground)); font-weight: 800; margin-bottom: 5px; }
-.orders-clay__digits { display: flex; flex-wrap: wrap; gap: 5px; }
-.orders-clay__digits span { display: grid; place-items: center; min-width: 27px; height: 32px; border-radius: 7px; border: 1px solid hsl(var(--orders-white) / .35); font-size: 21px; font-weight: 750; color: hsl(var(--primary-foreground)); background: linear-gradient(155deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)), hsl(var(--profile-purple-dark))); box-shadow: inset 1px 2px 2px hsl(var(--orders-white) / .6), inset -2px -3px 3px hsl(var(--profile-purple-dark)), 0 5px 7px hsl(var(--primary) / .32); }
+.orders-clay__digits { display: flex; flex-wrap: nowrap; gap: 3px; width: 100%; min-width: 0; }
+.orders-clay__digits span { display: grid; place-items: center; flex: 1 1 0; min-width: 0; max-width: 32px; height: 30px; border-radius: 6px; border: 1px solid hsl(var(--orders-white) / .35); font-size: 18px; font-weight: 750; color: hsl(var(--primary-foreground)); background: linear-gradient(155deg, hsl(var(--orders-purple-highlight)), hsl(var(--primary)), hsl(var(--profile-purple-dark))); box-shadow: inset 1px 2px 2px hsl(var(--orders-white) / .6), inset -2px -3px 3px hsl(var(--profile-purple-dark)), 0 5px 7px hsl(var(--primary) / .32); }
 .orders-clay__pickup-info p { font-size: 10px; line-height: 1.3; color: hsl(var(--muted-foreground)); margin-top: 8px; }
 .orders-clay__state { text-align: center; padding: 35px 18px; border-radius: 22px; background: var(--orders-surface); box-shadow: var(--orders-elevation); }
 .orders-clay__state > .orders-clay__icon { margin: 0 auto 15px; width: 65px; height: 65px; }
@@ -266,9 +268,7 @@
   .orders-clay__action { font-size: 10px; gap: 4px; padding: 0 5px; }
   .orders-clay__action svg { width: 16px; height: 16px; }
   .orders-clay__pickup-art svg { width: 42px; height: 42px; }
-  .orders-clay__pickup-art img { width: 57px; height: 64px; }
-  .orders-clay__pickup { gap: 7px; }
-  .orders-clay__pickup > .orders-clay__tool { width: 34px; height: 38px; }
+  .orders-clay__pickup-art img { width: 44px; height: 60px; }
 }
 @media (max-width: 340px) { .orders-clay__filters { gap: 4px; } .orders-clay__filter { font-size: 8px; gap: 2px; } .orders-clay__filter svg { width: 11px; height: 11px; } }
 @media (min-width: 768px) { .orders-clay { padding-bottom: 30px; } }
