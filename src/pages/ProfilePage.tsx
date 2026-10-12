@@ -167,14 +167,6 @@ const ProfilePage = () => {
             <h1 className="profile-clay__title">Profile</h1>
             <p className="profile-clay__subtitle">Manage your profile and preferences</p>
           </div>
-          <div className="flex gap-2.5">
-            <Button type="button" variant="ghost" size="icon" className="profile-clay__header-button" onClick={() => navigate('/profile/notifications')} aria-label="Notifications">
-              <ClayIcon icon={Bell} tone="blue" size="sm" />
-            </Button>
-            <Button type="button" variant="ghost" size="icon" className="profile-clay__header-button" onClick={() => navigate('/profile/edit')} aria-label="Profile settings">
-              <ClayIcon icon={Settings} tone="purple" size="sm" />
-            </Button>
-          </div>
         </header>
 
         <section className="profile-clay__hero" aria-label="Profile summary">
