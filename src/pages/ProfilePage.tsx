@@ -19,7 +19,6 @@ import {
   MapPin,
   Package,
   Pencil,
-  Settings,
   ShoppingBag,
   Star,
   Store,
