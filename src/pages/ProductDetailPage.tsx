@@ -182,7 +182,7 @@ const ProductDetailPage = () => {
       <div className="product-clay__inner">
       <div className="product-clay__header">
         <Button variant="ghost" className="clay-button clay-icon-button" aria-label="Back" onClick={() => navigate(-1)}><ArrowLeft /></Button>
-        <Button variant="ghost" className="clay-button product-clay__category" onClick={() => navigate(`/categories?category=${encodeURIComponent(product.category)}`)}>
+        <Button variant="ghost" className="clay-button product-clay__category" onClick={() => navigate(`/categories?cat=${encodeURIComponent(product.category)}`)}>
           <span className="product-clay__icon"><Home /></span><span>{product.category}</span><ChevronRight />
         </Button>
         <Button variant="ghost" className="clay-button clay-icon-button" aria-label={isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={isWishlisted(product.id)} onClick={handleWishlist}><Heart className="clay-heart" /></Button>

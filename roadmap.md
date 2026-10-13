@@ -1,8 +1,9 @@
 # My Orders mobile corrections
 
 ## Product details reference styling
-- [ ] Apply product-only clay gallery, details, actions and review styling.
-- [ ] Verify the real product page and gallery at mobile widths; check preview diagnostics.
+- [x] Apply product-only clay gallery, details, actions and review styling; preserve single-item reservation handling.
+- [x] Check preview diagnostics (build OK).
+- [ ] Verify the real product page and gallery at mobile widths (blocked: product route redirects to login; no authenticated preview session).
 
 - [x] Keep pickup-code tiles in one responsive row without hiding characters.
 - [x] Add Orders-only bottom clearance and refine card spacing.
