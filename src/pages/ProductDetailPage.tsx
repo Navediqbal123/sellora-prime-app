@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Product, SellerProfile } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -27,9 +26,13 @@ import {
   Copy,
   Package,
   Loader2,
+  Heart, Share2, Home, ChevronLeft, ChevronRight, Expand, FileText,
 } from 'lucide-react';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import ReviewSection from '@/components/product/ReviewSection';
+import { useWishlist } from '@/hooks/useWishlist';
+import shoppingArt from '@/assets/product-clay-shopping.png';
+import '@/components/product/product-clay.css';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +50,28 @@ const ProductDetailPage = () => {
   const [shopName, setShopName] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
+  const [imageOpen, setImageOpen] = useState(false);
+  const { toggleWishlist, isWishlisted } = useWishlist();
+
+  const handleWishlist = () => {
+    if (!user) {
+      toast({ title: 'Login Required', description: 'Please log in to save products', variant: 'destructive' });
+      return;
+    }
+    if (product) void toggleWishlist(product.id);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: product?.title, url: window.location.href });
+      else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({ title: 'Link copied' });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') toast({ title: 'Unable to share', variant: 'destructive' });
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -134,7 +159,7 @@ const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="product-clay">
         <Skeleton className="h-8 w-32 mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <Skeleton className="h-[450px] rounded-2xl" />
@@ -153,139 +178,65 @@ const ProductDetailPage = () => {
   if (!product) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl animate-fade-in">
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        onClick={() => navigate(-1)}
-        className="mb-6 group hover:bg-white/5"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-        Back
-      </Button>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Left — Images */}
-        <div className="space-y-4">
-          <div className="relative h-[450px] rounded-2xl overflow-hidden bg-secondary/30 border border-border/50">
-            {productImages.length > 0 ? (
-              <img
-                src={productImages[imageIndex]}
-                alt={product.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-20 h-20 text-muted-foreground/30" />
-              </div>
-            )}
-            <Badge className="absolute top-4 left-4 bg-primary/90">{product.category}</Badge>
+    <div className="product-clay">
+      <div className="product-clay__inner">
+      <div className="product-clay__header">
+        <Button variant="ghost" className="clay-button clay-icon-button" aria-label="Back" onClick={() => navigate(-1)}><ArrowLeft /></Button>
+        <Button variant="ghost" className="clay-button product-clay__category" onClick={() => navigate(`/categories?category=${encodeURIComponent(product.category)}`)}>
+          <span className="product-clay__icon"><Home /></span><span>{product.category}</span><ChevronRight />
+        </Button>
+        <Button variant="ghost" className="clay-button clay-icon-button" aria-label={isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={isWishlisted(product.id)} onClick={handleWishlist}><Heart className="clay-heart" /></Button>
+        <Button variant="ghost" className="clay-button clay-icon-button" aria-label="Share product" onClick={handleShare}><Share2 /></Button>
+      </div>
+      <div className="product-clay__grid">
+        <div className="product-clay__gallery">
+          <div className="product-clay__image">
+            {productImages.length ? <img src={productImages[imageIndex]} alt={product.title} /> : <div className="h-full flex items-center justify-center"><Package className="w-20 h-20 text-muted-foreground" /></div>}
+            <span className="product-clay__tag"><Package />{product.title}</span>
+            {productImages.length > 0 && <span className="product-clay__counter">{imageIndex + 1} / {productImages.length}</span>}
+            {productImages.length > 1 && <>
+              <Button variant="ghost" className="clay-button clay-icon-button clay-prev" aria-label="Previous image" onClick={() => setImageIndex(i => (i - 1 + productImages.length) % productImages.length)}><ChevronLeft /></Button>
+              <Button variant="ghost" className="clay-button clay-icon-button clay-next" aria-label="Next image" onClick={() => setImageIndex(i => (i + 1) % productImages.length)}><ChevronRight /></Button>
+            </>}
+            {productImages.length > 0 && <Button variant="ghost" className="clay-button clay-icon-button clay-expand" aria-label="Expand product image" onClick={() => setImageOpen(true)}><Expand /></Button>}
           </div>
-
-          {/* Thumbnails */}
-          {productImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {productImages.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setImageIndex(i)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300
-                    ${i === imageIndex ? 'border-primary ring-2 ring-primary/30' : 'border-border/50 hover:border-primary/50'}`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+          {productImages.length > 1 && <div className="product-clay__thumbs">
+            {productImages.map((img, i) => <Button key={img + i} variant="ghost" className="clay-button clay-thumb" aria-label={`View product image ${i + 1}`} aria-pressed={i === imageIndex} onClick={() => setImageIndex(i)}><img src={img} alt={`${product.title}, image ${i + 1}`} /></Button>)}
+          </div>}
         </div>
-
-        {/* Right — Details */}
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{product.title}</h1>
-            <p className="text-4xl font-bold text-gradient-gold mt-3">
-              ₹{product.price.toLocaleString()}
-            </p>
+        <div className="product-clay__details">
+          <div className="product-clay__summary">
+            <h1>{product.title}</h1>
+            <p className="product-clay__price">₹{product.price.toLocaleString()}</p>
+            <img className="product-clay__mascot" src={shoppingArt} alt="" width={512} height={512} />
           </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-accent" /> {product.views || 0} views
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MousePointer className="w-4 h-4 text-sellora-gold" /> {product.clicks || 0} clicks
-            </span>
+          <div className="product-clay__stats"><span><Eye />{product.views || 0} views</span><span><MousePointer />{product.clicks || 0} clicks</span><span><ShoppingBag />Qty: 1</span></div>
+          {product.description && <div className="product-clay__row"><span className="product-clay__icon"><FileText /></span><div><h3>Description</h3><p>{product.description}</p></div></div>}
+          <div className="product-clay__row">
+            <span className="product-clay__icon"><MapPin /></span><div><h3>Location</h3><p>{seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', ')}</p></div>
+            <Button asChild variant="ghost" className="clay-button"><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', '))}`} target="_blank" rel="noopener noreferrer">View on Map<ChevronRight /></a></Button>
           </div>
-
-          {/* Description */}
-          {product.description && (
-            <div className="card-premium p-5">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Description
-              </h3>
-              <p className="text-foreground leading-relaxed whitespace-pre-line">
-                {product.description}
-              </p>
-            </div>
-          )}
-
-          {/* Location */}
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span>{product.city}, {product.state}</span>
-          </div>
-
-          {/* Seller Info */}
-          {seller && (
-            <div className="card-premium p-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <Store className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{seller.shop_name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {seller.city}, {seller.state}
-                  </p>
-                </div>
-              </div>
-              {seller.phone_number && (
-                <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>{seller.phone_number}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-2">
-            <Button
-              className="w-full h-14 btn-glow group text-lg"
-              onClick={() => setShowConfirm(true)}
-            >
-              <ShoppingBag className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Reserve / Visit Shop
-            </Button>
-
-            {seller && user && seller.user_id !== user.id && (
-              <Button
-                variant="outline"
-                className="w-full h-14 border-primary/30 hover:bg-primary/10 group text-lg"
-                onClick={() => setChatOpen(true)}
-              >
-                <MessageCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                Chat with Seller
-              </Button>
-            )}
+          {seller && <div className="product-clay__row">
+            <span className="product-clay__icon"><Store /></span><div><h3>{seller.shop_name}</h3><p>{seller.city}, {seller.state}</p>{seller.phone_number && <a className="product-clay__phone" href={`tel:${seller.phone_number}`}><Phone />{seller.phone_number}</a>}</div>
+            <Button variant="ghost" className="clay-button" onClick={() => navigate(`/seller/${seller.id}`)}><Store />View Shop<ChevronRight /></Button>
+          </div>}
+          <div className="product-clay__actions">
+            {seller && user && seller.user_id !== user.id && <Button variant="ghost" className="clay-button" onClick={() => setChatOpen(true)}><MessageCircle />Chat Now</Button>}
+            <Button variant="ghost" className="clay-button" onClick={handleWishlist}><Heart className="clay-heart" />{isWishlisted(product.id) ? 'Wishlisted' : 'Add to Wishlist'}</Button>
+            <Button className="clay-button clay-primary" onClick={() => setShowConfirm(true)}><Store />Reserve / Visit Shop</Button>
           </div>
         </div>
       </div>
 
+      <Dialog open={imageOpen} onOpenChange={setImageOpen}>
+        <DialogContent className="product-clay product-clay__dialog">
+          <DialogHeader><DialogTitle>{product.title}</DialogTitle><DialogDescription>Image {imageIndex + 1} of {productImages.length}</DialogDescription></DialogHeader>
+          <img className="product-clay__full-image" src={productImages[imageIndex]} alt={product.title} />
+        </DialogContent>
+      </Dialog>
       {/* Confirmation Modal */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="bg-card border-border/50 max-w-md">
+        <DialogContent className="product-clay product-clay__dialog">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirm Reservation</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -296,7 +247,7 @@ const ProductDetailPage = () => {
             <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/50 border border-border/50">
               <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 {productImages[0] ? (
-                  <img src={productImages[0]} alt="" className="w-full h-full object-cover" />
+                  <img src={productImages[0]} alt="" className="w-full h-full object-contain" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="w-6 h-6 text-muted-foreground/50" />
@@ -332,7 +283,7 @@ const ProductDetailPage = () => {
 
       {/* Success Modal */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="bg-card border-border/50 max-w-md text-center">
+        <DialogContent className="product-clay product-clay__dialog text-center">
           <div className="py-6 space-y-6">
             <div className="w-20 h-20 rounded-full bg-sellora-success/20 flex items-center justify-center mx-auto animate-scale-in">
               <CheckCircle2 className="w-10 h-10 text-sellora-success" />
@@ -390,7 +341,7 @@ const ProductDetailPage = () => {
       </Dialog>
 
       {/* Reviews Section */}
-      <ReviewSection productId={product.id} sellerId={product.seller_id} />
+      <div className="product-clay__reviews"><ReviewSection productId={product.id} sellerId={product.seller_id} /></div>
 
       {/* Chat Drawer */}
       {seller && (
@@ -403,6 +354,7 @@ const ProductDetailPage = () => {
           sellerName={seller.shop_name}
         />
       )}
+      </div>
     </div>
   );
 };
