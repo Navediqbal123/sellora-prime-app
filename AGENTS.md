@@ -1,1 +1,2 @@
 - Keep the Orders clay theme scoped to `.orders-clay` and reuse the existing clay bottom-navigation variant so unrelated pages retain their appearance.
+- Scope product-detail presentation to `.product-clay` in its page-imported stylesheet, including descendant review styling, so other marketplace pages retain their appearance.
