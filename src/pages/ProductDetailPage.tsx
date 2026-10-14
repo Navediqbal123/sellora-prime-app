@@ -190,7 +190,7 @@ const ProductDetailPage = () => {
       </div>
       <div className="product-clay__grid">
         <div className="product-clay__gallery">
-          <div className="product-clay__image">
+          <div className="product-clay__image" aria-label="Product image gallery">
             {productImages.length ? <img src={productImages[imageIndex]} alt={product.title} /> : <div className="h-full flex items-center justify-center"><Package className="w-20 h-20 text-muted-foreground" /></div>}
             <span className="product-clay__tag"><Package />{product.title}</span>
             {productImages.length > 0 && <span className="product-clay__counter">{imageIndex + 1} / {productImages.length}</span>}
@@ -200,19 +200,19 @@ const ProductDetailPage = () => {
             </>}
             {productImages.length > 0 && <Button variant="ghost" className="clay-button clay-icon-button clay-expand" aria-label="Expand product image" onClick={() => setImageOpen(true)}><Expand /></Button>}
           </div>
-          {productImages.length > 1 && <div className="product-clay__thumbs">
+          {productImages.length > 1 && <div className="product-clay__thumbs" aria-label="Product thumbnails">
             {productImages.map((img, i) => <Button key={img + i} variant="ghost" className="clay-button clay-thumb" aria-label={`View product image ${i + 1}`} aria-pressed={i === imageIndex} onClick={() => setImageIndex(i)}><img src={img} alt={`${product.title}, image ${i + 1}`} /></Button>)}
           </div>}
         </div>
         <div className="product-clay__details">
           <div className="product-clay__summary">
             <h1>{product.title}</h1>
-            <p className="product-clay__price">₹{product.price.toLocaleString()}</p>
+            <div className="product-clay__price-row"><p className="product-clay__price">₹{product.price.toLocaleString()}</p><div className="product-clay__quantity" aria-label="Reservation quantity: 1"><ShoppingBag /><span>Qty</span><strong>1</strong></div></div>
             <img className="product-clay__mascot" src={shoppingArt} alt="" width={512} height={512} />
           </div>
-          <div className="product-clay__stats"><span><Eye />{product.views || 0} views</span><span><MousePointer />{product.clicks || 0} clicks</span><span><ShoppingBag />Qty: 1</span></div>
+          <div className="product-clay__stats"><span><Eye />{product.views || 0} views</span><span><MousePointer />{product.clicks || 0} clicks</span></div>
           {product.description && <div className="product-clay__row"><span className="product-clay__icon"><FileText /></span><div><h3>Description</h3><p>{product.description}</p></div></div>}
-          <div className="product-clay__row">
+          <div className="product-clay__row product-clay__row--location">
             <span className="product-clay__icon"><MapPin /></span><div><h3>Location</h3><p>{seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', ')}</p></div>
             <Button asChild variant="ghost" className="clay-button"><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', '))}`} target="_blank" rel="noopener noreferrer">View on Map<ChevronRight /></a></Button>
           </div>
