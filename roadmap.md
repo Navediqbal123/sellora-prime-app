@@ -1,6 +1,7 @@
 # My Orders mobile corrections
 
 ## Product details reference styling
+- [ ] Add five real-image/empty gallery slots, visible shopping art, quantity/availability controls, map icon, chat and expandable real reviews; check mobile route.
 - [x] Refine current gallery sizing, five-column thumbnail track, raised details and review styling against the supplied reference; keep actual stored images and single-item reservation quantity.
 - [x] Apply product-only clay gallery, details, actions and review styling; preserve single-item reservation handling.
 - [x] Check preview diagnostics (build OK).
