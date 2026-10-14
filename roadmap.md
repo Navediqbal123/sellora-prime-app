@@ -1,6 +1,7 @@
 # My Orders mobile corrections
 
 ## Product details reference styling
+- [ ] Refine current gallery sizing, thumbnail track, raised details and review styling against the supplied reference.
 - [x] Apply product-only clay gallery, details, actions and review styling; preserve single-item reservation handling.
 - [x] Check preview diagnostics (build OK).
 - [ ] Verify the real product page and gallery at mobile widths (blocked: product route redirects to login; no authenticated preview session).
