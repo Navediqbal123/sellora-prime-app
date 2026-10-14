@@ -26,7 +26,7 @@ import {
   Copy,
   Package,
   Loader2,
-  Heart, Share2, Home, ChevronLeft, ChevronRight, Expand, FileText,
+  Heart, Share2, Home, ChevronLeft, ChevronRight, Expand, FileText, Minus, Plus, Image as ImageIcon, ShieldCheck,
 } from 'lucide-react';
 import ChatDrawer from '@/components/chat/ChatDrawer';
 import ReviewSection from '@/components/product/ReviewSection';
@@ -156,6 +156,7 @@ const ProductDetailPage = () => {
     : product?.image_url
       ? [product.image_url]
       : [];
+  const thumbnailSlots = Array.from({ length: Math.max(5, productImages.length) }, (_, index) => productImages[index]);
 
   if (loading) {
     return (
@@ -194,34 +195,35 @@ const ProductDetailPage = () => {
             {productImages.length ? <img src={productImages[imageIndex]} alt={product.title} /> : <div className="h-full flex items-center justify-center"><Package className="w-20 h-20 text-muted-foreground" /></div>}
             <span className="product-clay__tag"><Package />{product.title}</span>
             {productImages.length > 0 && <span className="product-clay__counter">{imageIndex + 1} / {productImages.length}</span>}
-            {productImages.length > 1 && <>
-              <Button variant="ghost" className="clay-button clay-icon-button clay-prev" aria-label="Previous image" onClick={() => setImageIndex(i => (i - 1 + productImages.length) % productImages.length)}><ChevronLeft /></Button>
-              <Button variant="ghost" className="clay-button clay-icon-button clay-next" aria-label="Next image" onClick={() => setImageIndex(i => (i + 1) % productImages.length)}><ChevronRight /></Button>
-            </>}
+            <Button variant="ghost" className="clay-button clay-icon-button clay-prev" aria-label="Previous image" disabled={productImages.length < 2} onClick={() => setImageIndex(i => (i - 1 + productImages.length) % productImages.length)}><ChevronLeft /></Button>
+            <Button variant="ghost" className="clay-button clay-icon-button clay-next" aria-label="Next image" disabled={productImages.length < 2} onClick={() => setImageIndex(i => (i + 1) % productImages.length)}><ChevronRight /></Button>
             {productImages.length > 0 && <Button variant="ghost" className="clay-button clay-icon-button clay-expand" aria-label="Expand product image" onClick={() => setImageOpen(true)}><Expand /></Button>}
           </div>
-          {productImages.length > 1 && <div className="product-clay__thumbs" aria-label="Product thumbnails">
-            {productImages.map((img, i) => <Button key={img + i} variant="ghost" className="clay-button clay-thumb" aria-label={`View product image ${i + 1}`} aria-pressed={i === imageIndex} onClick={() => setImageIndex(i)}><img src={img} alt={`${product.title}, image ${i + 1}`} /></Button>)}
-          </div>}
+          <div className="product-clay__thumbs" aria-label="Product thumbnails">
+            {thumbnailSlots.map((img, i) => img ? <Button key={i} variant="ghost" className="clay-button clay-thumb" aria-label={`View product image ${i + 1}`} aria-pressed={i === imageIndex} onClick={() => setImageIndex(i)}><img src={img} alt={`${product.title}, image ${i + 1}`} /></Button> : <div key={i} className="clay-button clay-thumb clay-thumb--empty" aria-label={`Image ${i + 1} unavailable`}><ImageIcon /></div>)}
+          </div>
         </div>
         <div className="product-clay__details">
           <div className="product-clay__summary">
             <h1>{product.title}</h1>
-            <div className="product-clay__price-row"><p className="product-clay__price">₹{product.price.toLocaleString()}</p><div className="product-clay__quantity" aria-label="Reservation quantity: 1"><ShoppingBag /><span>Qty</span><strong>1</strong></div></div>
+            <div className="product-clay__price-row"><p className="product-clay__price">₹{product.price.toLocaleString()}</p><div className="product-clay__quantity" aria-label="Reservation quantity: 1" title="Reservations are for one item"><Button variant="ghost" className="clay-button" aria-label="Decrease quantity" disabled><Minus /></Button><strong>1</strong><Button variant="ghost" className="clay-button" aria-label="Increase quantity — single-item reservations" disabled><Plus /></Button></div></div>
             <img className="product-clay__mascot" src={shoppingArt} alt="" width={512} height={512} />
           </div>
           <div className="product-clay__stats"><span><Eye />{product.views || 0} views</span><span><MousePointer />{product.clicks || 0} clicks</span></div>
           {product.description && <div className="product-clay__row"><span className="product-clay__icon"><FileText /></span><div><h3>Description</h3><p>{product.description}</p></div></div>}
           <div className="product-clay__row product-clay__row--location">
             <span className="product-clay__icon"><MapPin /></span><div><h3>Location</h3><p>{seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', ')}</p></div>
-            <Button asChild variant="ghost" className="clay-button"><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', '))}`} target="_blank" rel="noopener noreferrer">View on Map<ChevronRight /></a></Button>
+            <Button asChild variant="ghost" className="clay-button"><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seller ? [seller.address, seller.city, seller.state, seller.pincode].filter(Boolean).join(', ') : [product.city, product.state].filter(Boolean).join(', '))}`} target="_blank" rel="noopener noreferrer"><span className="product-clay__maps-icon" aria-hidden="true"><MapPin /></span>View on Map<ChevronRight /></a></Button>
           </div>
           {seller && <div className="product-clay__row">
             <span className="product-clay__icon"><Store /></span><div><h3>{seller.shop_name}</h3><p>{seller.city}, {seller.state}</p>{seller.phone_number && <a className="product-clay__phone" href={`tel:${seller.phone_number}`}><Phone />{seller.phone_number}</a>}</div>
             <Button variant="ghost" className="clay-button" onClick={() => navigate(`/seller/${seller.id}`)}><Store />View Shop<ChevronRight /></Button>
           </div>}
           <div className="product-clay__actions">
-            {seller && user && seller.user_id !== user.id && <Button variant="ghost" className="clay-button" onClick={() => setChatOpen(true)}><MessageCircle />Chat Now</Button>}
+            <Button variant="ghost" className="clay-button" disabled={!seller || seller.user_id === user?.id} onClick={() => {
+              if (!user) { toast({ title: 'Login Required', description: 'Please log in to chat with this shop' }); return; }
+              setChatOpen(true);
+            }}><MessageCircle />Chat Now</Button>
             <Button variant="ghost" className="clay-button" onClick={handleWishlist}><Heart className="clay-heart" />{isWishlisted(product.id) ? 'Wishlisted' : 'Add to Wishlist'}</Button>
             <Button className="clay-button clay-primary" onClick={() => setShowConfirm(true)}><Store />Reserve / Visit Shop</Button>
           </div>
