@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Send, User } from 'lucide-react';
+import { Star, Send, User, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -34,14 +34,16 @@ const StarRating = ({ rating, onRate, interactive = false, size = 'md' }: {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
-        <button
+        <Button
           key={star}
+          variant="ghost"
           type="button"
+          aria-label={`Rate ${star} stars`}
           disabled={!interactive}
           onClick={() => onRate?.(star)}
           onMouseEnter={() => interactive && setHover(star)}
           onMouseLeave={() => interactive && setHover(0)}
-          className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+          className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} h-auto p-0 hover:bg-transparent disabled:opacity-100 transition-transform`}
         >
           <Star
             className={`${starSize} transition-colors ${
@@ -50,7 +52,7 @@ const StarRating = ({ rating, onRate, interactive = false, size = 'md' }: {
                 : 'text-muted-foreground/30'
             }`}
           />
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -64,6 +66,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ productId, sellerId }) =>
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
@@ -178,7 +181,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ productId, sellerId }) =>
   return (
     <div className="mt-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="product-clay__review-heading flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Reviews & Ratings</h2>
           <div className="flex items-center gap-3 mt-1">
@@ -187,6 +190,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ productId, sellerId }) =>
             <span className="text-muted-foreground text-sm">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
           </div>
         </div>
+        <Button variant="ghost" className="clay-button product-clay__see-all" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show Less' : 'See All'}<ChevronRight /></Button>
       </div>
 
       {/* Add Review Form */}
@@ -223,7 +227,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ productId, sellerId }) =>
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {(showAll ? reviews : reviews.slice(0, 1)).map((review) => (
             <div
               key={review.id}
               className="card-premium p-5 transition-all duration-300 hover:border-primary/20"
