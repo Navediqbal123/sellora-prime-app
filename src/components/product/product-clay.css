@@ -144,3 +144,23 @@ body:has(.product-clay) header:has(> div > span) { display: none; }
   .product-clay__image { aspect-ratio: 1.15; min-height: 0; }
   .product-clay__thumbs { gap: 6px; grid-auto-columns: calc((100% - 24px) / 5); }
 }
+/* Mobile refinement: larger clear icons/text, compact primary gap, rows stay inline. */
+.product-clay__tag { font-weight: 800; text-shadow: 0 1px 1px hsl(252 100% 30% / .35); }
+.product-clay__tag svg { width: 18px; height: 18px; }
+.product-clay .product-clay__gmaps { width: 18px; height: 25px; }
+.product-clay__actions .clay-button { justify-content: center; gap: 6px; font-weight: 800; }
+.product-clay__actions .clay-primary { gap: 6px !important; text-shadow: 0 1px 1px hsl(252 100% 30% / .4); }
+.product-clay__actions .clay-button svg { width: 21px; height: 21px; }
+@media (max-width: 420px) {
+  .product-clay__row { display: flex !important; align-items: center; }
+  .product-clay__row > div { flex: 1 1 auto; min-width: 0; }
+  .product-clay__row > .clay-button { margin: 0 0 0 auto !important; height: 36px; font-size: 11px; font-weight: 800; gap: 4px; padding: 4px 9px; }
+  .product-clay__row > .clay-button svg.lucide-store { width: 20px; height: 20px; }
+  .product-clay__actions .clay-button { font-size: 11px; gap: 5px; padding: 8px 6px; }
+  .product-clay__actions .clay-button svg { width: 20px; height: 20px; }
+}
+@media (max-width: 374px) {
+  .product-clay__row > .clay-button { font-size: 10px; padding: 4px 7px; gap: 3px; }
+  .product-clay__actions .clay-button { font-size: 10px; gap: 4px; padding: 8px 4px; }
+  .product-clay__actions .clay-button svg { width: 18px; height: 18px; }
+}
