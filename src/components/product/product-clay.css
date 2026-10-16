@@ -164,3 +164,21 @@ body:has(.product-clay) header:has(> div > span) { display: none; }
   .product-clay__actions .clay-button { font-size: 10px; gap: 4px; padding: 8px 4px; }
   .product-clay__actions .clay-button svg { width: 18px; height: 18px; }
 }
+/* Full clay lock: 3D text, filled colorful icons, no awkward wrapping. */
+.product-clay__summary h1, .product-clay__row h3, .product-clay__review-heading h2 { text-shadow: 0 1px 0 hsl(0 0% 100%), 0 2px 3px hsl(252 60% 40% / .22); }
+.product-clay__price { text-shadow: 0 2px 0 hsl(0 0% 100% / .8), 0 4px 6px hsl(265 85% 50% / .3); }
+.product-clay .clay-button { text-shadow: 0 1px 0 hsl(0 0% 100% / .9); }
+.product-clay .clay-primary { text-shadow: 0 1px 2px hsl(252 100% 25% / .45); }
+.product-clay .clay-button svg { stroke-width: 2.5; }
+.product-clay .clay-button svg:not(.product-clay__gmaps):not(.clay-heart) { fill: hsl(var(--primary) / .18); }
+.product-clay .clay-primary svg { fill: hsl(0 0% 100% / .22) !important; }
+.product-clay .clay-heart { fill: hsl(var(--clay-pink, 340 90% 60%)); color: hsl(var(--clay-pink, 340 90% 60%)); }
+.product-clay__stats svg { width: 18px; height: 18px; filter: var(--clay-icon-shadow); }
+.product-clay__stats .product-clay__stock { padding: 3px 9px; border-radius: 999px; background: var(--clay-surface); box-shadow: var(--clay-shadow); }
+.product-clay__quantity { box-shadow: var(--clay-shadow); border-radius: 999px; }
+.product-clay__quantity strong { text-shadow: 0 1px 0 hsl(0 0% 100%), 0 2px 3px hsl(252 60% 40% / .25); }
+.product-clay__tag { box-shadow: 0 5px 10px hsl(265 85% 50% / .3), inset 1px 2px 2px hsl(0 0% 100% / .5), inset -1px -2px 3px hsl(252 100% 35% / .35); }
+.product-clay__actions { grid-template-columns: minmax(0,1fr) minmax(0,1.15fr) minmax(0,1.4fr); }
+.product-clay__actions .clay-button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 420px) { .product-clay__actions { gap: 6px; } .product-clay__actions .clay-button { font-size: 10.5px; padding: 8px 5px; gap: 4px; } .product-clay__actions .clay-button svg { width: 18px; height: 18px; } }
+@media (max-width: 374px) { .product-clay__actions { grid-template-columns: 1fr 1fr; } .product-clay__actions .clay-primary { grid-column: 1 / -1; } .product-clay__actions .clay-button { font-size: 11px; } }
