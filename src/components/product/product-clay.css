@@ -222,3 +222,11 @@ body:has(.product-clay) header:has(> div > span) { display: none; }
   .product-clay__actions { grid-template-columns: 1fr 1fr !important; }
   .product-clay__actions .clay-primary { grid-column: 1 / -1 !important; font-size: 12px !important; }
 }
+/* Reference lock v4: tall, large mobile gallery with the full bottle centered. */
+@media (max-width: 640px) {
+  .product-clay__image { aspect-ratio: 1.02 !important; min-height: 330px; border-radius: 26px; }
+  .product-clay__image > img { object-fit: contain; object-position: center; padding: 6px; }
+}
+@media (max-width: 380px) {
+  .product-clay__image { min-height: 300px; }
+}
