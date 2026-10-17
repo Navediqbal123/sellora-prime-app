@@ -205,3 +205,20 @@ body:has(.product-clay) header:has(> div > span) { display: none; }
   .product-clay__actions .clay-button svg, .product-clay__actions .clay-button .clay-heart { width: 18px !important; height: 18px !important; }
 }
 @media (max-width: 374px) { .product-clay__actions .clay-button { font-size: 10px !important; padding: 6px 4px !important; gap: 4px !important; } }
+/* Reference lock v3: wider/taller gallery, colorful 3D stats, single-line action buttons. */
+.product-clay__stats span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--clay-surface, hsl(250 60% 98%)); box-shadow: 0 4px 10px hsl(252 50% 50% / .14), inset 1px 1px 2px hsl(0 0% 100%), inset -1px -2px 3px hsl(252 40% 70% / .25); font-weight: 750; color: hsl(var(--foreground) / .8); text-shadow: 0 1px 0 hsl(0 0% 100%); }
+.product-clay__stats span:nth-child(1) svg { color: hsl(205 90% 48%); fill: hsl(200 95% 70% / .45); filter: drop-shadow(0 2px 2px hsl(205 90% 40% / .4)); }
+.product-clay__stats span:nth-child(2) svg { color: hsl(28 95% 52%); fill: hsl(45 100% 60%); filter: drop-shadow(0 2px 2px hsl(28 90% 40% / .4)); }
+@media (max-width: 420px) {
+  .product-clay__gallery { margin-left: -6px; margin-right: -6px; }
+  .product-clay__image { aspect-ratio: 1.12 !important; border-radius: 24px; }
+  .product-clay__stats { gap: 6px !important; flex-wrap: wrap; }
+  .product-clay__stats span { padding: 3px 8px; font-size: 11px; }
+  .product-clay__actions { grid-template-columns: auto auto minmax(0,1fr) !important; gap: 5px !important; }
+  .product-clay__actions .clay-button { white-space: nowrap !important; padding: 6px 7px !important; gap: 4px !important; font-size: 10.5px !important; letter-spacing: -.2px; min-height: 46px; text-align: center; }
+  .product-clay__actions .clay-button svg, .product-clay__actions .clay-button .clay-heart { width: 17px !important; height: 17px !important; }
+}
+@media (max-width: 380px) {
+  .product-clay__actions { grid-template-columns: 1fr 1fr !important; }
+  .product-clay__actions .clay-primary { grid-column: 1 / -1 !important; font-size: 12px !important; }
+}
